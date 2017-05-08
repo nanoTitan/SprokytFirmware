@@ -116,13 +116,20 @@ typedef struct {
  *  @{
  */
 tBleStatus Add_Acc_Service(void);
-tBleStatus Acc_Update(AxesRaw_t *data);
+tBleStatus Acc_Update();
+tBleStatus Temp_Update(int16_t temp);
+tBleStatus Press_Update(int32_t press);
+tBleStatus Humidity_Update(uint16_t humidity);
 tBleStatus Add_Environmental_Sensor_Service(void);
-void       setConnectable(void);
-void       enableNotification(void);
-void       GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle);
-void       GAP_DisconnectionComplete_CB(void);
-void       HCI_Event_CB(void *pckt);
+	 
+uint16_t GetAccServHandle();
+uint16_t GetFreeFallHandle();
+uint16_t GetAccCharHandle();
+uint16_t GetEnvSensServHandle();
+uint16_t GetTempCharHandle();
+uint16_t GetPressCharHandle();
+uint16_t GetHumidtyCharHandle();
+
 
 #if NEW_SERVICES
   tBleStatus Add_Time_Service(void);

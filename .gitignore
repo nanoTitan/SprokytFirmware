@@ -15,6 +15,7 @@ Release
 *.TMP
 *.VC
 *.mak
+*.old
 
 sprokyt_firmware-Debug-Win32
 sprokyt_firmware/VisualGDBCache/sprokyt_firmware-Debug

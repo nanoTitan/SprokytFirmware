@@ -52,10 +52,6 @@
  * @{
  */
 /* Private variables ---------------------------------------------------------*/
-volatile int connected = FALSE;
-volatile uint8_t set_connectable = 1;
-volatile uint16_t connection_handle = 0;
-volatile uint8_t notification_enabled = FALSE;
 volatile AxesRaw_t axes_data = {0, 0, 0};
 uint16_t sampleServHandle, TXCharHandle, RXCharHandle;
 uint16_t accServHandle, freeFallCharHandle, accCharHandle;
@@ -124,6 +120,15 @@ do {\
 /** @defgroup SENSOR_SERVICE_Exported_Functions 
  * @{
  */ 
+	
+uint16_t GetAccServHandle() { return accServHandle; }
+uint16_t GetFreeFallHandle() { return freeFallCharHandle; }
+uint16_t GetAccCharHandle() { return accCharHandle; }
+uint16_t GetEnvSensServHandle() { return envSensServHandle; }
+uint16_t GetTempCharHandle() { return tempCharHandle; }
+uint16_t GetPressCharHandle() { return pressCharHandle; }
+uint16_t GetHumidtyCharHandle() { return humidityCharHandle; }
+
 /**
  * @brief  Add an accelerometer service using a vendor specific profile.
  *
@@ -192,22 +197,27 @@ tBleStatus Free_Fall_Notify(void)
  * @param  Structure containing acceleration value in mg
  * @retval Status
  */
-tBleStatus Acc_Update(AxesRaw_t *data)
+tBleStatus Acc_Update()
 {  
-  tBleStatus ret;    
-  uint8_t buff[6];
+	tBleStatus ret;    
+	uint8_t buff[6];
+	
+	axes_data.AXIS_X += 10;
+	axes_data.AXIS_Y += 10;
+	axes_data.AXIS_Z += 10;
     
-  STORE_LE_16(buff,data->AXIS_X);
-  STORE_LE_16(buff+2,data->AXIS_Y);
-  STORE_LE_16(buff+4,data->AXIS_Z);
+	STORE_LE_16(buff, axes_data.AXIS_X);
+	STORE_LE_16(buff + 2, axes_data.AXIS_Y);
+	STORE_LE_16(buff + 4, axes_data.AXIS_Z);
 	
-  ret = aci_gatt_update_char_value(accServHandle, accCharHandle, 0, 6, buff);
+	ret = aci_gatt_update_char_value(accServHandle, accCharHandle, 0, 6, buff);
 	
-  if (ret != BLE_STATUS_SUCCESS){
-    PRINTF("Error while updating ACC characteristic.\n") ;
-    return BLE_STATUS_ERROR ;
-  }
-  return BLE_STATUS_SUCCESS;	
+	if (ret != BLE_STATUS_SUCCESS)
+	{
+		PRINTF("Error while updating ACC characteristic.\n") ;
+		return BLE_STATUS_ERROR ;
+	}
+	return BLE_STATUS_SUCCESS;	
 }
 
 /**
@@ -391,187 +401,6 @@ tBleStatus Humidity_Update(uint16_t humidity)
   }
   return BLE_STATUS_SUCCESS;
   
-}
-
-/**
- * @brief  Puts the device in connectable mode.
- *         If you want to specify a UUID list in the advertising data, those data can
- *         be specified as a parameter in aci_gap_set_discoverable().
- *         For manufacture data, aci_gap_update_adv_data must be called.
- * @param  None 
- * @retval None
- */
-/* Ex.:
- *
- *  tBleStatus ret;    
- *  const char local_name[] = {AD_TYPE_COMPLETE_LOCAL_NAME,'B','l','u','e','N','R','G'};    
- *  const uint8_t serviceUUIDList[] = {AD_TYPE_16_BIT_SERV_UUID,0x34,0x12};    
- *  const uint8_t manuf_data[] = {4, AD_TYPE_MANUFACTURER_SPECIFIC_DATA, 0x05, 0x02, 0x01};
- *  
- *  ret = aci_gap_set_discoverable(ADV_IND, 0, 0, PUBLIC_ADDR, NO_WHITE_LIST_USE,
- *                                 8, local_name, 3, serviceUUIDList, 0, 0);    
- *  ret = aci_gap_update_adv_data(5, manuf_data);
- *
- */
-void setConnectable(void)
-{  
-  tBleStatus ret;
-  
-  const char local_name[] = {AD_TYPE_COMPLETE_LOCAL_NAME,'B','l','u','e','N','R','G'};
-  
-  /* disable scan response */
-  hci_le_set_scan_resp_data(0,NULL);
-  PRINTF("General Discoverable Mode.\n");
-  
-  ret = aci_gap_set_discoverable(ADV_IND, 0, 0, PUBLIC_ADDR, NO_WHITE_LIST_USE,
-                                 sizeof(local_name), local_name, 0, NULL, 0, 0);
-  if (ret != BLE_STATUS_SUCCESS) {
-    PRINTF("Error while setting discoverable mode (%d)\n", ret);    
-  }  
-}
-
-/**
- * @brief  This function is called when there is a LE Connection Complete event.
- * @param  uint8_t Address of peer device
- * @param  uint16_t Connection handle
- * @retval None
- */
-void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle)
-{  
-  connected = TRUE;
-  connection_handle = handle;
-  
-  PRINTF("Connected to device:");
-  for(int i = 5; i > 0; i--){
-    PRINTF("%02X-", addr[i]);
-  }
-  PRINTF("%02X\n", addr[0]);
-}
-
-/**
- * @brief  This function is called when the peer device gets disconnected.
- * @param  None 
- * @retval None
- */
-void GAP_DisconnectionComplete_CB(void)
-{
-  connected = FALSE;
-  PRINTF("Disconnected\n");
-  /* Make the device connectable again. */
-  set_connectable = TRUE;
-  notification_enabled = FALSE;
-}
-
-/**
- * @brief  Read request callback.
- * @param  uint16_t Handle of the attribute
- * @retval None
- */
-void Read_Request_CB(uint16_t handle)
-{  
-  if(handle == accCharHandle + 1){
-    Acc_Update((AxesRaw_t*)&axes_data);
-  }  
-  else if(handle == tempCharHandle + 1){
-    int16_t data;
-    data = 270 + ((uint64_t)rand()*15)/RAND_MAX; //sensor emulation        
-    Acc_Update((AxesRaw_t*)&axes_data); //FIXME: to overcome issue on Android App
-                                        // If the user button is not pressed within
-                                        // a short time after the connection,
-                                        // a pop-up reports a "No valid characteristics found" error.
-    Temp_Update(data);
-  }
-  else if(handle == pressCharHandle + 1){
-    int32_t data;
-    struct timer t;  
-    Timer_Set(&t, CLOCK_SECOND/10);
-    data = 100000 + ((uint64_t)rand()*1000)/RAND_MAX;
-    Press_Update(data);
-  }
-  else if(handle == humidityCharHandle + 1){
-    uint16_t data;
-    
-    data = 450 + ((uint64_t)rand()*100)/RAND_MAX;
-    
-    Humidity_Update(data);
-  }  
-  
-  //EXIT:
-  if(connection_handle != 0)
-    aci_gatt_allow_read(connection_handle);
-}
-
-/**
- * @brief  Callback processing the ACI events.
- * @note   Inside this function each event must be identified and correctly
- *         parsed.
- * @param  void* Pointer to the ACI packet
- * @retval None
- */
-void HCI_Event_CB(void *pckt)
-{
-  hci_uart_pckt *hci_pckt = pckt;
-  /* obtain event packet */
-  hci_event_pckt *event_pckt = (hci_event_pckt*)hci_pckt->data;
-  
-  if(hci_pckt->type != HCI_EVENT_PKT)
-    return;
-  
-  switch(event_pckt->evt){
-    
-  case EVT_DISCONN_COMPLETE:
-    {
-      GAP_DisconnectionComplete_CB();
-    }
-    break;
-    
-  case EVT_LE_META_EVENT:
-    {
-      evt_le_meta_event *evt = (void *)event_pckt->data;
-      
-      switch(evt->subevent){
-      case EVT_LE_CONN_COMPLETE:
-        {
-          evt_le_connection_complete *cc = (void *)evt->data;
-          GAP_ConnectionComplete_CB(cc->peer_bdaddr, cc->handle);
-        }
-        break;
-      }
-    }
-    break;
-    
-  case EVT_VENDOR:
-    {
-      evt_blue_aci *blue_evt = (void*)event_pckt->data;
-      switch(blue_evt->ecode){
-
-#if NEW_SERVICES
-      case EVT_BLUE_GATT_ATTRIBUTE_MODIFIED:         
-        {
-          /* this callback is invoked when a GATT attribute is modified
-          extract callback data and pass to suitable handler function */
-          if (bnrg_expansion_board == IDB05A1) {
-            evt_gatt_attr_modified_IDB05A1 *evt = (evt_gatt_attr_modified_IDB05A1*)blue_evt->data;
-            Attribute_Modified_CB(evt->attr_handle, evt->data_length, evt->att_data); 
-          }
-          else {
-            evt_gatt_attr_modified_IDB04A1 *evt = (evt_gatt_attr_modified_IDB04A1*)blue_evt->data;
-            Attribute_Modified_CB(evt->attr_handle, evt->data_length, evt->att_data); 
-          }                       
-        }
-        break; 
-#endif
-
-      case EVT_BLUE_GATT_READ_PERMIT_REQ:
-        {
-          evt_gatt_read_permit_req *pr = (void*)blue_evt->data;                    
-          Read_Request_CB(pr->attr_handle);                    
-        }
-        break;
-      }
-    }
-    break;
-  }    
 }
 
 #if NEW_SERVICES
