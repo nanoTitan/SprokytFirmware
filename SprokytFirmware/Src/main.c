@@ -5,24 +5,16 @@ All Rights Reserved
 */
 
 #include "constants.h"
+#include "hw_init.h"
 #include "control_manager.h"
 #include "BLE.h"
 //#include "motor_controller.h"
-#include "error.h"
-#include "debug.h"
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif 
-
-#include "cube_hal.h"
 //#include "imu.h"
 //#include "LED/LEDManager.h"
+#include "error.h"
+#include "debug.h"
+#include "cube_hal.h"
 
-#ifdef __cplusplus
-}
-#endif
 
 int main()
 {	
@@ -33,10 +25,12 @@ int main()
 	PRINTF("***************************\r\n\r\n");
 	
 	if (HAL_Init() != HAL_OK)
-		CError_Handler(); 
+		Error_Handler(); 
 	
 	// Configure the system clock
-	SystemClock_Config();	
+	SystemClock_Config();
+	
+	Hardware_Init();
 	
 	//LEDMgr_Init();
 	
@@ -55,7 +49,7 @@ int main()
 	
 	// Communication
 	if (InitBLE() != BLE_STATUS_SUCCESS)
-		CError_Handler(); 
+		Error_Handler(); 
 	
 	//SWPF01SA::Instance()->InitWifi();		// ST Wifi
 	//Wifi::Instance()->Init();				// ESP Wifi

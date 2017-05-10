@@ -1197,6 +1197,7 @@
 //Src
 //Src/BLE
 //Src/Controller
+//Src/Motor
 //X-CUBE-BLE1/Drivers/BSP/STM32F4xx-Nucleo
 //X-CUBE-BLE1/Drivers/BSP/X-NUCLEO-IDB0xA1
 //X-CUBE-BLE1/Middlewares/ST/LowPowerManager/Inc
