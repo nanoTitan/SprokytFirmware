@@ -53,50 +53,26 @@
  *       }
  */
 
+#include <stdint.h>
+
+typedef enum
+{ 
+	MOTOR_CHANNEL_A1 = 0,
+	MOTOR_CHANNEL_B1 = 1,
+	MOTOR_CHANNEL_A2 = 2,
+	MOTOR_CHANNEL_B2 = 3
+} MOTOR_CHANNEL;
+
 #ifndef _TB6612FNG_H_
 #define _TB6612FNG_H_
 
-void TB6612FNG_Init();
-void setPwmA(float fPeriod, float fPulsewidth);
-void setPwmAperiod(float fPeriod);
-void setPwmApulsewidth(float fPulsewidth);
-void setPwmB(float fPeriod, float fPulsewidth);
-void setPwmBperiod(float fPeriod);
-void setPwmBpulsewidth(float fPulsewidth);
-void standby(void);
-void motorA_stop(void);
-void motorA_ccw(void);
-void motorA_cw(void);
-void motorB_stop(void);
-void motorB_ccw(void);
-void motorB_cw(void);
- 
-class TB6612FNG
-{
-public:
-	TB6612FNG( PinName pinPwmA,
-		PinName pinAin1,
-		PinName pinAin2,
-		PinName pinPwmB,
-		PinName pinBin1,
-		PinName pinBin2,
-		PinName pinNStby);
-	void setPwmA(float fPeriod, float fPulsewidth);
-	void setPwmAperiod(float fPeriod);
-	void setPwmApulsewidth(float fPulsewidth);
-	void setPwmB(float fPeriod, float fPulsewidth);
-	void setPwmBperiod(float fPeriod);
-	void setPwmBpulsewidth(float fPulsewidth);
-	void standby(void);
-	void motorA_stop(void);
-	void motorA_ccw(void);
-	void motorA_cw(void);
-	void motorB_stop(void);
-	void motorB_ccw(void);
-	void motorB_cw(void);
-    
-private:
-	
-};
- 
+void TB_Init();
+void TB_SetPwm(int iMotorChannel, uint16_t fFrequency, float fPulsewidth);
+void TB_SetPwmFrequency(uint16_t fFrequency);
+void TB_SetPwmPulsewidth(int iMotorChannel, float fPulsewidth);
+void TB_Standby(int iMotorChannel);
+void TB_MotorStop(int iMotorChannel);
+void TB_MotorCCW(int iMotorChannel);
+void TB_MotorCW(int iMotorChannel);
+
 #endif // _TB6612FNG_H_

@@ -2,6 +2,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "hw_init.h"
 #include "stm32f4xx_hal_conf.h"
+
 #include "constants.h"
 #include "error.h"
 
@@ -12,7 +13,6 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
-
 
 /* Private function prototypes -----------------------------------------------*/
 static void MX_GPIO_Init(void);
@@ -36,7 +36,6 @@ void Hardware_Init()
 /* TIM3 init function */
 static void MX_TIM3_Init(void)
 {
-
 	TIM_MasterConfigTypeDef sMasterConfig;
 	TIM_OC_InitTypeDef sConfigOC;
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -81,14 +80,42 @@ static void MX_TIM3_Init(void)
 	{
 		Error_Handler();
 	}
-
-	/**TIM3 GPIO Configuration    
-    PA6     ------> TIM3_CH1
-    PB0     ------> TIM3_CH3
-    PB1     ------> TIM3_CH4
-    PB5     ------> TIM3_CH2 
-    */
 	
 	HAL_TIM_MspPostInit(&htim3);
+}
 
+void HW_PWMSetCompare(int timer, int channel, int compare)
+{
+	TIM_HandleTypeDef* pTim = NULL;
+	switch (timer)
+	{
+		case TIMER_3:
+			pTim = &htim3;
+			break;
+		
+		default:
+			return;
+	}
+	
+	if (channel < TIM_CHANNEL_1 || channel > TIM_CHANNEL_4)
+		return;
+
+	__HAL_TIM_SET_COMPARE(pTim, channel, compare);
+}
+
+void HW_PWMSetFrequency(int timer, uint16_t frequency)
+{
+	TIM_HandleTypeDef* pTim = NULL;
+	switch (timer)
+	{
+	case TIMER_3:
+		pTim = &htim3;
+		break;
+		
+	default:
+		return;
+	}
+	
+	uint32_t autoReload = (SystemCoreClock + frequency / 2) / frequency - 1;
+	__HAL_TIM_SET_AUTORELOAD(pTim, autoReload);
 }
