@@ -57,11 +57,23 @@
 
 typedef enum
 { 
-	MOTOR_CHANNEL_A1 = 0,
-	MOTOR_CHANNEL_B1 = 1,
-	MOTOR_CHANNEL_A2 = 2,
-	MOTOR_CHANNEL_B2 = 3
-} MOTOR_CHANNEL;
+	TB_CHANNEL_A1 = 0,
+	TB_CHANNEL_B1 = 1,
+	TB_CHANNEL_A2 = 2,
+	TB_CHANNEL_B2 = 3,
+	
+	TB_CHANNEL_COUNT
+} TB_CHANNEL;
+
+typedef enum
+{
+	TB_CM_SHORT_BREAK  = 0,
+	TB_CM_CW,
+	TB_CM_CCW,
+	TB_CM_STOP,
+	
+	TB_CONTROL_MODE_COUNT
+} TB_CONTROL_MODE;
 
 #ifndef _TB6612FNG_H_
 #define _TB6612FNG_H_
@@ -69,10 +81,7 @@ typedef enum
 void TB_Init();
 void TB_SetPwm(int iMotorChannel, uint16_t fFrequency, float fPulsewidth);
 void TB_SetPwmFrequency(uint16_t fFrequency);
-void TB_SetPwmPulsewidth(int iMotorChannel, float fPulsewidth);
-void TB_Standby(int iMotorChannel);
-void TB_MotorStop(int iMotorChannel);
-void TB_MotorCCW(int iMotorChannel);
-void TB_MotorCW(int iMotorChannel);
+void TB_SetPwmPulsewidth(int tb_channel, float fPulsewidth);
+void TB_SetWorkMode(int tb_channel, int tb_control_mode);
 
 #endif // _TB6612FNG_H_

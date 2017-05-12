@@ -27,7 +27,8 @@ void Hardware_Init();
   * @param  int: pulse width percent of the PWM signal. This should be between 0 and 1.
   * @retval None
   */
-void HW_PWMSetCompare(int timer, int channel, int compare);
+void HW_PwmTIM1SetCompare(int channel, int compare);
+void HW_PwmTIM3SetCompare(int channel, int compare);
 void HW_PWMSetFrequency(int timer, uint16_t frequency);
 
 #endif // _HW_INIT_H_

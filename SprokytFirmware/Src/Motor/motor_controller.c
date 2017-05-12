@@ -20,7 +20,7 @@
 static void ArmMotorsCallback();
 static void MotorController_armESCs();
 
-/*
+
 
 #ifdef MOTOR_STSPIN
 void STSpinInit();
@@ -36,15 +36,24 @@ void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, uint8_
 void MotorController_init()
 {
 	// 20000 us = 50 Hz, 2040.8us = 490 Hz, 83.3 us = 12 Khz	
-	float fPwmPeriod = 0.00002f;      // 50KHz
-	motorDriver1.setPwmAperiod(fPwmPeriod);
-	motorDriver1.setPwmBperiod(fPwmPeriod);
-	motorDriver2.setPwmAperiod(fPwmPeriod);
-	motorDriver2.setPwmBperiod(fPwmPeriod);
+	float frequency = 10000;      // 10KHz
 	
-	MotorController_setMotor(MOTOR_ALL, 0, BWD);
+	TB_Init();
+	TB_SetPwmFrequency(frequency);
+	TB_SetPwmPulsewidth(TB_CHANNEL_A1, 0);
+	TB_SetPwmPulsewidth(TB_CHANNEL_B1, 0);
+	TB_SetPwmPulsewidth(TB_CHANNEL_A2, 0);
+	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
+	TB_SetWorkMode(TB_CHANNEL_A1, TB_CM_STOP);
+	TB_SetWorkMode(TB_CHANNEL_B1, TB_CM_STOP);
+	TB_SetWorkMode(TB_CHANNEL_A2, TB_CM_STOP);
+	TB_SetWorkMode(TB_CHANNEL_B2, TB_CM_STOP);
+	
+	// MotorController_setMotor(MOTOR_ALL, 0, BWD);
 }
 
+
+/*
 int MotorController_isArmed()
 {
 	return _motorsArmed;

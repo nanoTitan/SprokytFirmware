@@ -37,14 +37,12 @@
 #define MD2_AIN2_GPIO_Port GPIOB
 #define MD2_AIN1_Pin GPIO_PIN_15
 #define MD2_AIN1_GPIO_Port GPIOB
-#define MD2_PWMB_Pin GPIO_PIN_8
+#define MD2_PWMB_Pin GPIO_PIN_7
 #define MD2_PWMB_GPIO_Port GPIOA
 #define ESP_TX_Pin GPIO_PIN_9
 #define ESP_TX_GPIO_Port GPIOA
 #define ESP_RX_Pin GPIO_PIN_10
 #define ESP_RX_GPIO_Port GPIOA
-#define MD2_AIN1A15_Pin GPIO_PIN_15
-#define MD2_AIN1A15_GPIO_Port GPIOA
 #define ESP_RESET_Pin GPIO_PIN_10
 #define ESP_RESET_GPIO_Port GPIOC
 #define IMU_PWM_Pin GPIO_PIN_5
