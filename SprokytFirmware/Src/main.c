@@ -8,13 +8,12 @@ All Rights Reserved
 #include "hw_init.h"
 #include "control_manager.h"
 #include "BLE.h"
-//#include "motor_controller.h"
+#include "motor_controller.h"
 //#include "imu.h"
 //#include "LED/LEDManager.h"
 #include "error.h"
 #include "debug.h"
 #include "cube_hal.h"
-
 
 int main()
 {	
@@ -56,7 +55,7 @@ int main()
 	
 	while (1)
 	{
-		//HAL_Delay(500);
+		HAL_Delay(500);
 		
 		// Communication
 		//Wifi::Instance()->Update();
@@ -66,6 +65,7 @@ int main()
 		// IMU and Sensors
 		//IMU_update();
 		
-		//ControlMgr_update();		
+		MotorController_UpdateMotorTest();
 	}
 }
+

@@ -126,12 +126,12 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 		HAL_GPIO_WritePin(BNRG_SPI_RESET_PORT, BNRG_SPI_RESET_PIN, GPIO_PIN_RESET);	/*Added to avoid spurious interrupt from the BlueNRG */
 
 		/* SCLK */
-		GPIO_InitStruct.Pin = GPIO_PIN_5;		// BNRG_SPI_SCLK_PIN	Using alternate PA_5
+		GPIO_InitStruct.Pin = GPIO_PIN_5;			// Orig: BNRG_SPI_SCLK_PIN	Alternate: GPIO_PIN_5
 		GPIO_InitStruct.Mode = BNRG_SPI_SCLK_MODE;
 		GPIO_InitStruct.Pull = BNRG_SPI_SCLK_PULL;
 		GPIO_InitStruct.Speed = BNRG_SPI_SCLK_SPEED;
 		GPIO_InitStruct.Alternate = BNRG_SPI_SCLK_ALTERNATE;
-		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);		// BNRG_SPI_SCLK_PORT
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);		// Orig: BNRG_SPI_SCLK_PORT  Alternate: GPIOA
 
 		/* MISO */
 		GPIO_InitStruct.Pin = BNRG_SPI_MISO_PIN;
@@ -261,12 +261,12 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 	    PB1     ------> TIM3_CH4
 	    PB5     ------> TIM3_CH2 
 	    */
-		GPIO_InitStruct.Pin = MD2_PWMA_Pin | MD2_PWMB_Pin;
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Pull = GPIO_NOPULL;
-		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-		HAL_GPIO_Init(MD2_PWMA_GPIO_Port, &GPIO_InitStruct);
+//		GPIO_InitStruct.Pin = MD2_PWMA_Pin | MD2_PWMB_Pin;
+//		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+//		GPIO_InitStruct.Pull = GPIO_NOPULL;
+//		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+//		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+//		HAL_GPIO_Init(MD2_PWMA_GPIO_Port, &GPIO_InitStruct);
 
 		GPIO_InitStruct.Pin = MD1_PWMB_Pin | MD1_PWMA_Pin;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;

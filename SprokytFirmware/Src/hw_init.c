@@ -52,20 +52,20 @@ static void MX_GPIO_Init(void)
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 
-	/*Configure GPIO pins : MD2_STBY_Pin MD2_BIN1_Pin MD2_BIN2_Pin MD1_AIN2_Pin ESP_RESET_Pin */
-	GPIO_InitStruct.Pin = MD2_STBY_Pin | MD2_BIN1_Pin | MD2_BIN2_Pin | MD1_AIN2_Pin /*| ESP_RESET_Pin*/;
+	/*Configure GPIO pins : MD2_STBY_Pin MD2_BIN1_Pin MD2_BIN2_Pin MD1_AIN2_Pin */
+	GPIO_InitStruct.Pin = /*MD2_STBY_Pin | MD2_BIN1_Pin | MD2_BIN2_Pin | */ MD1_AIN2_Pin;	// ESP_RESET_Pin
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 	
-	/*Configure GPIO pins : MD1_STBY_Pin MD2_AIN1A15_Pin */
+	/*Configure GPIO pins : MD1_STBY_Pin */
 	GPIO_InitStruct.Pin = MD1_STBY_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : MD1_AIN1_Pin MD1_BIN1_Pin MD1_BIN2_Pin MD2_AIN2_Pin MD2_AIN1_Pin */
-	GPIO_InitStruct.Pin = MD1_AIN1_Pin | MD1_BIN1_Pin | MD1_BIN2_Pin | MD2_AIN2_Pin | MD2_AIN1_Pin;
+	GPIO_InitStruct.Pin = MD1_AIN1_Pin | MD1_BIN1_Pin | MD1_BIN2_Pin /* | MD2_AIN2_Pin | MD2_AIN1_Pin */;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -177,7 +177,7 @@ static void MX_TIM3_Init(void)
 
 void HW_PwmTIM1SetCompare(int channel, int compare)
 {
-	if (channel < TIM_CHANNEL_1 || channel > TIM_CHANNEL_4)
+	if (channel != TIM_CHANNEL_1 && channel != TIM_CHANNEL_2 && channel != TIM_CHANNEL_3 && channel != TIM_CHANNEL_4)
 		return;
 
 	__HAL_TIM_SET_COMPARE(&htim1, channel, compare);
@@ -185,7 +185,7 @@ void HW_PwmTIM1SetCompare(int channel, int compare)
 
 void HW_PwmTIM3SetCompare(int channel, int compare)
 {
-	if (channel < TIM_CHANNEL_1 || channel > TIM_CHANNEL_4)
+	if (channel != TIM_CHANNEL_1 && channel != TIM_CHANNEL_2 && channel != TIM_CHANNEL_3 && channel != TIM_CHANNEL_4)
 		return;
 
 	__HAL_TIM_SET_COMPARE(&htim3, channel, compare);

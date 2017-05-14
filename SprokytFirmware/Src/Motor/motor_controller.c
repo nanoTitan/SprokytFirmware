@@ -1,7 +1,8 @@
 #include "motor_controller.h"
 #include "math_ext.h"
 #include "TB6612FNG.h"
-
+#include "stm32f4xx_hal.h"
+#include "debug.h"
 
 /* Private Variables ------------------------------------------------------------------*/
 //Timeout _motorArmTimeout;
@@ -42,16 +43,32 @@ void MotorController_init()
 	TB_SetPwmFrequency(frequency);
 	TB_SetPwmPulsewidth(TB_CHANNEL_A1, 0);
 	TB_SetPwmPulsewidth(TB_CHANNEL_B1, 0);
-	TB_SetPwmPulsewidth(TB_CHANNEL_A2, 0);
-	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
+	//TB_SetPwmPulsewidth(TB_CHANNEL_A2, 0);
+	//TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
 	TB_SetWorkMode(TB_CHANNEL_A1, TB_CM_STOP);
 	TB_SetWorkMode(TB_CHANNEL_B1, TB_CM_STOP);
-	TB_SetWorkMode(TB_CHANNEL_A2, TB_CM_STOP);
-	TB_SetWorkMode(TB_CHANNEL_B2, TB_CM_STOP);
+	//TB_SetWorkMode(TB_CHANNEL_A2, TB_CM_STOP);
+	//TB_SetWorkMode(TB_CHANNEL_B2, TB_CM_STOP);
 	
 	// MotorController_setMotor(MOTOR_ALL, 0, BWD);
 }
 
+void MotorController_UpdateMotorTest()
+{
+	TB_SetWorkMode(TB_CHANNEL_A1, TB_CM_CW);
+	TB_SetWorkMode(TB_CHANNEL_B1, TB_CM_CW);
+	
+	static float pwm = 0;
+	int dir = 1;
+	HAL_Delay(1);
+	if (pwm < 1)
+		pwm += 0.01;
+	
+	PRINTF("pwm: %f\r\n", pwm);
+	
+	TB_SetPwmPulsewidth(TB_CHANNEL_A1, pwm);
+	TB_SetPwmPulsewidth(TB_CHANNEL_B1, pwm);
+}
 
 /*
 int MotorController_isArmed()
