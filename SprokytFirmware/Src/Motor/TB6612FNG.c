@@ -90,9 +90,9 @@ void TB_INIT_PWM()
 	pwmFrequency = 10000;
 
 	htim3.Instance = TIM3;
-	htim3.Init.Prescaler = 0;															// mbed: 95
+	htim3.Init.Prescaler = 95;															// mbed: 95
 	htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim3.Init.Period = (SystemCoreClock + pwmFrequency / 2) / pwmFrequency - 1;		// mbed: 19  (20 - 1)
+	htim3.Init.Period = 19;	// (SystemCoreClock + pwmFrequency / 2) / pwmFrequency - 1;		// mbed: 19  (20 - 1)
 	htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
 	{
@@ -107,7 +107,7 @@ void TB_INIT_PWM()
 	}
 
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = 500;															// 10 (50% duty cycle of 20us)
+	sConfigOC.Pulse = 10;															// 10 (50% duty cycle of 20us)
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_ENABLE;
 	sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
@@ -186,6 +186,7 @@ void TB_SetPwmPulsewidth(int tb_channel, float fPulsewidth)
 		return;
 	}
 
+	compare = 10;
 	__HAL_TIM_SET_COMPARE(&htim3, channel, compare);
 }
 
