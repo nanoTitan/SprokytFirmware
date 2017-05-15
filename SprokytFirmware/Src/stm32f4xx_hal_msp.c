@@ -264,14 +264,14 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 //		GPIO_InitStruct.Pin = MD2_PWMA_Pin | MD2_PWMB_Pin;
 //		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 //		GPIO_InitStruct.Pull = GPIO_NOPULL;
-//		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+//		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 //		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
 //		HAL_GPIO_Init(MD2_PWMA_GPIO_Port, &GPIO_InitStruct);
 
 		GPIO_InitStruct.Pin = MD1_PWMB_Pin | MD1_PWMA_Pin;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Pull = GPIO_NOPULL;
-		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 

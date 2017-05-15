@@ -5,7 +5,6 @@ All Rights Reserved
 */
 
 #include "constants.h"
-#include "hw_init.h"
 #include "control_manager.h"
 #include "BLE.h"
 #include "motor_controller.h"
@@ -28,8 +27,6 @@ int main()
 	
 	// Configure the system clock
 	SystemClock_Config();
-	
-	Hardware_Init();
 	
 	//LEDMgr_Init();
 	

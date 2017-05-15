@@ -67,8 +67,7 @@ typedef enum
 
 typedef enum
 {
-	TB_CM_SHORT_BREAK  = 0,
-	TB_CM_CW,
+	TB_CM_CW = 0,
 	TB_CM_CCW,
 	TB_CM_STOP,
 	

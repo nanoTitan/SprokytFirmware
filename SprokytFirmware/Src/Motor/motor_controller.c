@@ -37,10 +37,9 @@ void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, uint8_
 void MotorController_init()
 {
 	// 20000 us = 50 Hz, 2040.8us = 490 Hz, 83.3 us = 12 Khz	
-	float frequency = 10000;      // 10KHz
+	float frequency = 50000;      // 50KHz
 	
 	TB_Init();
-	TB_SetPwmFrequency(frequency);
 	TB_SetPwmPulsewidth(TB_CHANNEL_A1, 0);
 	TB_SetPwmPulsewidth(TB_CHANNEL_B1, 0);
 	//TB_SetPwmPulsewidth(TB_CHANNEL_A2, 0);
