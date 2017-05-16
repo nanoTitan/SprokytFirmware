@@ -67,9 +67,10 @@ typedef enum
 
 typedef enum
 {
-	TB_CM_CW = 0,
-	TB_CM_CCW,
-	TB_CM_STOP,
+	TB_ControlMode_Stdby = 0,
+	TB_ControlMode_CW,
+	TB_ControlMode_CCW,
+	TB_ControlMode_STOP,
 	
 	TB_CONTROL_MODE_COUNT
 } TB_CONTROL_MODE;
@@ -79,7 +80,7 @@ typedef enum
 
 void TB_Init();
 void TB_SetPwm(int iMotorChannel, uint16_t fFrequency, float fPulsewidth);
-void TB_SetPwmFrequency(uint16_t fFrequency);
+void TB_SetPwmFrequency(float seconds);
 void TB_SetPwmPulsewidth(int tb_channel, float fPulsewidth);
 void TB_SetWorkMode(int tb_channel, int tb_control_mode);
 

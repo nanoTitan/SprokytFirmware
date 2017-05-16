@@ -10,24 +10,22 @@
 #define TB6612FNG_PWM_PULSEWIDTH_DEFAULT  (0.50)      // 50% duty cycle
 
 // Private variables
-TIM_HandleTypeDef htim3;
+static TIM_HandleTypeDef htim3;
 uint16_t maxDutyCycle = 256;
 uint16_t pwmFrequency = 10000;
+int period = 0;
+uint32_t prescaler = 1;
 
 // Private function declarations
 static void TB_Init_GPIO();
 static void TB_INIT_PWM();
+static void TB_PWM_OutWrite();
 
 
 void TB_Init()
 {
-	TB_INIT_PWM();
 	TB_Init_GPIO();
-	
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);		// mbed: HAL_TIMEx_PWMN_Start(&htim3, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);		// mbed: HAL_TIMEx_PWMN_Start(&htim3, TIM_CHANNEL_4);
+	TB_INIT_PWM();
 }
 
 void TB_Init_GPIO()
@@ -83,22 +81,16 @@ void TB_INIT_PWM()
 	__HAL_RCC_TIM1_CLK_ENABLE();						// mbed
 	__HAL_RCC_TIM3_CLK_ENABLE();
 	
+	pwmFrequency = 10000;
+	TB_SetPwmFrequency(0.00002f);      // 50KHz default
+}
+
+void TB_PWM_OutWrite()
+{
 	TIM_MasterConfigTypeDef sMasterConfig;
 	TIM_OC_InitTypeDef sConfigOC;
 	GPIO_InitTypeDef GPIO_InitStruct;
 	
-	pwmFrequency = 10000;
-
-	htim3.Instance = TIM3;
-	htim3.Init.Prescaler = 95;															// mbed: 95
-	htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim3.Init.Period = 19;	// (SystemCoreClock + pwmFrequency / 2) / pwmFrequency - 1;		// mbed: 19  (20 - 1)
-	htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
 	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
 	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
 	if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
@@ -107,7 +99,7 @@ void TB_INIT_PWM()
 	}
 
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = 10;															// 10 (50% duty cycle of 20us)
+	sConfigOC.Pulse = 0;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_ENABLE;
 	sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
@@ -133,7 +125,10 @@ void TB_INIT_PWM()
 		Error_Handler();
 	}
 	
-	__HAL_TIM_ENABLE(&htim3);	
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);		// mbed: HAL_TIMEx_PWMN_Start(&htim3, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);		// mbed: HAL_TIMEx_PWMN_Start(&htim3, TIM_CHANNEL_4);
 }
 
 void TB_SetPwm(int iMotorChannel, uint16_t fFrequency, float fPulsewidth)
@@ -142,16 +137,45 @@ void TB_SetPwm(int iMotorChannel, uint16_t fFrequency, float fPulsewidth)
 	TB_SetPwmPulsewidth(iMotorChannel, fPulsewidth);
 }
 
-void TB_SetPwmFrequency(uint16_t frequency)
+void TB_SetPwmFrequency(float seconds)
 {		
-	pwmFrequency = frequency;
-	if (pwmFrequency < 1000)
-		pwmFrequency  = 1000;
-	else if (pwmFrequency > 50000)
-		pwmFrequency = 50000;
+	int us = seconds * 1000000.0f;
 	
-	uint32_t autoReload = (SystemCoreClock + pwmFrequency / 2) / pwmFrequency - 1;
-	__HAL_TIM_SET_AUTORELOAD(&htim3, autoReload);
+	htim3.Instance = TIM3;
+	RCC_ClkInitTypeDef RCC_ClkInitStruct;
+	uint32_t PclkFreq = 0;
+	uint32_t APBxCLKDivider = RCC_HCLK_DIV1;
+	float dc = 0;
+	uint8_t i = 0;
+
+	__HAL_TIM_DISABLE(&htim3);
+
+	// Get clock configuration
+	// Note: PclkFreq contains here the Latency (not used after)
+	//HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &PclkFreq);
+
+	//PclkFreq = HAL_RCC_GetPCLK2Freq();
+	//APBxCLKDivider = RCC_ClkInitStruct.APB2CLKDivider;
+
+	htim3.Init.Prescaler = (((SystemCoreClock) / 1000000)) - 1; // 1 us tick    // PclkFreq
+	htim3.Init.Period = (us - 1);
+	htim3.Init.ClockDivision = 0;
+	htim3.Init.CounterMode   = TIM_COUNTERMODE_UP;
+
+	if (HAL_TIM_PWM_Init(&htim3) != HAL_OK) {
+		Error_Handler();
+	}
+
+	// Save for future use
+	period = us;
+	
+	// Set duty cycle again
+	TB_PWM_OutWrite();
+
+	__HAL_TIM_ENABLE(&htim3);
+	
+	//uint32_t autoReload = (SystemCoreClock + pwmFrequency / 2) / pwmFrequency - 1;
+	//__HAL_TIM_SET_AUTORELOAD(&htim3, autoReload);
 }
 
 void TB_SetPwmPulsewidth(int tb_channel, float fPulsewidth)
@@ -161,7 +185,7 @@ void TB_SetPwmPulsewidth(int tb_channel, float fPulsewidth)
 	else if (fPulsewidth > 1)
 		fPulsewidth = 1;
 	
-	int compare = pwmFrequency * maxDutyCycle * fPulsewidth;
+	int compare = (period * fPulsewidth) / prescaler;
 	int channel = TIM_CHANNEL_1;
 	
 	switch (tb_channel)
@@ -186,8 +210,12 @@ void TB_SetPwmPulsewidth(int tb_channel, float fPulsewidth)
 		return;
 	}
 
-	compare = 10;
 	__HAL_TIM_SET_COMPARE(&htim3, channel, compare);
+}
+
+void TB_1_Standy()
+{
+	HAL_GPIO_WritePin(GPIOA, MD1_STBY_Pin, GPIO_PIN_RESET);
 }
 
 void TB_1A_Stop()
@@ -228,6 +256,11 @@ void TB_1B_MotorCCW()
 	HAL_GPIO_WritePin(GPIOB, MD1_BIN1_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOB, MD1_BIN2_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOA, MD1_STBY_Pin, GPIO_PIN_SET);
+}
+
+void TB_2_Standy()
+{
+	HAL_GPIO_WritePin(GPIOC, MD2_STBY_Pin, GPIO_PIN_RESET);
 }
 
 void TB_2A_Stop()
@@ -272,12 +305,12 @@ void TB_2B_MotorCCW()
 
 void TB_SetWorkMode(int tb_channel, int tb_control_mode)
 {
-	static void( *TB_ControlModeFunctionArray[][3] )(void) = 
+	static void( *TB_ControlModeFunctionArray[][4] )(void) = 
 	{
-		{ TB_1A_MotorCW, TB_1A_MotorCCW, TB_1A_Stop },
-		{ TB_1B_MotorCCW, TB_1B_MotorCW, TB_1B_Stop },
-		{ TB_2A_MotorCW, TB_2A_MotorCCW, TB_2A_Stop },
-		{ TB_2B_MotorCCW, TB_2B_MotorCW, TB_2B_Stop },
+		{ TB_1_Standy, TB_1A_MotorCW, TB_1A_MotorCCW, TB_1A_Stop },
+		{ TB_1_Standy, TB_1B_MotorCCW, TB_1B_MotorCW, TB_1B_Stop },
+		{ TB_2_Standy, TB_2A_MotorCW, TB_2A_MotorCCW, TB_2A_Stop },
+		{ TB_2_Standy, TB_2B_MotorCCW, TB_2B_MotorCW, TB_2B_Stop },
 	};
 	
 	if (tb_channel < 0 || tb_channel >= TB_CHANNEL_COUNT)

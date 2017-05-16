@@ -44,29 +44,50 @@ void MotorController_init()
 	TB_SetPwmPulsewidth(TB_CHANNEL_B1, 0);
 	//TB_SetPwmPulsewidth(TB_CHANNEL_A2, 0);
 	//TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
-	TB_SetWorkMode(TB_CHANNEL_A1, TB_CM_STOP);
-	TB_SetWorkMode(TB_CHANNEL_B1, TB_CM_STOP);
-	//TB_SetWorkMode(TB_CHANNEL_A2, TB_CM_STOP);
-	//TB_SetWorkMode(TB_CHANNEL_B2, TB_CM_STOP);
+	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_STOP);
+	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_STOP);
+	//TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_STOP);
+	//TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_STOP);
 	
 	// MotorController_setMotor(MOTOR_ALL, 0, BWD);
 }
 
 void MotorController_UpdateMotorTest()
 {
-	TB_SetWorkMode(TB_CHANNEL_A1, TB_CM_CW);
-	TB_SetWorkMode(TB_CHANNEL_B1, TB_CM_CW);
+	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_CW);
+	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_CW);
 	
 	static float pwm = 0;
 	int dir = 1;
-	HAL_Delay(1);
-	if (pwm < 1)
-		pwm += 0.01;
 	
-	PRINTF("pwm: %f\r\n", pwm);
+	for (int i = 1; i < 10; ++i)
+	{
+		TB_SetPwmPulsewidth(TB_CHANNEL_A1, pwm);
+		TB_SetPwmPulsewidth(TB_CHANNEL_B1, pwm);
+		HAL_Delay(200);
+		pwm += 0.1f;
+	}
 	
-	TB_SetPwmPulsewidth(TB_CHANNEL_A1, pwm);
-	TB_SetPwmPulsewidth(TB_CHANNEL_B1, pwm);
+	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_STOP);
+	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_STOP);
+	HAL_Delay(2000);
+	
+	pwm = 1;
+	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_CCW);
+	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_CCW);
+	for (int i = 1; i < 10; ++i)
+	{
+		TB_SetPwmPulsewidth(TB_CHANNEL_A1, pwm);
+		TB_SetPwmPulsewidth(TB_CHANNEL_B1, pwm);
+		HAL_Delay(200);
+		pwm -= 0.1f;
+	}
+	
+	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_STOP);
+	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_STOP);
+	TB_SetPwmPulsewidth(TB_CHANNEL_A1, 0);
+	TB_SetPwmPulsewidth(TB_CHANNEL_B1, 0);
+	HAL_Delay(2000);
 }
 
 /*
