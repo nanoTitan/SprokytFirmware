@@ -11,12 +11,10 @@
 #define MD2_STBY_GPIO_Port GPIOC
 #define MD2_BIN1_Pin GPIO_PIN_3
 #define MD2_BIN1_GPIO_Port GPIOC
-#define SERVO_PWM1_Pin GPIO_PIN_0
-#define SERVO_PWM1_GPIO_Port GPIOA
 #define MD1_STBY_Pin GPIO_PIN_4
 #define MD1_STBY_GPIO_Port GPIOA
 #define MD2_PWMA_Pin GPIO_PIN_6
-#define MD2_PWMA_GPIO_Port GPIOA
+#define MD2_PWMA_GPIO_Port GPIOC
 #define MD2_BIN2_Pin GPIO_PIN_4
 #define MD2_BIN2_GPIO_Port GPIOC
 #define MD1_AIN2_Pin GPIO_PIN_5
@@ -27,8 +25,6 @@
 #define MD1_PWMA_GPIO_Port GPIOB
 #define MD1_AIN1_Pin GPIO_PIN_2
 #define MD1_AIN1_GPIO_Port GPIOB
-#define SERVO_PWM2_Pin GPIO_PIN_10
-#define SERVO_PWM2_GPIO_Port GPIOB
 #define MD1_BIN1_Pin GPIO_PIN_12
 #define MD1_BIN1_GPIO_Port GPIOB
 #define MD1_BIN2_Pin GPIO_PIN_13
@@ -38,19 +34,9 @@
 #define MD2_AIN1_Pin GPIO_PIN_15
 #define MD2_AIN1_GPIO_Port GPIOB
 #define MD2_PWMB_Pin GPIO_PIN_7
-#define MD2_PWMB_GPIO_Port GPIOA
-#define ESP_TX_Pin GPIO_PIN_9
-#define ESP_TX_GPIO_Port GPIOA
-#define ESP_RX_Pin GPIO_PIN_10
-#define ESP_RX_GPIO_Port GPIOA
-#define ESP_RESET_Pin GPIO_PIN_10
-#define ESP_RESET_GPIO_Port GPIOC
+#define MD2_PWMB_GPIO_Port GPIOC
 #define IMU_PWM_Pin GPIO_PIN_5
 #define IMU_PWM_GPIO_Port GPIOB
-#define SERVO_PWM4_Pin GPIO_PIN_6
-#define SERVO_PWM4_GPIO_Port GPIOB
-#define SERVO_PWM3_Pin GPIO_PIN_7
-#define SERVO_PWM3_GPIO_Port GPIOB
 
 #define WIFI_PING_TIMEOUT 3600
 

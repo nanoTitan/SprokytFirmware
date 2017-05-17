@@ -38,12 +38,12 @@ void TB_Init_GPIO()
 	// PWM GPIO Pins
 	
 	GPIO_InitTypeDef GPIO_InitStruct;
-//	GPIO_InitStruct.Pin = MD2_PWMA_Pin | MD2_PWMB_Pin;
-//	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-//	GPIO_InitStruct.Pull = GPIO_NOPULL;
-//	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-//	GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-//	HAL_GPIO_Init(MD2_PWMA_GPIO_Port, &GPIO_InitStruct);
+	GPIO_InitStruct.Pin = MD2_PWMA_Pin | MD2_PWMB_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+	HAL_GPIO_Init(MD2_PWMA_GPIO_Port, &GPIO_InitStruct);
 	
 	GPIO_InitStruct.Pin = MD1_PWMB_Pin | MD1_PWMA_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -55,7 +55,7 @@ void TB_Init_GPIO()
 	// AIN, BIN, and STANDBY pins
 	
 	/*Configure GPIO pins : MD2_STBY_Pin MD2_BIN1_Pin MD2_BIN2_Pin MD1_AIN2_Pin */
-	GPIO_InitStruct.Pin = /*MD2_STBY_Pin | MD2_BIN1_Pin | MD2_BIN2_Pin | */ MD1_AIN2_Pin;	// ESP_RESET_Pin
+	GPIO_InitStruct.Pin = MD2_STBY_Pin | MD2_BIN1_Pin | MD2_BIN2_Pin | MD1_AIN2_Pin;	// ESP_RESET_Pin
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -69,7 +69,7 @@ void TB_Init_GPIO()
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : MD1_AIN1_Pin MD1_BIN1_Pin MD1_BIN2_Pin MD2_AIN2_Pin MD2_AIN1_Pin */
-	GPIO_InitStruct.Pin = MD1_AIN1_Pin | MD1_BIN1_Pin | MD1_BIN2_Pin /* | MD2_AIN2_Pin | MD2_AIN1_Pin */;
+	GPIO_InitStruct.Pin = MD1_AIN1_Pin | MD1_BIN1_Pin | MD1_BIN2_Pin | MD2_AIN2_Pin | MD2_AIN1_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;

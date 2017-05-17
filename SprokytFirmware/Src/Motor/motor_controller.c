@@ -8,31 +8,9 @@
 //Timeout _motorArmTimeout;
 //int _motorsArmed = 0;
 
-
-//TB6612FNG motorDriver1(PB_1, PA_1, PA_0, PB_0, PA_5, PA_6, PA_4);
-//TB6612FNG motorDriver2(PB_6, PA_15, PA_8, PC_7, PC_3, PC_4, PC_2);
-//PwmOut m_bldcArray[] = { PA_11, PB_10, PC_6 };
-//TB6612FNG motorDriver1(PB_1, PB_2, PC_5, PB_0, PB_12, PB_13, PA_4);
-//TB6612FNG motorDriver2(PA_6, PB_15, PB_14, PA_8, PC_3, PC_4, PC_2);
-//PwmOut m_bldcArray[] = { PA_0, PB_10, PB_7, PB_6 };
-//PwmOut m_bldcArray[] = { PB_6, PB_6, PB_6, PB_6 };
-
 /* Private Functions ------------------------------------------------------------------*/
 static void ArmMotorsCallback();
 static void MotorController_armESCs();
-
-
-
-#ifdef MOTOR_STSPIN
-void STSpinInit();
-void MotorController_setMotors_STSPIN(uint8_t motorIndxMask, float power, direction_t dir);
-void STSPIN_setMotor(uint8_t indx, float pwm, uint8_t direction);
-#elif defined(MOTOR_ESC)
-
-#elif defined(MOTOR_TOSHIBA)
-void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, uint8_t direction);
-//void MotorController_setServos(uint8_t motorIndxMask, float power, direction_t direction);
-#endif
 
 void MotorController_init()
 {
@@ -42,12 +20,12 @@ void MotorController_init()
 	TB_Init();
 	TB_SetPwmPulsewidth(TB_CHANNEL_A1, 0);
 	TB_SetPwmPulsewidth(TB_CHANNEL_B1, 0);
-	//TB_SetPwmPulsewidth(TB_CHANNEL_A2, 0);
-	//TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
+	TB_SetPwmPulsewidth(TB_CHANNEL_A2, 0);
+	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
 	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_STOP);
 	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_STOP);
-	//TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_STOP);
-	//TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_STOP);
+	TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_STOP);
+	TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_STOP);
 	
 	// MotorController_setMotor(MOTOR_ALL, 0, BWD);
 }
@@ -56,6 +34,8 @@ void MotorController_UpdateMotorTest()
 {
 	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_CW);
 	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_CW);
+	TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_CW);
+	TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_CW);
 	
 	static float pwm = 0;
 	int dir = 1;
@@ -64,29 +44,41 @@ void MotorController_UpdateMotorTest()
 	{
 		TB_SetPwmPulsewidth(TB_CHANNEL_A1, pwm);
 		TB_SetPwmPulsewidth(TB_CHANNEL_B1, pwm);
+		TB_SetPwmPulsewidth(TB_CHANNEL_A2, pwm);
+		TB_SetPwmPulsewidth(TB_CHANNEL_B2, pwm);
 		HAL_Delay(200);
 		pwm += 0.1f;
 	}
 	
 	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_STOP);
 	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_STOP);
+	TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_STOP);
+	TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_STOP);
 	HAL_Delay(2000);
 	
 	pwm = 1;
 	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_CCW);
 	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_CCW);
+	TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_CCW);
+	TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_CCW);
 	for (int i = 1; i < 10; ++i)
 	{
 		TB_SetPwmPulsewidth(TB_CHANNEL_A1, pwm);
 		TB_SetPwmPulsewidth(TB_CHANNEL_B1, pwm);
+		TB_SetPwmPulsewidth(TB_CHANNEL_A2, pwm);
+		TB_SetPwmPulsewidth(TB_CHANNEL_B2, pwm);
 		HAL_Delay(200);
 		pwm -= 0.1f;
 	}
 	
 	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_STOP);
 	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_STOP);
+	TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_STOP);
+	TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_STOP);
 	TB_SetPwmPulsewidth(TB_CHANNEL_A1, 0);
 	TB_SetPwmPulsewidth(TB_CHANNEL_B1, 0);
+	TB_SetPwmPulsewidth(TB_CHANNEL_A2, 0);
+	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
 	HAL_Delay(2000);
 }
 
