@@ -5,12 +5,11 @@
 #include "debug.h"
 
 /* Private Variables ------------------------------------------------------------------*/
-//Timeout _motorArmTimeout;
-//int _motorsArmed = 0;
+int _motorsArmed = 0;
 
 /* Private Functions ------------------------------------------------------------------*/
 static void ArmMotorsCallback();
-static void MotorController_armESCs();
+static void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, direction_t direction);
 
 void MotorController_init()
 {
@@ -22,12 +21,77 @@ void MotorController_init()
 	TB_SetPwmPulsewidth(TB_CHANNEL_B1, 0);
 	TB_SetPwmPulsewidth(TB_CHANNEL_A2, 0);
 	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
-	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_STOP);
-	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_STOP);
-	TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_STOP);
-	TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_STOP);
 	
-	// MotorController_setMotor(MOTOR_ALL, 0, BWD);
+	MotorController_setMotor(MOTOR_ALL, 0, FWD);
+}
+
+int MotorController_isArmed()
+{
+	return _motorsArmed;
+}
+
+void MotorController_setMotor(uint8_t motorIndxMask, float power, direction_t dir)
+{
+	MotorController_setMotors_TB6612(motorIndxMask, power, dir);
+}
+
+void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, direction_t direction)
+{
+	if (motorIndxMask & MOTOR_A)
+	{
+		if (power == 0)
+			TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_STOP);
+		else
+		{
+			TB_SetPwmPulsewidth(TB_CHANNEL_A1, power);
+			if (direction == FWD)
+				TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_CW);
+			else
+				TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_CCW);
+		}		
+	}
+	
+	if (motorIndxMask & MOTOR_B)
+	{
+		if (power == 0)
+			TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_STOP);
+		else
+		{
+			TB_SetPwmPulsewidth(TB_CHANNEL_B1, power);
+			if (direction == FWD)
+				TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_CW);
+			else
+				TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_CCW);
+		}
+	}
+	
+	if (motorIndxMask & MOTOR_C)
+	{
+		if (power == 0)
+			TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_STOP);
+		else
+		{
+			TB_SetPwmPulsewidth(TB_CHANNEL_A2, power);
+			if (direction == FWD)
+				TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_CW);
+			else
+				TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_CCW);
+		}
+	}
+	
+	if (motorIndxMask & MOTOR_D)
+	{
+		if (power == 0)
+			TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_STOP);
+		else
+		{
+			TB_SetPwmPulsewidth(TB_CHANNEL_B2, power);
+			if (direction == FWD)
+				TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_CW);
+			else
+				TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_CCW);
+		}
+	}
 }
 
 void MotorController_UpdateMotorTest()
@@ -81,98 +145,3 @@ void MotorController_UpdateMotorTest()
 	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
 	HAL_Delay(2000);
 }
-
-/*
-int MotorController_isArmed()
-{
-	return _motorsArmed;
-}
-
-void MotorController_setMotor(uint8_t motorIndxMask, float power, direction_t dir)
-{
-	MotorController_setMotors_TB6612(motorIndxMask, power, dir);
-}
-
-void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, uint8_t direction)
-{
-	if (motorIndxMask & MOTOR_A)
-	{
-		if (power == 0)
-			motorDriver1.motorA_stop();
-		else
-		{
-			motorDriver1.setPwmApulsewidth(power);
-			if (direction == FWD)
-				motorDriver1.motorA_cw();
-			else
-				motorDriver1.motorA_ccw();
-		}		
-	}
-	
-	if (motorIndxMask & MOTOR_B)
-	{
-		if (power == 0)
-			motorDriver1.motorB_stop();
-		else
-		{
-			motorDriver1.setPwmBpulsewidth(power);	
-			if (direction == FWD)
-				motorDriver1.motorB_cw();
-			else
-				motorDriver1.motorB_ccw();
-		}
-	}
-	
-	if (motorIndxMask & MOTOR_C)
-	{
-		if (power == 0)
-			motorDriver2.motorA_stop();
-		else
-		{
-			motorDriver2.setPwmApulsewidth(power);	
-			if (direction == FWD)
-				motorDriver2.motorA_cw();
-			else
-				motorDriver2.motorA_ccw();
-		}
-	}
-	
-	if (motorIndxMask & MOTOR_D)
-	{
-		if (power == 0)
-			motorDriver2.motorB_stop();
-		else
-		{
-			motorDriver2.setPwmBpulsewidth(power);	
-			if (direction == FWD)
-				motorDriver2.motorB_cw();
-			else
-				motorDriver2.motorB_ccw();
-		}
-	}
-}
-*/
-
-#if 0
-void MotorController_setServos(uint8_t motorIndxMask, float power, direction_t direction)
-{
-	// 1000us: CCW 100%, 1500us: Stop, 2000us CW 100%
-	if (power < 0)
-		power = 0;
-	
-	float pwm = mapf(power, 0, 1, 0, 500);
-	if (direction == FWD)
-		pwm += 1500;
-	else
-		pwm = 1500 - pwm;
-	
-//	if (motorIndxMask & MOTOR_A)
-//		m_bldcArray[0].pulsewidth_us(pwm);	
-//	if (motorIndxMask & MOTOR_B)
-//		m_bldcArray[1].pulsewidth_us(pwm);
-//	if (motorIndxMask & MOTOR_C)
-//		m_bldcArray[2].pulsewidth_us(pwm);
-//	if (motorIndxMask & MOTOR_D)
-//		m_bldcArray[3].pulsewidth_us(pwm);
-}
-#endif
