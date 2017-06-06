@@ -29,20 +29,20 @@ do {\
         uuid_struct[4] = uuid_4; uuid_struct[5] = uuid_5; uuid_struct[6] = uuid_6; uuid_struct[7] = uuid_7; \
             uuid_struct[8] = uuid_8; uuid_struct[9] = uuid_9; uuid_struct[10] = uuid_10; uuid_struct[11] = uuid_11; \
                 uuid_struct[12] = uuid_12; uuid_struct[13] = uuid_13; uuid_struct[14] = uuid_14; uuid_struct[15] = uuid_15; \
-}while(0)
+} while(0)
 
 // LED service
 #define COPY_LED_SERVICE_UUID(uuid_struct)  COPY_UUID_128_V2(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_LED_UUID(uuid_struct)          COPY_UUID_128_V2(uuid_struct,0x0c,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 	
 // Input Service
-#define COPY_INPUT_SERVICE_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0d,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
-#define COPY_INPUT_CHAR_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
+#define COPY_CONTROL_SERVICE_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0d,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
+#define COPY_CONTROL_CHAR_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
 #define COPY_INSTRUCTION_CHAR_UUID(uuid_struct)     COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xe5,0x2b)
 
 /* Private variables ---------------------------------------------------------*/
 static tBleStatus AddLEDService(void);
-static tBleStatus AddInputService(void);
+static tBleStatus AddControlService(void);
 static tBleStatus AddInstructionService(void);
 static void User_Process();
 static void setBLEConnectable(void);
@@ -55,8 +55,8 @@ volatile uint8_t is_notification_enabled = FALSE;
 volatile uint8_t connected = 0;
 uint16_t ledServHandle = 0;
 uint16_t ledButtonCharHandle = 0;
-uint16_t inputServHandle = 0;
-uint16_t inputButtonCharHandle = 0;
+uint16_t controlServHandle = 0;
+uint16_t controlButtonCharHandle = 0;
 uint16_t instructionButtonCharHandle = 0;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -203,7 +203,7 @@ int InitBLE()
 	else
 		PRINTF("Error while adding LED service.\n");
 	
-	status = AddInputService();
+	status = AddControlService();
 	if (status == BLE_STATUS_SUCCESS)
 		PRINTF("Input service added successfully.\n");
 	else
@@ -260,7 +260,8 @@ tBleStatus AddLEDService(void)
 	/* copy "LED service UUID" defined above to 'uuid' local variable */
 	COPY_LED_SERVICE_UUID(uuid);
 	
-	ret = aci_gatt_add_serv(UUID_TYPE_128,
+	ret = aci_gatt_add_serv(
+		UUID_TYPE_128,
 		uuid,
 		PRIMARY_SERVICE,
 		7,
@@ -270,7 +271,8 @@ tBleStatus AddLEDService(void)
 	/* copy "LED button characteristic UUID" defined above to 'uuid' local variable */  
 	COPY_LED_UUID(uuid);
 	
-	ret =  aci_gatt_add_char(ledServHandle,
+	ret =  aci_gatt_add_char(
+		ledServHandle,
 		UUID_TYPE_128,
 		uuid,
 		4,
@@ -295,25 +297,27 @@ fail:
  * @param  None
  * @retval Status
  */
-tBleStatus AddInputService(void)
+tBleStatus AddControlService(void)
 {
 	tBleStatus ret;
 	uint8_t uuid[16];
   
 	/* copy "Input service UUID" defined above to 'uuid' local variable */
-	COPY_INPUT_SERVICE_UUID(uuid);
+	COPY_CONTROL_SERVICE_UUID(uuid);
 	
-	ret = aci_gatt_add_serv(UUID_TYPE_128,
+	ret = aci_gatt_add_serv(
+		UUID_TYPE_128,
 		uuid,
 		PRIMARY_SERVICE,
 		7,
-		&inputServHandle);
+		&controlServHandle);
 	if (ret != BLE_STATUS_SUCCESS) goto fail;    
   
 	/* copy "INPUT button characteristic UUID" defined above to 'uuid' local variable */  
-	COPY_INPUT_CHAR_UUID(uuid);
+	COPY_CONTROL_CHAR_UUID(uuid);
 	
-	ret =  aci_gatt_add_char(inputServHandle,
+	ret =  aci_gatt_add_char(
+		controlServHandle,
 		UUID_TYPE_128,
 		uuid,
 		4,
@@ -322,15 +326,16 @@ tBleStatus AddInputService(void)
 		GATT_NOTIFY_ATTRIBUTE_WRITE,
 		16,
 		1,
-		&inputButtonCharHandle);
+		&controlButtonCharHandle);
 	if (ret != BLE_STATUS_SUCCESS) goto fail;  
   
-	PRINTF("Service Input BUTTON added. Handle 0x%04X, Input button Charac handle: 0x%04X\n", inputServHandle, inputButtonCharHandle);	
+	PRINTF("Service Input BUTTON added. Handle 0x%04X, Input button Charac handle: 0x%04X\n", controlServHandle, controlButtonCharHandle);	
 	
 	/* copy "Instructionn characteristic UUID" defined above to 'uuid' local variable */  
 	COPY_INSTRUCTION_CHAR_UUID(uuid);
 	
-	ret =  aci_gatt_add_char(inputServHandle,
+	ret =  aci_gatt_add_char(
+		controlServHandle,
 		UUID_TYPE_128,
 		uuid,
 		4,
@@ -342,7 +347,7 @@ tBleStatus AddInputService(void)
 		&instructionButtonCharHandle);
 	if (ret != BLE_STATUS_SUCCESS) goto fail;  
   
-	PRINTF("Service Instruction added. Handle 0x%04X, Input button Charac handle: 0x%04X\n", inputServHandle, instructionButtonCharHandle);
+	PRINTF("Service Instruction added. Handle 0x%04X, Input button Charac handle: 0x%04X\n", controlServHandle, instructionButtonCharHandle);
 	return BLE_STATUS_SUCCESS; 
   
 fail:
@@ -500,7 +505,7 @@ void Read_Request_CB(uint16_t handle)
  */
 void Attribute_Modified_CB(uint16_t handle, uint8_t data_length, uint8_t *att_data)
 {
-	if (handle == inputButtonCharHandle + 1)
+	if (handle == controlButtonCharHandle + 1)
 	{
 		if (data_length < 3)
 			return;
