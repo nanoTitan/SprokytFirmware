@@ -152,6 +152,7 @@
     <ClCompile Include="Src\BLE\BLE.c" />
     <ClCompile Include="Src\bluenrg_interface.c" />
     <ClCompile Include="Src\Controller\control_manager.c" />
+    <ClCompile Include="Src\Controller\rover_control.c" />
     <ClCompile Include="Src\cube_hal_f4.c" />
     <ClCompile Include="Src\main.c" />
     <ClCompile Include="Src\Motor\motor_controller.c" />
@@ -299,6 +300,7 @@
     <ClInclude Include="Src\connection_config.h" />
     <ClInclude Include="Src\constants.h" />
     <ClInclude Include="Src\Controller\control_manager.h" />
+    <ClInclude Include="Src\Controller\rover_control.h" />
     <ClInclude Include="Src\cube_hal.h" />
     <ClInclude Include="Src\error.h" />
     <ClInclude Include="Src\Math\math_ext.h" />

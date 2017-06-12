@@ -1,7 +1,7 @@
 #ifndef _MATH_EXT_H_
 #define _MATH_EXT_H_
 
-#include "math.h"
+#include <math.h>
 #include <stdint.h>
 
 #define M_1_255  0.003921568627451

@@ -37,8 +37,8 @@ int main()
 	MotorController_init();	
 	
 	// Control Manager
-	//ControlMgr_init();
-	//ControlMgr_setType(CONTROLLER_ROVER);	//  CONTROLLER_ESC_PROGRAMMER CONTROLLER_FLIGHT
+	ControlMgr_init();
+	ControlMgr_setType(CONTROLLER_ROVER);	//  CONTROLLER_ESC_PROGRAMMER CONTROLLER_FLIGHT
 	
 	// IMU and Sensors
 	//IMU_init();
@@ -51,9 +51,7 @@ int main()
 	//Wifi::Instance()->Init();				// ESP Wifi
 	
 	while (1)
-	{
-		HAL_Delay(500);
-		
+	{		
 		// Communication
 		//Wifi::Instance()->Update();
 		UpdateBLE();
@@ -62,7 +60,9 @@ int main()
 		// IMU and Sensors
 		//IMU_update();
 		
-		MotorController_UpdateMotorTest();
+		//MotorController_UpdateMotorTest();
+		
+		ControlMgr_update();
 	}
 }
 
