@@ -110,6 +110,7 @@ void ParseTranslate(uint8_t _x, uint8_t _y)
 	// ***********************
 	// TODO: Fix bug where using more than 75% of power causes wifi to loose connection. 
 	// This seems to be a power regulation issue
+/*
 	float max = 0.75f;
 	if (x < -max)
 		x = -max;
@@ -120,6 +121,7 @@ void ParseTranslate(uint8_t _x, uint8_t _y)
 		y = -max;
 	else if (y > max)
 		y = max;
+*/
 	// ***********************
 		
 	float e = x;
