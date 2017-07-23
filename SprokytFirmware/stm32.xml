@@ -2,7 +2,7 @@
 <EmbeddedProfile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <ToolchainID>com.visualgdb.arm-eabi</ToolchainID>
   <BspID>com.sysprogs.arm.stm32</BspID>
-  <BspVersion>4.2</BspVersion>
+  <BspVersion>4.3</BspVersion>
   <McuID>STM32F411RE</McuID>
   <MCUDefinitionFile>STM32F4xxxx/DeviceDefinitions/stm32f411xe.xml</MCUDefinitionFile>
   <MCUProperties>
@@ -13,11 +13,15 @@
       </KeyValue>
       <KeyValue>
         <Key>com.sysprogs.bspoptions.arm.floatmode</Key>
-        <Value>-mfloat-abi=soft</Value>
+        <Value>-mfloat-abi=hard</Value>
       </KeyValue>
       <KeyValue>
         <Key>com.sysprogs.toolchainoptions.arm.libctype</Key>
         <Value />
+      </KeyValue>
+      <KeyValue>
+        <Key>com.sysprogs.toolchainoptions.arm.compactcpp</Key>
+        <Value>compactcpp</Value>
       </KeyValue>
       <KeyValue>
         <Key>com.sysprogs.toolchainoptions.arm.libnosys</Key>

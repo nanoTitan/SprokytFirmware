@@ -37,7 +37,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <NMakeIncludeSearchPath>.;$(LOCALAPPDATA)\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Inc;$(LOCALAPPDATA)\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Inc\Legacy;$(LOCALAPPDATA)\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\CMSIS_HAL\Device\ST\STM32F4xx\Include;$(LOCALAPPDATA)\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\CMSIS_HAL\Include;c:\sysgcc\arm-eabi\arm-eabi\include\c++\6.2.0;c:\sysgcc\arm-eabi\arm-eabi\include\c++\6.2.0\arm-eabi\thumb\cortex_m4;c:\sysgcc\arm-eabi\arm-eabi\include\c++\6.2.0\backward;c:\sysgcc\arm-eabi\lib\gcc\arm-eabi\6.2.0\include;c:\sysgcc\arm-eabi\lib\gcc\arm-eabi\6.2.0\include-fixed;c:\sysgcc\arm-eabi\arm-eabi\sys-include;c:\sysgcc\arm-eabi\arm-eabi\include;Src;Src/BLE;Src/Controller;Src/Motor;Src/Math;X-CUBE-BLE1/Drivers/BSP/STM32F4xx-Nucleo;X-CUBE-BLE1/Drivers/BSP/X-NUCLEO-IDB0xA1;X-CUBE-BLE1/Middlewares/ST/LowPowerManager/Inc;X-CUBE-BLE1/Middlewares/ST/STM32_BlueNRG/Interface;X-CUBE-BLE1/Middlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/hci/controller;X-CUBE-BLE1/Middlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/hci;X-CUBE-BLE1/Middlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/includes;X-CUBE-BLE1/Middlewares/ST/STM32_BlueNRG/STM32F4xx_HAL_BlueNRG_Drivers/inc;X-CUBE-BLE1/Middlewares/ST/TimerServer/inc;X-CUBE-BLE1/Middlewares/ST/TimerServer/STM32xx_HAL_TimerServer_Drivers/inc;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>.;$(LOCALAPPDATA)\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Inc;$(LOCALAPPDATA)\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Inc\Legacy;$(LOCALAPPDATA)\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\CMSIS_HAL\Device\ST\STM32F4xx\Include;$(LOCALAPPDATA)\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\CMSIS_HAL\Include;c:\sysgcc\arm-eabi\arm-eabi\include\c++\6.2.0;c:\sysgcc\arm-eabi\arm-eabi\include\c++\6.2.0\arm-eabi\thumb\cortex_m4;c:\sysgcc\arm-eabi\arm-eabi\include\c++\6.2.0\backward;c:\sysgcc\arm-eabi\lib\gcc\arm-eabi\6.2.0\include;c:\sysgcc\arm-eabi\lib\gcc\arm-eabi\6.2.0\include-fixed;c:\sysgcc\arm-eabi\arm-eabi\sys-include;c:\sysgcc\arm-eabi\arm-eabi\include;Src;Src/BLE;Src/Controller;Src/Motor;Src/Math;Src/IMU;X-CUBE-BLE1/Drivers/BSP/STM32F4xx-Nucleo;X-CUBE-BLE1/Drivers/BSP/X-NUCLEO-IDB0xA1;X-CUBE-BLE1/Middlewares/ST/LowPowerManager/Inc;X-CUBE-BLE1/Middlewares/ST/STM32_BlueNRG/Interface;X-CUBE-BLE1/Middlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/hci/controller;X-CUBE-BLE1/Middlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/hci;X-CUBE-BLE1/Middlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/includes;X-CUBE-BLE1/Middlewares/ST/STM32_BlueNRG/STM32F4xx_HAL_BlueNRG_Drivers/inc;X-CUBE-BLE1/Middlewares/ST/TimerServer/inc;X-CUBE-BLE1/Middlewares/ST/TimerServer/STM32xx_HAL_TimerServer_Drivers/inc;X-CUBE-MEMS1/Drivers/BSP/Components/Common;X-CUBE-MEMS1/Drivers/BSP/Components/hts221;X-CUBE-MEMS1/Drivers/BSP/Components/lis3mdl;X-CUBE-MEMS1/Drivers/BSP/Components/lps22hb;X-CUBE-MEMS1/Drivers/BSP/Components/lps25hb;X-CUBE-MEMS1/Drivers/BSP/Components/lsm6ds0;X-CUBE-MEMS1/Drivers/BSP/Components/lsm6ds3;X-CUBE-MEMS1/Drivers/BSP/X_NUCLEO_IKS01A1;X-CUBE-MEMS1/Drivers/BSP/STM32F4xx-Nucleo;X-CUBE-MEMS1/Middlewares/ST/STM32_OSX_MotionFX_Library;X-CUBE-MEMS1/Middlewares/ST/STM32_OSX_MotionFX_Library/Inc;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>$(ProjectDir)\gcc_Debug.h;$(VISUALGDB_DIR)\gcc_compat.h;$(LOCALAPPDATA)\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\stm32_compat.h;$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeBuildCommandLine>"$(VISUALGDB_DIR)\VisualGDB.exe" /build "$(ProjectPath)" "/solution:$(SolutionPath)" "/config:$(Configuration)" "/platform:$(Platform)"</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>"$(VISUALGDB_DIR)\VisualGDB.exe" /clean "$(ProjectPath)" "/solution:$(SolutionPath)" "/config:$(Configuration)" "/platform:$(Platform)"</NMakeCleanCommandLine>
@@ -154,6 +154,9 @@
     <ClCompile Include="Src\Controller\control_manager.c" />
     <ClCompile Include="Src\Controller\rover_control.c" />
     <ClCompile Include="Src\cube_hal_f4.c" />
+    <ClCompile Include="Src\IMU\imu.c" />
+    <ClCompile Include="Src\IMU\MotionFX_Manager.c" />
+    <ClCompile Include="Src\IMU\serial_protocol.c" />
     <ClCompile Include="Src\main.c" />
     <ClCompile Include="Src\Motor\motor_controller.c" />
     <ClCompile Include="Src\Motor\TB6612FNG.c" />
@@ -181,6 +184,25 @@
     <ClCompile Include="X-CUBE-BLE1\Middlewares\ST\STM32_BlueNRG\STM32F4xx_HAL_BlueNRG_Drivers\src\stm32f4xx_hal_bluenrg_gpio.c" />
     <ClCompile Include="X-CUBE-BLE1\Middlewares\ST\STM32_BlueNRG\STM32F4xx_HAL_BlueNRG_Drivers\src\stm32f4xx_hal_bluenrg_syscfg.c" />
     <ClCompile Include="X-CUBE-BLE1\Middlewares\ST\TimerServer\src\stm32xx_timerserver.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\Components\hts221\HTS221_Driver.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\Components\hts221\HTS221_Driver_HL.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\Components\lis3mdl\LIS3MDL_MAG_driver.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\Components\lis3mdl\LIS3MDL_MAG_driver_HL.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\Components\lps22hb\LPS22HB_Driver.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\Components\lps22hb\LPS22HB_Driver_HL.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\Components\lps25hb\LPS25HB_Driver.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\Components\lps25hb\LPS25HB_Driver_HL.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\Components\lsm6ds0\LSM6DS0_ACC_GYRO_driver.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\Components\lsm6ds0\LSM6DS0_ACC_GYRO_driver_HL.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\Components\lsm6ds3\LSM6DS3_ACC_GYRO_driver.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\Components\lsm6ds3\LSM6DS3_ACC_GYRO_driver_HL.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1_accelero.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1_gyro.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1_humidity.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1_magneto.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1_pressure.c" />
+    <ClCompile Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1_temperature.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\Users\Cairo\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\CMSIS_HAL\Device\ST\STM32F4xx\Include\stm32f4xx.h" />
@@ -303,6 +325,11 @@
     <ClInclude Include="Src\Controller\rover_control.h" />
     <ClInclude Include="Src\cube_hal.h" />
     <ClInclude Include="Src\error.h" />
+    <ClInclude Include="Src\IMU\imu.h" />
+    <ClInclude Include="Src\IMU\MotionFX_Manager.h" />
+    <ClInclude Include="Src\IMU\Serial_CMD.h" />
+    <ClInclude Include="Src\IMU\serial_protocol.h" />
+    <ClInclude Include="Src\main.h" />
     <ClInclude Include="Src\Math\math_ext.h" />
     <ClInclude Include="Src\Motor\motor_controller.h" />
     <ClInclude Include="Src\Motor\TB6612FNG.h" />
@@ -350,6 +377,35 @@
     <ClInclude Include="X-CUBE-BLE1\Middlewares\ST\TimerServer\inc\stm32xx_timerserver_conf.h" />
     <ClInclude Include="X-CUBE-BLE1\Middlewares\ST\TimerServer\STM32xx_HAL_TimerServer_Drivers\inc\stm32xx_hal_timerserver_exti.h" />
     <ClInclude Include="X-CUBE-BLE1\Middlewares\ST\TimerServer\STM32xx_HAL_TimerServer_Drivers\inc\stm32xx_hal_timerserver_rtc.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\Common\accelerometer.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\Common\component.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\Common\gyroscope.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\Common\humidity.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\Common\magnetometer.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\Common\pressure.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\Common\sensor.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\Common\temperature.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\hts221\HTS221_Driver.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\hts221\HTS221_Driver_HL.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\lis3mdl\LIS3MDL_MAG_driver.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\lis3mdl\LIS3MDL_MAG_driver_HL.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\lps22hb\LPS22HB_Driver.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\lps22hb\LPS22HB_Driver_HL.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\lps25hb\LPS25HB_Driver.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\lps25hb\LPS25HB_Driver_HL.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\lsm6ds0\LSM6DS0_ACC_GYRO_driver.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\lsm6ds0\LSM6DS0_ACC_GYRO_driver_HL.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\lsm6ds3\LSM6DS3_ACC_GYRO_driver.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\Components\lsm6ds3\LSM6DS3_ACC_GYRO_driver_HL.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1_accelero.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1_gyro.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1_humidity.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1_magneto.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1_pressure.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Drivers\BSP\X_NUCLEO_IKS01A1\x_nucleo_iks01a1_temperature.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Middlewares\ST\STM32_OSX_MotionFX_Library\Inc\osx_motion_fx.h" />
+    <ClInclude Include="X-CUBE-MEMS1\Middlewares\ST\STM32_OSX_MotionFX_Library\osx_license.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="debug.mak" />

@@ -29,4 +29,4 @@ uint32_t osx_mfx_license[3][4] =
 	{ 0xFD8194B1, 0x13F86A42, 0xBF87AB4F, 0xE9160ED3 }
 }; 
 
-#endif // _OSX_MOTION_FX_LICENSE_
+# endif // _OSX_MOTION_FX_LICENSE_

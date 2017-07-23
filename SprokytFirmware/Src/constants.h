@@ -29,9 +29,9 @@
 #define MD1_BIN1_GPIO_Port GPIOB
 #define MD1_BIN2_Pin GPIO_PIN_13
 #define MD1_BIN2_GPIO_Port GPIOB
-#define MD2_AIN2_Pin GPIO_PIN_14
+#define MD2_AIN2_Pin GPIO_PIN_15
 #define MD2_AIN2_GPIO_Port GPIOB
-#define MD2_AIN1_Pin GPIO_PIN_15
+#define MD2_AIN1_Pin GPIO_PIN_14
 #define MD2_AIN1_GPIO_Port GPIOB
 #define MD2_PWMB_Pin GPIO_PIN_7
 #define MD2_PWMB_GPIO_Port GPIOC

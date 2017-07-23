@@ -60,6 +60,7 @@
 volatile uint32_t ms_counter = 0;
 volatile uint8_t button_event = 0;
 /* SPI handler declared in "main.c" file */
+extern TIM_HandleTypeDef SFTimHandle;
 extern SPI_HandleTypeDef SpiHandle;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -158,6 +159,16 @@ void PUSH_BUTTON_EXTI_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(KEY_BUTTON_PIN);
   
   button_event = 1;
+}
+
+/**
+* @brief  This function handles TIM interrupt request for sensor fusion
+* @param  None
+* @retval None
+*/
+void TIM_SF_IRQHandler(void)
+{
+	HAL_TIM_IRQHandler(&SFTimHandle);
 }
 
 /******************************************************************************/

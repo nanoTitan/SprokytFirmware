@@ -38,6 +38,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_nucleo_bluenrg.h"
+#include "main.h"
 #include "constants.h"
 
 /** @addtogroup X-CUBE-BLE1_Applications
@@ -65,10 +66,13 @@
 
 void HAL_MspInit(void)
 {
-	/* USER CODE BEGIN MspInit 0 */
-
-	/* USER CODE END MspInit 0 */
-
+	// Begin - Sensor Fusion IRQ Init
+	/* TIMx Peripheral clock enable */
+	TIM_SF_CLK_ENABLE();
+	HAL_NVIC_SetPriority(TIM_SF_IRQn, 10, 0);	/* Set the TIMx priority */
+	HAL_NVIC_EnableIRQ(TIM_SF_IRQn);			/* Enable the TIMx global Interrupt */
+	// End - Sensor Fusion IRQ Init
+	
 	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
 	/* System interrupt init*/

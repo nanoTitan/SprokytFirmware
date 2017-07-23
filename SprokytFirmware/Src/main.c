@@ -8,7 +8,7 @@ All Rights Reserved
 #include "control_manager.h"
 #include "BLE.h"
 #include "motor_controller.h"
-//#include "imu.h"
+#include "imu.h"
 //#include "LED/LEDManager.h"
 #include "error.h"
 #include "debug.h"
@@ -34,7 +34,7 @@ int main()
 	BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
 	
 	// Motor Controller
-	MotorController_init();	
+	//MotorController_init();	
 	
 	// Control Manager
 	ControlMgr_init();
@@ -44,11 +44,12 @@ int main()
 	//IMU_init();
 	
 	// Communication
-	if (InitBLE() != BLE_STATUS_SUCCESS)
-		Error_Handler(); 
-	
 	//SWPF01SA::Instance()->InitWifi();		// ST Wifi
 	//Wifi::Instance()->Init();				// ESP Wifi
+	if (InitBLE() != BLE_STATUS_SUCCESS)
+		Error_Handler();
+	
+	PRINTF("Initialization finished. Running program...\r\n");
 	
 	while (1)
 	{		

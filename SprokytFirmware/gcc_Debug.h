@@ -1199,6 +1199,7 @@
 //Src/Controller
 //Src/Motor
 //Src/Math
+//Src/IMU
 //X-CUBE-BLE1/Drivers/BSP/STM32F4xx-Nucleo
 //X-CUBE-BLE1/Drivers/BSP/X-NUCLEO-IDB0xA1
 //X-CUBE-BLE1/Middlewares/ST/LowPowerManager/Inc
@@ -1209,6 +1210,17 @@
 //X-CUBE-BLE1/Middlewares/ST/STM32_BlueNRG/STM32F4xx_HAL_BlueNRG_Drivers/inc
 //X-CUBE-BLE1/Middlewares/ST/TimerServer/inc
 //X-CUBE-BLE1/Middlewares/ST/TimerServer/STM32xx_HAL_TimerServer_Drivers/inc
+//X-CUBE-MEMS1/Drivers/BSP/Components/Common
+//X-CUBE-MEMS1/Drivers/BSP/Components/hts221
+//X-CUBE-MEMS1/Drivers/BSP/Components/lis3mdl
+//X-CUBE-MEMS1/Drivers/BSP/Components/lps22hb
+//X-CUBE-MEMS1/Drivers/BSP/Components/lps25hb
+//X-CUBE-MEMS1/Drivers/BSP/Components/lsm6ds0
+//X-CUBE-MEMS1/Drivers/BSP/Components/lsm6ds3
+//X-CUBE-MEMS1/Drivers/BSP/X_NUCLEO_IKS01A1
+//X-CUBE-MEMS1/Drivers/BSP/STM32F4xx-Nucleo
+//X-CUBE-MEMS1/Middlewares/ST/STM32_OSX_MotionFX_Library
+//X-CUBE-MEMS1/Middlewares/ST/STM32_OSX_MotionFX_Library/Inc
 // --- Include directories end --- //
 
 
