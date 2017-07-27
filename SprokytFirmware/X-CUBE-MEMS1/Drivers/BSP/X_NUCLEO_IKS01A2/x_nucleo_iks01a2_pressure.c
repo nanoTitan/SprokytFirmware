@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    x_nucleo_iks01a2_pressure.c
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file provides a set of functions needed to manage the pressure sensor
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -143,6 +143,7 @@ static DrvStatusTypeDef BSP_LPS22HB_PRESSURE_Init( void **handle )
 
   /* Setup sensor handle. */
   PRESSURE_SensorHandle[ LPS22HB_P_0 ].who_am_i      = LPS22HB_WHO_AM_I_VAL;
+  PRESSURE_SensorHandle[ LPS22HB_P_0 ].ifType        = 0; /* I2C interface */
   PRESSURE_SensorHandle[ LPS22HB_P_0 ].address       = LPS22HB_ADDRESS_HIGH;
   PRESSURE_SensorHandle[ LPS22HB_P_0 ].instance      = LPS22HB_P_0;
   PRESSURE_SensorHandle[ LPS22HB_P_0 ].isInitialized = 0;

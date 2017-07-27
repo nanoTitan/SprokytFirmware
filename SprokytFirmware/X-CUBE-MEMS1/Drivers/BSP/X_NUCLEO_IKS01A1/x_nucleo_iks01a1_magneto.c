@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    x_nucleo_iks01a1_magneto.c
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file provides a set of functions needed to manage the magnetometer sensor
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -143,6 +143,7 @@ static DrvStatusTypeDef BSP_LIS3MDL_MAGNETO_Init( void **handle )
 
   /* Setup sensor handle. */
   MAGNETO_SensorHandle[ LIS3MDL_0 ].who_am_i      = LIS3MDL_MAG_WHO_AM_I;
+  MAGNETO_SensorHandle[ LIS3MDL_0 ].ifType        = 0; /* I2C interface */
   MAGNETO_SensorHandle[ LIS3MDL_0 ].address       = LIS3MDL_MAG_I2C_ADDRESS_HIGH;
   MAGNETO_SensorHandle[ LIS3MDL_0 ].instance      = LIS3MDL_0;
   MAGNETO_SensorHandle[ LIS3MDL_0 ].isInitialized = 0;

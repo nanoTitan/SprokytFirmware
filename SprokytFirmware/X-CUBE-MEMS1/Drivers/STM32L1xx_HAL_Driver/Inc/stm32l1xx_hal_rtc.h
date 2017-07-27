@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32l1xx_hal_rtc.h
   * @author  MCD Application Team
-  * @version V1.1.3
-  * @date    04-March-2016
+  * @version 21-April-2017
+  * @date    V1.3.0
   * @brief   Header file of RTC HAL module.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -150,8 +150,8 @@ typedef struct
 /** @defgroup RTC_Hour_Formats Hour Formats
   * @{
   */ 
-#define RTC_HOURFORMAT_24              ((uint32_t)0x00000000)
-#define RTC_HOURFORMAT_12              ((uint32_t)0x00000040)
+#define RTC_HOURFORMAT_24              (0x00000000U)
+#define RTC_HOURFORMAT_12              (0x00000040U)
 
 #define IS_RTC_HOUR_FORMAT(FORMAT)     (((FORMAT) == RTC_HOURFORMAT_12) || \
                                         ((FORMAT) == RTC_HOURFORMAT_24))
@@ -162,8 +162,8 @@ typedef struct
 /** @defgroup RTC_Output_Polarity_Definitions Outpout Polarity
   * @{
   */ 
-#define RTC_OUTPUT_POLARITY_HIGH       ((uint32_t)0x00000000)
-#define RTC_OUTPUT_POLARITY_LOW        ((uint32_t)0x00100000)
+#define RTC_OUTPUT_POLARITY_HIGH       (0x00000000U)
+#define RTC_OUTPUT_POLARITY_LOW        (0x00100000U)
 
 #define IS_RTC_OUTPUT_POL(POL) (((POL) == RTC_OUTPUT_POLARITY_HIGH) || \
                                 ((POL) == RTC_OUTPUT_POLARITY_LOW))
@@ -174,8 +174,8 @@ typedef struct
 /** @defgroup RTC_Output_Type_ALARM_OUT Alarm Output Type
   * @{
   */ 
-#define RTC_OUTPUT_TYPE_OPENDRAIN      ((uint32_t)0x00000000)
-#define RTC_OUTPUT_TYPE_PUSHPULL       ((uint32_t)0x00040000)
+#define RTC_OUTPUT_TYPE_OPENDRAIN      (0x00000000U)
+#define RTC_OUTPUT_TYPE_PUSHPULL       (0x00040000U)
 
 #define IS_RTC_OUTPUT_TYPE(TYPE) (((TYPE) == RTC_OUTPUT_TYPE_OPENDRAIN) || \
                                   ((TYPE) == RTC_OUTPUT_TYPE_PUSHPULL))
@@ -187,7 +187,7 @@ typedef struct
 /** @defgroup RTC_Asynchronous_Predivider Asynchronous Predivider 
   * @{
   */ 
-#define IS_RTC_ASYNCH_PREDIV(PREDIV)   ((PREDIV) <= (uint32_t)0x7F)
+#define IS_RTC_ASYNCH_PREDIV(PREDIV)   ((PREDIV) <= 0x7FU)
 /**
   * @}
   */ 
@@ -195,10 +195,10 @@ typedef struct
 /** @defgroup RTC_Time_Definitions Time Definitions 
   * @{
   */ 
-#define IS_RTC_HOUR12(HOUR)            (((HOUR) > (uint32_t)0) && ((HOUR) <= (uint32_t)12))
-#define IS_RTC_HOUR24(HOUR)            ((HOUR) <= (uint32_t)23)
-#define IS_RTC_MINUTES(MINUTES)        ((MINUTES) <= (uint32_t)59)
-#define IS_RTC_SECONDS(SECONDS)        ((SECONDS) <= (uint32_t)59)
+#define IS_RTC_HOUR12(HOUR)            (((HOUR) > 0U) && ((HOUR) <= 12U))
+#define IS_RTC_HOUR24(HOUR)            ((HOUR) <= 23U)
+#define IS_RTC_MINUTES(MINUTES)        ((MINUTES) <= 59U)
+#define IS_RTC_SECONDS(SECONDS)        ((SECONDS) <= 59U)
 /**
   * @}
   */ 
@@ -217,9 +217,9 @@ typedef struct
 /** @defgroup RTC_DayLightSaving_Definitions DayLightSaving
   * @{
   */ 
-#define RTC_DAYLIGHTSAVING_SUB1H       ((uint32_t)0x00020000)
-#define RTC_DAYLIGHTSAVING_ADD1H       ((uint32_t)0x00010000)
-#define RTC_DAYLIGHTSAVING_NONE        ((uint32_t)0x00000000)
+#define RTC_DAYLIGHTSAVING_SUB1H       (0x00020000U)
+#define RTC_DAYLIGHTSAVING_ADD1H       (0x00010000U)
+#define RTC_DAYLIGHTSAVING_NONE        (0x00000000U)
 
 #define IS_RTC_DAYLIGHT_SAVING(SAVE) (((SAVE) == RTC_DAYLIGHTSAVING_SUB1H) || \
                                       ((SAVE) == RTC_DAYLIGHTSAVING_ADD1H) || \
@@ -231,8 +231,8 @@ typedef struct
 /** @defgroup RTC_StoreOperation_Definitions StoreOperation
   * @{
   */ 
-#define RTC_STOREOPERATION_RESET        ((uint32_t)0x00000000)
-#define RTC_STOREOPERATION_SET          ((uint32_t)0x00040000)
+#define RTC_STOREOPERATION_RESET        (0x00000000U)
+#define RTC_STOREOPERATION_SET          (0x00040000U)
 
 #define IS_RTC_STORE_OPERATION(OPERATION) (((OPERATION) == RTC_STOREOPERATION_RESET) || \
                                            ((OPERATION) == RTC_STOREOPERATION_SET))
@@ -243,8 +243,8 @@ typedef struct
 /** @defgroup RTC_Input_parameter_format_definitions Input Parameter Format
   * @{
   */ 
-#define RTC_FORMAT_BIN                      ((uint32_t)0x000000000)
-#define RTC_FORMAT_BCD                      ((uint32_t)0x000000001)
+#define RTC_FORMAT_BIN                      (0x000000000U)
+#define RTC_FORMAT_BCD                      (0x000000001U)
 
 #define IS_RTC_FORMAT(FORMAT) (((FORMAT) == RTC_FORMAT_BIN) || ((FORMAT) == RTC_FORMAT_BCD))
 /**
@@ -254,7 +254,7 @@ typedef struct
 /** @defgroup RTC_Year_Date_Definitions Year Definitions
   * @{
   */ 
-#define IS_RTC_YEAR(YEAR)              ((YEAR) <= (uint32_t)99)
+#define IS_RTC_YEAR(YEAR)              ((YEAR) <= 99U)
 /**
   * @}
   */ 
@@ -277,8 +277,8 @@ typedef struct
 #define RTC_MONTH_NOVEMBER             ((uint8_t)0x11)
 #define RTC_MONTH_DECEMBER             ((uint8_t)0x12)
 
-#define IS_RTC_MONTH(MONTH)            (((MONTH) >= (uint32_t)1) && ((MONTH) <= (uint32_t)12))
-#define IS_RTC_DATE(DATE)              (((DATE) >= (uint32_t)1) && ((DATE) <= (uint32_t)31))
+#define IS_RTC_MONTH(MONTH)            (((MONTH) >= 1U) && ((MONTH) <= 12U))
+#define IS_RTC_DATE(DATE)              (((DATE) >= 1U) && ((DATE) <= 31U))
 /**
   * @}
   */ 
@@ -308,7 +308,7 @@ typedef struct
 /** @defgroup RTC_Alarm_Definitions Alarm Definitions
   * @{
   */ 
-#define IS_RTC_ALARM_DATE_WEEKDAY_DATE(DATE) (((DATE) >(uint32_t) 0) && ((DATE) <= (uint32_t)31))
+#define IS_RTC_ALARM_DATE_WEEKDAY_DATE(DATE) (((DATE) > 0U) && ((DATE) <= 31U))
 #define IS_RTC_ALARM_DATE_WEEKDAY_WEEKDAY(WEEKDAY) (((WEEKDAY) == RTC_WEEKDAY_MONDAY)    || \
                                                     ((WEEKDAY) == RTC_WEEKDAY_TUESDAY)   || \
                                                     ((WEEKDAY) == RTC_WEEKDAY_WEDNESDAY) || \
@@ -324,8 +324,8 @@ typedef struct
 /** @defgroup RTC_AlarmDateWeekDay_Definitions AlarmDateWeekDay Definitions 
   * @{
   */ 
-#define RTC_ALARMDATEWEEKDAYSEL_DATE      ((uint32_t)0x00000000)
-#define RTC_ALARMDATEWEEKDAYSEL_WEEKDAY   ((uint32_t)0x40000000)
+#define RTC_ALARMDATEWEEKDAYSEL_DATE      (0x00000000U)
+#define RTC_ALARMDATEWEEKDAYSEL_WEEKDAY   (0x40000000U)
 
 #define IS_RTC_ALARM_DATE_WEEKDAY_SEL(SEL) (((SEL) == RTC_ALARMDATEWEEKDAYSEL_DATE) || \
                                             ((SEL) == RTC_ALARMDATEWEEKDAYSEL_WEEKDAY))
@@ -337,12 +337,12 @@ typedef struct
 /** @defgroup RTC_AlarmMask_Definitions Alarm Mask Definitions
   * @{
   */ 
-#define RTC_ALARMMASK_NONE                ((uint32_t)0x00000000)
+#define RTC_ALARMMASK_NONE                (0x00000000U)
 #define RTC_ALARMMASK_DATEWEEKDAY         RTC_ALRMAR_MSK4
 #define RTC_ALARMMASK_HOURS               RTC_ALRMAR_MSK3
 #define RTC_ALARMMASK_MINUTES             RTC_ALRMAR_MSK2
 #define RTC_ALARMMASK_SECONDS             RTC_ALRMAR_MSK1
-#define RTC_ALARMMASK_ALL                 ((uint32_t)0x80808080)
+#define RTC_ALARMMASK_ALL                 (0x80808080U)
 
 #define IS_RTC_ALARM_MASK(MASK)  (((MASK) & 0x7F7F7F7F) == (uint32_t)RESET)
 /**

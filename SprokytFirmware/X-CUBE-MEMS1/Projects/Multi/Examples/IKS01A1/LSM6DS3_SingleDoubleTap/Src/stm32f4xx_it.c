@@ -2,15 +2,15 @@
   ******************************************************************************
   * @file    Projects/Multi/Examples/IKS01A1/LSM6DS3_SingleDoubleTap/Src/stm32f4xx_it.c
   * @author  CL
-  * @version V3.0.0
-  * @date    12-August-2016
+  * @version V4.0.0
+  * @date    1-May-2017
   * @brief   Main Interrupt Service Routines.
   *          This file provides template for all exceptions handler and
   *          peripherals interrupt service routine.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:

@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    Projects/Multi/Examples/IKS01A2/LSM6DSL_FreeFallDetection/Src/cube_hal_l4.c
   * @author  CL
-  * @version V3.0.0
-  * @date    12-August-2016
+  * @version V4.0.0
+  * @date    1-May-2017
   * @brief   Specific Cube settings for STM32L4 Nucleo boards
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:

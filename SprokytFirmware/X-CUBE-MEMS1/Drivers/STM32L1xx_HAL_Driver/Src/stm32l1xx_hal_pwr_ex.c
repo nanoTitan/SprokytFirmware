@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32l1xx_hal_pwr_ex.c
   * @author  MCD Application Team
-  * @version V1.1.3
-  * @date    04-March-2016
+  * @version 21-April-2017
+  * @date    V1.3.0
   * @brief   Extended PWR HAL module driver.
   *          This file provides firmware functions to manage the following
   *          functionalities of the Power Controller (PWR) peripheral:
@@ -13,7 +13,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -151,11 +151,12 @@ void HAL_PWREx_EnableLowPowerRunMode(void)
   * @brief  Exits the Low Power Run mode.
   * @retval None
   */
-void HAL_PWREx_DisableLowPowerRunMode(void)
+HAL_StatusTypeDef HAL_PWREx_DisableLowPowerRunMode(void)
 {
   /* Exits the Low Power Run mode */
   *(__IO uint32_t *) CR_LPRUN_BB  = (uint32_t)DISABLE;
   *(__IO uint32_t *) CR_LPSDSR_BB = (uint32_t)DISABLE;
+  return HAL_OK;
 }
 
 /**

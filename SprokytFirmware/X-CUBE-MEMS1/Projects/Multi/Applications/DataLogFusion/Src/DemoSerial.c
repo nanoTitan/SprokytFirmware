@@ -1,20 +1,14 @@
 /**
   ******************************************************************************
-  * @file    Projects/Multi/Applications/DataLogFusion/Src/DemoSerial.c
-  * @author  CL
-  * @version V1.6.0
-  * @date    8-November-2016
-  * @brief   Handler AST Serial Protocol
+  * @file        DemoSerial.c
+  * @author      MEMS Application Team
+  * @version     V2.0.0
+  * @date        01-May-2017
+  * @brief       Handler Serial Protocol
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -41,45 +35,36 @@
   ******************************************************************************
   */
 
-
 /* Includes ------------------------------------------------------------------*/
-#include "DemoSerial.h"
-#include "MotionFX_Manager.h"
-#include "main.h"
+#include <stdint.h>
 #include "com.h"
+#include "DemoSerial.h"
 
-/** @addtogroup OSX_MOTION_FX_Applications
+/** @addtogroup MOTION_FX_Applications
   * @{
   */
 
-/** @addtogroup DATALOGFUSION
+/** @addtogroup DATALOG_FUSION
+  * @{
+  */
+
+    /** @addtogroup Serial_Protocol Serial_Protocol
   * @{
   */
 
 /* Extern variables ----------------------------------------------------------*/
-extern volatile uint32_t Sensors_Enabled;
-extern volatile uint32_t DataTxPeriod;
-extern volatile uint8_t SF_Active;
-extern volatile uint8_t SF_change;
-extern volatile uint8_t SF_6x_enabled;
-extern TIM_HandleTypeDef DataLogTimHandle;
-extern void *ACCELERO_handle;
-extern void *GYRO_handle;
-extern void *MAGNETO_handle;
-extern void *HUMIDITY_handle;
-extern void *TEMPERATURE_handle;
-extern void *PRESSURE_handle;
+uint8_t SF_6X_Enabled = 0;
+
+/* Private defines -----------------------------------------------------------*/
+#define DATA_TX_LEN  MIN(4, DATABYTE_FA_LEN)
 
 /* Private variables ---------------------------------------------------------*/
-volatile uint8_t DataLoggerActive;
-volatile uint8_t SenderInterface = 0;
+volatile uint8_t DataStreamingDest = 2;
 #ifdef USE_IKS01A2
-uint8_t PresentationString[] = {"MEMS shield demo,4,1.6.0,1.0.7,IKS01A2"};
+uint8_t PresentationString[] = {"MEMS shield demo,4,2.0.0,2.0.0,IKS01A2"};
 #elif USE_IKS01A1
-uint8_t PresentationString[] = {"MEMS shield demo,4,1.6.0,1.0.7,IKS01A1"};
+uint8_t PresentationString[] = {"MEMS shield demo,4,2.0.0,2.0.0,IKS01A1"};
 #endif
-volatile uint8_t DataStreamingDest = 1;
-
 
 /**
   * @brief  Build the reply header
@@ -93,17 +78,6 @@ void BUILD_REPLY_HEADER(TMsg *Msg)
   Msg->Data[2] += CMD_Reply_Add;
 }
 
-/**
-  * @brief  Build the nack header
-  * @param  Msg the pointer to the message to be built
-  * @retval None
-  */
-void BUILD_NACK_HEADER(TMsg *Msg)
-{
-  Msg->Data[0] = Msg->Data[1];
-  Msg->Data[1] = DEV_ADDR;
-  Msg->Data[2] = CMD_NACK;
-}
 
 /**
   * @brief  Initialize the streaming header
@@ -118,6 +92,7 @@ void INIT_STREAMING_HEADER(TMsg *Msg)
   Msg->Len = 3;
 }
 
+
 /**
   * @brief  Initialize the streaming message
   * @param  Msg the pointer to the message to be initialized
@@ -126,7 +101,6 @@ void INIT_STREAMING_HEADER(TMsg *Msg)
 void INIT_STREAMING_MSG(TMsg *Msg)
 {
   uint8_t i;
-  
   Msg->Data[0] = DataStreamingDest;
   Msg->Data[1] = DEV_ADDR;
   Msg->Data[2] = CMD_Start_Data_Streaming;
@@ -134,9 +108,10 @@ void INIT_STREAMING_MSG(TMsg *Msg)
   {
     Msg->Data[i] = 0;
   }
+
   Msg->Len = 3;
-  
 }
+
 
 /**
   * @brief  Handle a message
@@ -144,59 +119,50 @@ void INIT_STREAMING_MSG(TMsg *Msg)
   * @retval 1 if the message is correctly handled, 0 otherwise
   */
 int HandleMSG(TMsg *Msg)
-//  DestAddr | SouceAddr | CMD | PAYLOAD
-//      1          1        1       N
+/*  DestAddr | SouceAddr | CMD | PAYLOAD
+ *      1          1        1       N
+ */
 {
-  uint32_t i;
   uint8_t instance;
-  
+  uint32_t i;
+
   if (Msg->Len < 2) return 0;
   if (Msg->Data[0] != DEV_ADDR) return 0;
-  switch (Msg->Data[2])   // CMD
+  switch (Msg->Data[2])
   {
-  
     case CMD_Ping:
       if (Msg->Len != 3) return 0;
       BUILD_REPLY_HEADER(Msg);
       Msg->Len = 3;
       UART_SendMsg(Msg);
       return 1;
-      
+
     case CMD_Enter_DFU_Mode:
       if (Msg->Len != 3) return 0;
       BUILD_REPLY_HEADER(Msg);
       Msg->Len = 3;
       return 1;
-      
+
     case CMD_Read_PresString:
       if (Msg->Len != 3) return 0;
       BUILD_REPLY_HEADER(Msg);
-      i = 0; //
+
+      i = 0;
       while (i < (sizeof(PresentationString) - 1))
       {
         Msg->Data[3 + i] = PresentationString[i];
         i++;
       }
-      
+
       Msg->Len = 3 + i;
       UART_SendMsg(Msg);
       return 1;
-      
-    case CMD_CheckModeSupport:
-      if (Msg->Len < 3) return 0;
-      BUILD_REPLY_HEADER(Msg);
-      Serialize_s32(&Msg->Data[3], DATALOG_FUSION_MODE, 4);
-      Msg->Len = 3 + 4;
-      UART_SendMsg(Msg);
-      return 1;
-      
+
     case CMD_PRESSURE_Init:
       if (Msg->Len < 3) return 0;
+      BUILD_REPLY_HEADER(Msg);
+      BSP_PRESSURE_Get_Instance(PRESSURE_handle, &instance);
 
-      BUILD_REPLY_HEADER( Msg );
-        
-      BSP_PRESSURE_Get_Instance( PRESSURE_handle, &instance );
-        
       switch (instance)
       {
 #ifdef USE_IKS01A2
@@ -204,43 +170,46 @@ int HandleMSG(TMsg *Msg)
           Serialize_s32(&Msg->Data[3], 3, 4);
           Msg->Len = 3 + 4;
           break;
+
 #elif USE_IKS01A1
         case LPS25HB_P_0:
           Serialize_s32(&Msg->Data[3], 1, 4);
           Msg->Len = 3 + 4;
           break;
+
         case LPS25HB_P_1:
           Serialize_s32(&Msg->Data[3], 2, 4);
           Msg->Len = 3 + 4;
           break;
+
         case LPS22HB_P_0:
           Serialize_s32(&Msg->Data[3], 3, 4);
           Msg->Len = 3 + 4;
           break;
-#endif		  
+
+#endif
         default:
           break;
       }
+
       UART_SendMsg(Msg);
       return 1;
-      
+
     case CMD_HUMIDITY_TEMPERATURE_Init:
       if (Msg->Len < 3) return 0;
-
-      BUILD_REPLY_HEADER( Msg ); 
+      BUILD_REPLY_HEADER(Msg);
       Serialize_s32(&Msg->Data[3], 1, 4);
       Msg->Len = 3 + 4;
       UART_SendMsg(Msg);
       return 1;
-      
+
     case CMD_ACCELERO_GYRO_Init:
       if (Msg->Len < 3) return 0;
+      BUILD_REPLY_HEADER(Msg);
 
-      BUILD_REPLY_HEADER( Msg );
-      
       /* We can check one between accelerometer instance and gyroscope instance */
-      BSP_GYRO_Get_Instance( GYRO_handle, &instance );
-          
+      BSP_GYRO_Get_Instance(GYRO_handle, &instance);
+
       switch (instance)
       {
 #ifdef USE_IKS01A2
@@ -248,15 +217,18 @@ int HandleMSG(TMsg *Msg)
           Serialize_s32(&Msg->Data[3], 3, 4);
           Msg->Len = 3 + 4;
           break;
+
 #elif USE_IKS01A1
         case LSM6DS0_G_0:
           Serialize_s32(&Msg->Data[3], 1, 4);
           Msg->Len = 3 + 4;
           break;
+
         case LSM6DS3_G_0:
           Serialize_s32(&Msg->Data[3], 2, 4);
           Msg->Len = 3 + 4;
           break;
+
 #endif
         default:
           break;
@@ -264,15 +236,12 @@ int HandleMSG(TMsg *Msg)
 
       UART_SendMsg(Msg);
       return 1;
-      
+
     case CMD_MAGNETO_Init:
       if (Msg->Len < 3) return 0;
-
       BUILD_REPLY_HEADER( Msg );
-      
-      /* We can check magnetometer instance */
       BSP_MAGNETO_Get_Instance( MAGNETO_handle, &instance );
-          
+
       switch (instance)
       {
 #ifdef USE_IKS01A2
@@ -280,11 +249,13 @@ int HandleMSG(TMsg *Msg)
           Serialize_s32(&Msg->Data[3], 2, 4);
           Msg->Len = 3 + 4;
           break;
+
 #elif USE_IKS01A1
         case LIS3MDL_0:
           Serialize_s32(&Msg->Data[3], 1, 4);
           Msg->Len = 3 + 4;
           break;
+
 #endif
         default:
           break;
@@ -292,70 +263,93 @@ int HandleMSG(TMsg *Msg)
 
       UART_SendMsg(Msg);
       return 1;
-      
+
     case CMD_Start_Data_Streaming:
       if (Msg->Len < 3) return 0;
+
       Sensors_Enabled = Deserialize(&Msg->Data[3], 4);
-      DataTxPeriod = Deserialize(&Msg->Data[7], 4);
+
+      /* Start enabled sensors */
+      if (Sensors_Enabled & PRESSURE_SENSOR     ) BSP_PRESSURE_Sensor_Enable(PRESSURE_handle);
+      if (Sensors_Enabled & TEMPERATURE_SENSOR  ) BSP_TEMPERATURE_Sensor_Enable(TEMPERATURE_handle);
+      if (Sensors_Enabled & HUMIDITY_SENSOR     ) BSP_HUMIDITY_Sensor_Enable(HUMIDITY_handle);
+      if (Sensors_Enabled & ACCELEROMETER_SENSOR) BSP_ACCELERO_Sensor_Enable(ACCELERO_handle);
+      if (Sensors_Enabled & GYROSCOPE_SENSOR    ) BSP_GYRO_Sensor_Enable(GYRO_handle);
+      if (Sensors_Enabled & MAGNETIC_SENSOR     ) BSP_MAGNETO_Sensor_Enable(MAGNETO_handle);
+
+      HAL_TIM_Base_Start_IT(&FX_TimHandle);
       DataLoggerActive = 1;
+
       DataStreamingDest = Msg->Data[1];
       BUILD_REPLY_HEADER(Msg);
       Msg->Len = 3;
       UART_SendMsg(Msg);
       return 1;
-      
+
     case CMD_Stop_Data_Streaming:
       if (Msg->Len < 3) return 0;
-      Sensors_Enabled = 0;
+
       DataLoggerActive = 0;
-      SF_Active = 0;
-      HAL_TIM_OC_Stop(&DataLogTimHandle, TIM_CHANNEL_1);
-      
-      if(SF_6x_enabled == 1)
-      {
-        MotionFX_manager_stop_6X();
-        MotionFX_manager_start_9X();
-        SF_6x_enabled = 0;
-      }
-      
+      HAL_TIM_Base_Stop_IT(&FX_TimHandle);
+
+      /* Disable all sensors */
+      BSP_PRESSURE_Sensor_Disable(PRESSURE_handle);
+      BSP_TEMPERATURE_Sensor_Disable(TEMPERATURE_handle);
+      BSP_HUMIDITY_Sensor_Disable(HUMIDITY_handle);
+      BSP_ACCELERO_Sensor_Disable(ACCELERO_handle);
+      BSP_GYRO_Sensor_Disable(GYRO_handle);
+      BSP_MAGNETO_Sensor_Disable(MAGNETO_handle);
+
+      Sensors_Enabled = 0;
+
       BUILD_REPLY_HEADER(Msg);
       UART_SendMsg(Msg);
       return 1;
-    case CMD_ChangeSF:
-      if (Msg->Len < 3) return 0;
-      
-      SF_change = 1;
-      
-      BUILD_REPLY_HEADER(Msg);
-      UART_SendMsg(Msg);
-      return 1;
+
     case CMD_Set_DateTime:
       if (Msg->Len < 3) return 0;
       BUILD_REPLY_HEADER(Msg);
       Msg->Len = 3;
       RTC_TimeRegulate(Msg->Data[3], Msg->Data[4], Msg->Data[5]);
+      RTC_DateRegulate(Msg->Data[6], Msg->Data[7], Msg->Data[8], Msg->Data[9]);
       UART_SendMsg(Msg);
       return 1;
-      
-    case CMD_SF_Init:
+
+    case CMD_ChangeSF:
       if (Msg->Len < 3) return 0;
-      DataStreamingDest = Msg->Data[1];
-      DataLogTimerInit();
-	  BUILD_REPLY_HEADER(Msg);
-      Msg->Len = 3;
+      SF_6X_Enabled = Msg->Data[3];
+
+      if (SF_6X_Enabled == 1)
+      {
+        MotionFX_manager_stop_9X();
+        MotionFX_manager_start_6X();
+      }
+      else
+      {
+        MotionFX_manager_stop_6X();
+        MotionFX_manager_start_9X();
+      }
+
+      BUILD_REPLY_HEADER(Msg);
       UART_SendMsg(Msg);
-      SF_Active = 1;
       return 1;
-      
+
     default:
       return 0;
   }
 }
 
-/**
- * @}
- */
 
 /**
- * @}
- */
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

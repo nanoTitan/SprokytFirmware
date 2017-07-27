@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    x_nucleo_iks01a1.h
   * @author  MEMS Application Team
-  * @version V3.0.0
-  * @date    12-August-2016
+  * @version V4.0.0
+  * @date    1-May-2017
   * @brief   This file contains definitions for the x_nucleo_iks01a1.c
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -85,6 +85,13 @@ extern "C" {
 /** @addtogroup X_NUCLEO_IKS01A1_IO_Public_Constants Public constants
  * @{
  */
+
+#define IKS01A1_HTS221_WHO_AM_I  (uint8_t)0xBC
+#define IKS01A1_LPS25HB_WHO_AM_I (uint8_t)0xBD
+#define IKS01A1_LPS22HB_WHO_AM_I (uint8_t)0xB1
+#define IKS01A1_LSM6DS0_WHO_AM_I (uint8_t)0x68
+#define IKS01A1_LSM6DS3_WHO_AM_I (uint8_t)0x69
+#define IKS01A1_LIS3MDL_WHO_AM_I (uint8_t)0x3D
 
 /* I2C clock speed configuration (in Hz) */
 #if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L1XX_NUCLEO)))

@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32l4xx_ll_lpuart.c
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    29-January-2016
+  * @version V1.7.0
+  * @date    17-February-2017
   * @brief   LPUART LL module driver.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -43,7 +43,7 @@
 #ifdef  USE_FULL_ASSERT
 #include "stm32_assert.h"
 #else
-#define assert_param(expr) ((void)0)
+#define assert_param(expr) ((void)0U)
 #endif
 
 /** @addtogroup STM32L4xx_LL_Driver
@@ -82,6 +82,9 @@
 /*                - LPUART_BRR register value should be <= 0xFFFFF (20 bits)  */
 /*              Baudrate specified by the user should belong to [8, 26000000].*/
 #define IS_LL_LPUART_BAUDRATE(__BAUDRATE__) (((__BAUDRATE__) <= 26000000U) && ((__BAUDRATE__) >= 8U))
+
+/* __VALUE__ BRR content must be greater than or equal to 0x300. */
+#define IS_LL_LPUART_BRR(__VALUE__) ((__VALUE__) >= 0x300U)
 
 #define IS_LL_LPUART_DIRECTION(__VALUE__) (((__VALUE__) == LL_LPUART_DIRECTION_NONE) \
                                         || ((__VALUE__) == LL_LPUART_DIRECTION_RX) \
@@ -133,11 +136,18 @@ ErrorStatus LL_LPUART_DeInit(USART_TypeDef *LPUARTx)
   /* Check the parameters */
   assert_param(IS_LPUART_INSTANCE(LPUARTx));
 
-  /* Force reset of LPUART peripheral */
-  LL_APB1_GRP2_ForceReset(LL_APB1_GRP2_PERIPH_LPUART1);
+  if (LPUARTx == LPUART1)
+  {
+    /* Force reset of LPUART peripheral */
+    LL_APB1_GRP2_ForceReset(LL_APB1_GRP2_PERIPH_LPUART1);
 
-  /* Release reset of LPUART peripheral */
-  LL_APB1_GRP2_ReleaseReset(LL_APB1_GRP2_PERIPH_LPUART1);
+    /* Release reset of LPUART peripheral */
+    LL_APB1_GRP2_ReleaseReset(LL_APB1_GRP2_PERIPH_LPUART1);
+  }
+  else
+  {
+    status = ERROR;
+  }
 
   return (status);
 }
@@ -171,7 +181,7 @@ ErrorStatus LL_LPUART_Init(USART_TypeDef *LPUARTx, LL_LPUART_InitTypeDef *LPUART
 
   /* LPUART needs to be in disabled state, in order to be able to configure some bits in
      CRx registers. Otherwise (LPUART not in Disabled state) => return ERROR */
-  if (LL_LPUART_IsEnabled(LPUARTx) == 0)
+  if (LL_LPUART_IsEnabled(LPUARTx) == 0U)
   {
     /*---------------------------- LPUART CR1 Configuration -----------------------
      * Configure LPUARTx CR1 (LPUART Word Length, Parity and Transfer Direction bits) with parameters:
@@ -205,12 +215,15 @@ ErrorStatus LL_LPUART_Init(USART_TypeDef *LPUARTx, LL_LPUART_InitTypeDef *LPUART
        - Peripheral clock as returned by RCC service, should be valid (different from 0).
     */
     if ((periphclk != LL_RCC_PERIPH_FREQUENCY_NO)
-        && (LPUART_InitStruct->BaudRate != 0))
+        && (LPUART_InitStruct->BaudRate != 0U))
     {
       status = SUCCESS;
       LL_LPUART_SetBaudRate(LPUARTx,
                             periphclk,
                             LPUART_InitStruct->BaudRate);
+
+      /* Check BRR is greater than or equal to 0x300 */
+      assert_param(IS_LL_LPUART_BRR(LPUARTx->BRR));
     }
   }
 
@@ -227,7 +240,7 @@ ErrorStatus LL_LPUART_Init(USART_TypeDef *LPUARTx, LL_LPUART_InitTypeDef *LPUART
 void LL_LPUART_StructInit(LL_LPUART_InitTypeDef *LPUART_InitStruct)
 {
   /* Set LPUART_InitStruct fields to default values */
-  LPUART_InitStruct->BaudRate            = 9600;
+  LPUART_InitStruct->BaudRate            = 9600U;
   LPUART_InitStruct->DataWidth           = LL_LPUART_DATAWIDTH_8B;
   LPUART_InitStruct->StopBits            = LL_LPUART_STOPBITS_1;
   LPUART_InitStruct->Parity              = LL_LPUART_PARITY_NONE ;

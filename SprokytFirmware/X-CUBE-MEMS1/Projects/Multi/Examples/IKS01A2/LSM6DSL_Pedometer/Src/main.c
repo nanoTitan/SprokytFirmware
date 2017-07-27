@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    Projects/Multi/Examples/IKS01A2/LSM6DSL_Pedometer/Src/main.c
  * @author  CL
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   Main program body
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -38,7 +38,7 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include <string.h> /* strlen */
-#include <stdio.h>  /* sprintf */
+#include <stdio.h>  /* snprintf */
 #include "main.h"
 
 /** @addtogroup X_NUCLEO_IKS01A2_Examples
@@ -58,14 +58,14 @@ int RTC_SYNCH_PREDIV;
 #define STEP_INDICATION_DELAY     100  /* LED is ON for this period [ms]. */
 #define SEND_STEP_COUNT_TIMEOUT  3000  /* Send step count to UART after this timeout [ms]. */
 
-
+#define MAX_BUF_SIZE 256
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
-static volatile uint8_t mems_int1_detected       = 0;
+static volatile uint8_t mems_event_detected       = 0;
 static volatile uint8_t step_count_reset_request = 0;
-static char dataOut[256];
+static char dataOut[MAX_BUF_SIZE];
 static RTC_HandleTypeDef RtcHandle;
 static uint16_t step_count                       = 0;
 
@@ -97,7 +97,7 @@ static void Send_Step_Count( void );
 int main( void )
 {
 
-  uint8_t status         = 0;
+  ACCELERO_Event_Status_t status;
   uint32_t previous_tick = 0;
 
   /* STM32F4xx HAL library initialization:
@@ -115,13 +115,7 @@ int main( void )
   BSP_LED_Init( LED2 );
 
   /* Initialize button */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_EXTI);
-#endif
-
-#if (defined (USE_STM32L1XX_NUCLEO))
-  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
-#endif
 
   /* Initialize UART */
   USARTConfig();
@@ -144,11 +138,13 @@ int main( void )
   while (1)
   {
 
-    if ( mems_int1_detected != 0 )
+    if ( mems_event_detected != 0 )
     {
-      if ( BSP_ACCELERO_Get_Pedometer_Status_Ext( LSM6DSL_X_0_handle, &status ) == COMPONENT_OK )
+      mems_event_detected = 0;
+
+      if ( BSP_ACCELERO_Get_Event_Status_Ext( LSM6DSL_X_0_handle, &status ) == COMPONENT_OK )
       {
-        if ( status != 0 )
+        if ( status.StepStatus != 0 )
         {
           Send_Step_Count();
           BSP_LED_On( LED2 );
@@ -156,7 +152,6 @@ int main( void )
           BSP_LED_Off( LED2 );
         }
       }
-      mems_int1_detected = 0;
     }
 
     if ( step_count_reset_request != 0 )
@@ -196,10 +191,10 @@ static void RTC_Handler( void )
             0xff );
 
   /* First send the extra line separately to clean the UART line (better results). */
-  sprintf( dataOut, "\r\n" );
+  snprintf( dataOut, MAX_BUF_SIZE, "\r\n" );
   HAL_UART_Transmit( &UartHandle, ( uint8_t* )dataOut, strlen( dataOut ), 5000 );
 
-  sprintf( dataOut, "Time stamp: %02d:%02d:%02d.%02d\r\n", stimestructure.Hours, stimestructure.Minutes, \
+  snprintf( dataOut, MAX_BUF_SIZE, "Time stamp: %02d:%02d:%02d.%02d\r\n", stimestructure.Hours, stimestructure.Minutes, \
            stimestructure.Seconds, subSec );
   HAL_UART_Transmit( &UartHandle, ( uint8_t* )dataOut, strlen( dataOut ), 5000 );
 }
@@ -251,11 +246,11 @@ static void Send_Step_Count( void )
 
   if ( BSP_ACCELERO_Get_Step_Count_Ext( LSM6DSL_X_0_handle, &step_count ) == COMPONENT_ERROR )
   {
-    sprintf( dataOut, "Error getting step count from LSM6DSL - accelerometer[%d].\r\n", instance );
+    snprintf( dataOut, MAX_BUF_SIZE, "Error getting step count from LSM6DSL - accelerometer[%d].\r\n", instance );
   }
   else
   {
-    sprintf( dataOut, "Step count: %d\r\n", step_count );
+    snprintf( dataOut, MAX_BUF_SIZE, "Step count: %d\r\n", step_count );
   }
 
   HAL_UART_Transmit( &UartHandle, ( uint8_t* )dataOut, strlen( dataOut ), 5000 );
@@ -401,19 +396,9 @@ void HAL_GPIO_EXTI_Callback( uint16_t GPIO_Pin )
 {
 
   /* User button. */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   if(GPIO_Pin == KEY_BUTTON_PIN)
-#elif (defined (USE_STM32L1XX_NUCLEO))
-  if(GPIO_Pin == USER_BUTTON_PIN)
-#endif
   {
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
     if ( BSP_PB_GetState( BUTTON_KEY ) == GPIO_PIN_RESET )
-#elif (defined (USE_STM32L1XX_NUCLEO))
-    if ( BSP_PB_GetState( BUTTON_USER ) == GPIO_PIN_RESET )
-#elif (defined (USE_STM32L0XX_NUCLEO))
-    if ( BSP_PB_GetState( BUTTON_KEY ) == GPIO_PIN_SET )
-#endif
     {
       /* Request step count reset (available only for LSM6DSL sensor). */
       step_count_reset_request = 1;
@@ -423,7 +408,7 @@ void HAL_GPIO_EXTI_Callback( uint16_t GPIO_Pin )
   /* Pedometer (available only for LSM6DSL sensor). */
   else if ( GPIO_Pin == LSM6DSL_INT1_O_PIN )
   {
-    mems_int1_detected = 1;
+    mems_event_detected = 1;
   }
 }
 

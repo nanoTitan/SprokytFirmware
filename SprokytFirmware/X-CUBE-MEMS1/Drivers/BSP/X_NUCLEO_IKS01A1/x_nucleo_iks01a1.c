@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    x_nucleo_iks01a1.c
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file provides X_NUCLEO_IKS01A1 MEMS shield board specific functions
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -57,8 +57,7 @@
  * @{
  */
 
-static uint32_t I2C_EXPBD_Timeout =
-  NUCLEO_I2C_EXPBD_TIMEOUT_MAX;    /*<! Value of Timeout when I2C communication fails */
+static uint32_t I2C_EXPBD_Timeout = NUCLEO_I2C_EXPBD_TIMEOUT_MAX;    /*<! Value of Timeout when I2C communication fails */
 static I2C_HandleTypeDef I2C_EXPBD_Handle;
 
 /**
@@ -234,14 +233,54 @@ uint8_t Sensor_IO_Write( void *handle, uint8_t WriteAddr, uint8_t *pBuffer, uint
 {
   DrvContextTypeDef *ctx = (DrvContextTypeDef *)handle;
 
-  /* call I2C_EXPBD Read data bus function */
-  if ( I2C_EXPBD_WriteData( ctx->address, WriteAddr, pBuffer, nBytesToWrite ) )
+  switch(ctx->who_am_i)
   {
-    return 1;
-  }
-  else
-  {
-    return 0;
+    case IKS01A1_LPS25HB_WHO_AM_I:
+    case IKS01A1_LIS3MDL_WHO_AM_I:
+    case IKS01A1_HTS221_WHO_AM_I:
+    {
+      if ( nBytesToWrite > 1 ) WriteAddr |= 0x80;  /* Enable I2C multi-bytes Write */
+
+      /* call I2C_EXPBD Write data bus function */
+      if ( I2C_EXPBD_WriteData( ctx->address, WriteAddr, pBuffer, nBytesToWrite ) )
+      {
+        return 1;
+      }
+      else
+      {
+        return 0;
+      }
+    }
+    case IKS01A1_LPS22HB_WHO_AM_I:
+    {
+      /* I2C multi-bytes Write not supported for LPS22HB */
+      int i = 0;
+
+      for (i = 0; i < nBytesToWrite; i++ )
+      {
+        /* call I2C_EXPBD Write data bus function */
+        if ( I2C_EXPBD_WriteData( ctx->address, (WriteAddr + i), &pBuffer[i], 1 ) )
+        {
+          return 1;
+        }
+      }
+
+      return 0;
+    }
+    case IKS01A1_LSM6DS0_WHO_AM_I:
+    case IKS01A1_LSM6DS3_WHO_AM_I:
+    default:
+    {
+      /* call I2C_EXPBD Write data bus function */
+      if ( I2C_EXPBD_WriteData( ctx->address, WriteAddr, pBuffer, nBytesToWrite ) )
+      {
+        return 1;
+      }
+      else
+      {
+        return 0;
+      }
+    }
   }
 }
 
@@ -260,14 +299,54 @@ uint8_t Sensor_IO_Read( void *handle, uint8_t ReadAddr, uint8_t *pBuffer, uint16
 {
   DrvContextTypeDef *ctx = (DrvContextTypeDef *)handle;
 
-  /* call I2C_EXPBD Read data bus function */
-  if ( I2C_EXPBD_ReadData( ctx->address, ReadAddr, pBuffer, nBytesToRead ) )
+  switch(ctx->who_am_i)
   {
-    return 1;
-  }
-  else
-  {
-    return 0;
+    case IKS01A1_LPS25HB_WHO_AM_I:
+    case IKS01A1_LIS3MDL_WHO_AM_I:
+    case IKS01A1_HTS221_WHO_AM_I:
+    {
+      if ( nBytesToRead > 1 ) ReadAddr |= 0x80; /* Enable I2C multi-bytes Read */
+
+      /* call I2C_EXPBD Read data bus function */
+      if ( I2C_EXPBD_ReadData( ctx->address, ReadAddr, pBuffer, nBytesToRead ) )
+      {
+        return 1;
+      }
+      else
+      {
+        return 0;
+      }
+    }
+    case IKS01A1_LPS22HB_WHO_AM_I:
+    {
+      /* I2C multi-bytes Read not supported for LPS22HB */
+      int i = 0;
+
+      for (i = 0; i < nBytesToRead; i++ )
+      {
+        /* call I2C_EXPBD Read data bus function */
+        if ( I2C_EXPBD_ReadData( ctx->address, (ReadAddr + i), &pBuffer[i], 1 ) )
+        {
+          return 1;
+        }
+      }
+
+      return 0;
+    }
+    case IKS01A1_LSM6DS0_WHO_AM_I:
+    case IKS01A1_LSM6DS3_WHO_AM_I:
+    default:
+    {
+      /* call I2C_EXPBD Read data bus function */
+      if ( I2C_EXPBD_ReadData( ctx->address, ReadAddr, pBuffer, nBytesToRead ) )
+      {
+        return 1;
+      }
+      else
+      {
+        return 0;
+      }
+    }
   }
 }
 

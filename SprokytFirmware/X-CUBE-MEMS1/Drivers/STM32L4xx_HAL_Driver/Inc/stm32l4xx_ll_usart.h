@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32l4xx_ll_usart.h
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    29-January-2016
+  * @version V1.7.0
+  * @date    17-February-2017
   * @brief   Header file of USART LL module.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -63,14 +63,6 @@ extern "C" {
 /** @defgroup USART_LL_Private_Constants USART Private Constants
   * @{
   */
-
-/* Defines used for the bit position in the register and perform offsets*/
-#define USART_POSITION_CR1_DEDT                 (uint32_t)POSITION_VAL(USART_CR1_DEDT)
-#define USART_POSITION_CR1_DEAT                 (uint32_t)POSITION_VAL(USART_CR1_DEAT)
-#define USART_POSITION_CR2_ADD                  (uint32_t)POSITION_VAL(USART_CR2_ADD)
-#define USART_POSITION_CR3_SCARCNT              (uint32_t)POSITION_VAL(USART_CR3_SCARCNT)
-#define USART_POSITION_RTOR_BLEN                (uint32_t)POSITION_VAL(USART_RTOR_BLEN)
-#define USART_POSITION_GTPR_GT                  (uint32_t)POSITION_VAL(USART_GTPR_GT)
 /**
   * @}
   */
@@ -185,6 +177,9 @@ typedef struct
 #define LL_USART_ICR_ORECF                      USART_ICR_ORECF               /*!< Overrun error flag */
 #define LL_USART_ICR_IDLECF                     USART_ICR_IDLECF              /*!< Idle line detected flag */
 #define LL_USART_ICR_TCCF                       USART_ICR_TCCF                /*!< Transmission complete flag */
+#if defined(USART_TCBGT_SUPPORT)
+#define LL_USART_ICR_TCBGTCF                    USART_ICR_TCBGTCF             /*!< Transmission completed before guard time flag */
+#endif
 #define LL_USART_ICR_LBDCF                      USART_ICR_LBDCF               /*!< LIN break detection flag */
 #define LL_USART_ICR_CTSCF                      USART_ICR_CTSCF               /*!< CTS flag */
 #define LL_USART_ICR_RTOCF                      USART_ICR_RTOCF               /*!< Receiver timeout flag */
@@ -221,6 +216,9 @@ typedef struct
 #define LL_USART_ISR_WUF                        USART_ISR_WUF                 /*!< Wakeup from Stop mode flag */
 #define LL_USART_ISR_TEACK                      USART_ISR_TEACK               /*!< Transmit enable acknowledge flag */
 #define LL_USART_ISR_REACK                      USART_ISR_REACK               /*!< Receive enable acknowledge flag */
+#if defined(USART_TCBGT_SUPPORT)
+#define LL_USART_ISR_TCBGT                      USART_ISR_TCBGT               /*!< Transmission complete before guard time completion flag */
+#endif
 /**
   * @}
   */
@@ -241,6 +239,9 @@ typedef struct
 #define LL_USART_CR3_EIE                        USART_CR3_EIE                 /*!< Error interrupt enable */
 #define LL_USART_CR3_CTSIE                      USART_CR3_CTSIE               /*!< CTS interrupt enable */
 #define LL_USART_CR3_WUFIE                      USART_CR3_WUFIE               /*!< Wakeup from Stop mode interrupt enable */
+#if defined(USART_TCBGT_SUPPORT)
+#define LL_USART_CR3_TCBGTIE                    USART_CR3_TCBGTIE             /*!< Transmission complete before guard time interrupt enable */
+#endif
 /**
   * @}
   */
@@ -248,7 +249,7 @@ typedef struct
 /** @defgroup USART_LL_EC_DIRECTION Communication Direction
   * @{
   */
-#define LL_USART_DIRECTION_NONE                 (uint32_t)0x00000000U              /*!< Transmitter and Receiver are disabled */
+#define LL_USART_DIRECTION_NONE                 0x00000000U                        /*!< Transmitter and Receiver are disabled */
 #define LL_USART_DIRECTION_RX                   USART_CR1_RE                       /*!< Transmitter is disabled and Receiver is enabled */
 #define LL_USART_DIRECTION_TX                   USART_CR1_TE                       /*!< Transmitter is enabled and Receiver is disabled */
 #define LL_USART_DIRECTION_TX_RX                (USART_CR1_TE |USART_CR1_RE)       /*!< Transmitter and Receiver are enabled */
@@ -259,7 +260,7 @@ typedef struct
 /** @defgroup USART_LL_EC_PARITY Parity Control
   * @{
   */
-#define LL_USART_PARITY_NONE                    (uint32_t)0x00000000U                /*!< Parity control disabled */
+#define LL_USART_PARITY_NONE                    0x00000000U                          /*!< Parity control disabled */
 #define LL_USART_PARITY_EVEN                    USART_CR1_PCE                        /*!< Parity control enabled and Even Parity is selected */
 #define LL_USART_PARITY_ODD                     (USART_CR1_PCE | USART_CR1_PS)       /*!< Parity control enabled and Odd Parity is selected */
 /**
@@ -269,7 +270,7 @@ typedef struct
 /** @defgroup USART_LL_EC_WAKEUP Wakeup
   * @{
   */
-#define LL_USART_WAKEUP_IDLELINE                (uint32_t)0x00000000U /*!<  USART wake up from Mute mode on Idle Line */
+#define LL_USART_WAKEUP_IDLELINE                0x00000000U           /*!<  USART wake up from Mute mode on Idle Line */
 #define LL_USART_WAKEUP_ADDRESSMARK             USART_CR1_WAKE        /*!<  USART wake up from Mute mode on Address Mark */
 /**
   * @}
@@ -279,7 +280,7 @@ typedef struct
   * @{
   */
 #define LL_USART_DATAWIDTH_7B                   USART_CR1_M1            /*!< 7 bits word length : Start bit, 7 data bits, n stop bits */
-#define LL_USART_DATAWIDTH_8B                   (uint32_t)0x00000000U   /*!< 8 bits word length : Start bit, 8 data bits, n stop bits */
+#define LL_USART_DATAWIDTH_8B                   0x00000000U             /*!< 8 bits word length : Start bit, 8 data bits, n stop bits */
 #define LL_USART_DATAWIDTH_9B                   USART_CR1_M0            /*!< 9 bits word length : Start bit, 9 data bits, n stop bits */
 /**
   * @}
@@ -288,7 +289,7 @@ typedef struct
 /** @defgroup USART_LL_EC_OVERSAMPLING Oversampling
   * @{
   */
-#define LL_USART_OVERSAMPLING_16                (uint32_t)0x00000000U  /*!< Oversampling by 16 */
+#define LL_USART_OVERSAMPLING_16                0x00000000U            /*!< Oversampling by 16 */
 #define LL_USART_OVERSAMPLING_8                 USART_CR1_OVER8        /*!< Oversampling by 8 */
 /**
   * @}
@@ -299,7 +300,7 @@ typedef struct
   * @{
   */
 
-#define LL_USART_CLOCK_DISABLE                  (uint32_t)0x00000000U  /*!< Clock signal not provided */
+#define LL_USART_CLOCK_DISABLE                  0x00000000U            /*!< Clock signal not provided */
 #define LL_USART_CLOCK_ENABLE                   USART_CR2_CLKEN        /*!< Clock signal provided */
 /**
   * @}
@@ -309,7 +310,7 @@ typedef struct
 /** @defgroup USART_LL_EC_LASTCLKPULSE Last Clock Pulse
   * @{
   */
-#define LL_USART_LASTCLKPULSE_NO_OUTPUT         (uint32_t)0x00000000U /*!< The clock pulse of the last data bit is not output to the SCLK pin */
+#define LL_USART_LASTCLKPULSE_NO_OUTPUT         0x00000000U           /*!< The clock pulse of the last data bit is not output to the SCLK pin */
 #define LL_USART_LASTCLKPULSE_OUTPUT            USART_CR2_LBCL        /*!< The clock pulse of the last data bit is output to the SCLK pin */
 /**
   * @}
@@ -318,7 +319,7 @@ typedef struct
 /** @defgroup USART_LL_EC_PHASE Clock Phase
   * @{
   */
-#define LL_USART_PHASE_1EDGE                    (uint32_t)0x00000000U /*!< The first clock transition is the first data capture edge */
+#define LL_USART_PHASE_1EDGE                    0x00000000U           /*!< The first clock transition is the first data capture edge */
 #define LL_USART_PHASE_2EDGE                    USART_CR2_CPHA        /*!< The second clock transition is the first data capture edge */
 /**
   * @}
@@ -327,7 +328,7 @@ typedef struct
 /** @defgroup USART_LL_EC_POLARITY Clock Polarity
   * @{
   */
-#define LL_USART_POLARITY_LOW                   (uint32_t)0x00000000U /*!< Steady low value on SCLK pin outside transmission window*/
+#define LL_USART_POLARITY_LOW                   0x00000000U           /*!< Steady low value on SCLK pin outside transmission window*/
 #define LL_USART_POLARITY_HIGH                  USART_CR2_CPOL        /*!< Steady high value on SCLK pin outside transmission window */
 /**
   * @}
@@ -337,7 +338,7 @@ typedef struct
   * @{
   */
 #define LL_USART_STOPBITS_0_5                   USART_CR2_STOP_0                           /*!< 0.5 stop bit */
-#define LL_USART_STOPBITS_1                     (uint32_t)0x00000000U                      /*!< 1 stop bit */
+#define LL_USART_STOPBITS_1                     0x00000000U                                /*!< 1 stop bit */
 #define LL_USART_STOPBITS_1_5                   (USART_CR2_STOP_0 | USART_CR2_STOP_1)      /*!< 1.5 stop bits */
 #define LL_USART_STOPBITS_2                     USART_CR2_STOP_1                           /*!< 2 stop bits */
 /**
@@ -347,7 +348,7 @@ typedef struct
 /** @defgroup USART_LL_EC_TXRX TX RX Pins Swap
   * @{
   */
-#define LL_USART_TXRX_STANDARD                  (uint32_t)0x00000000U /*!< TX/RX pins are used as defined in standard pinout */
+#define LL_USART_TXRX_STANDARD                  0x00000000U           /*!< TX/RX pins are used as defined in standard pinout */
 #define LL_USART_TXRX_SWAPPED                   (USART_CR2_SWAP)      /*!< TX and RX pins functions are swapped.             */
 /**
   * @}
@@ -356,7 +357,7 @@ typedef struct
 /** @defgroup USART_LL_EC_RXPIN_LEVEL RX Pin Active Level Inversion
   * @{
   */
-#define LL_USART_RXPIN_LEVEL_STANDARD           (uint32_t)0x00000000U /*!< RX pin signal works using the standard logic levels */
+#define LL_USART_RXPIN_LEVEL_STANDARD           0x00000000U           /*!< RX pin signal works using the standard logic levels */
 #define LL_USART_RXPIN_LEVEL_INVERTED           (USART_CR2_RXINV)     /*!< RX pin signal values are inverted.                  */
 /**
   * @}
@@ -365,7 +366,7 @@ typedef struct
 /** @defgroup USART_LL_EC_TXPIN_LEVEL TX Pin Active Level Inversion
   * @{
   */
-#define LL_USART_TXPIN_LEVEL_STANDARD           (uint32_t)0x00000000U /*!< TX pin signal works using the standard logic levels */
+#define LL_USART_TXPIN_LEVEL_STANDARD           0x00000000U           /*!< TX pin signal works using the standard logic levels */
 #define LL_USART_TXPIN_LEVEL_INVERTED           (USART_CR2_TXINV)     /*!< TX pin signal values are inverted.                  */
 /**
   * @}
@@ -374,7 +375,7 @@ typedef struct
 /** @defgroup USART_LL_EC_BINARY_LOGIC Binary Data Inversion
   * @{
   */
-#define LL_USART_BINARY_LOGIC_POSITIVE          (uint32_t)0x00000000U /*!< Logical data from the data register are send/received in positive/direct logic. (1=H, 0=L) */
+#define LL_USART_BINARY_LOGIC_POSITIVE          0x00000000U           /*!< Logical data from the data register are send/received in positive/direct logic. (1=H, 0=L) */
 #define LL_USART_BINARY_LOGIC_NEGATIVE          USART_CR2_DATAINV     /*!< Logical data from the data register are send/received in negative/inverse logic. (1=L, 0=H). The parity bit is also inverted. */
 /**
   * @}
@@ -383,7 +384,7 @@ typedef struct
 /** @defgroup USART_LL_EC_BITORDER Bit Order
   * @{
   */
-#define LL_USART_BITORDER_LSBFIRST              (uint32_t)0x00000000U /*!< data is transmitted/received with data bit 0 first, following the start bit */
+#define LL_USART_BITORDER_LSBFIRST              0x00000000U           /*!< data is transmitted/received with data bit 0 first, following the start bit */
 #define LL_USART_BITORDER_MSBFIRST              USART_CR2_MSBFIRST    /*!< data is transmitted/received with the MSB first, following the start bit */
 /**
   * @}
@@ -392,7 +393,7 @@ typedef struct
 /** @defgroup USART_LL_EC_AUTOBAUD_DETECT_ON Autobaud Detection
   * @{
   */
-#define LL_USART_AUTOBAUD_DETECT_ON_STARTBIT    (uint32_t)0x00000000U                       /*!< Measurement of the start bit is used to detect the baud rate */
+#define LL_USART_AUTOBAUD_DETECT_ON_STARTBIT    0x00000000U                                 /*!< Measurement of the start bit is used to detect the baud rate */
 #define LL_USART_AUTOBAUD_DETECT_ON_FALLINGEDGE USART_CR2_ABRMODE_0                         /*!< Falling edge to falling edge measurement. Received frame must start with a single bit = 1 -> Frame = Start10xxxxxx */
 #define LL_USART_AUTOBAUD_DETECT_ON_7F_FRAME    USART_CR2_ABRMODE_1                         /*!< 0x7F frame detection */
 #define LL_USART_AUTOBAUD_DETECT_ON_55_FRAME    (USART_CR2_ABRMODE_1 | USART_CR2_ABRMODE_0) /*!< 0x55 frame detection */
@@ -403,7 +404,7 @@ typedef struct
 /** @defgroup USART_LL_EC_ADDRESS_DETECT Address Length Detection
   * @{
   */
-#define LL_USART_ADDRESS_DETECT_4B              (uint32_t)0x00000000U /*!< 4-bit address detection method selected */
+#define LL_USART_ADDRESS_DETECT_4B              0x00000000U           /*!< 4-bit address detection method selected */
 #define LL_USART_ADDRESS_DETECT_7B              USART_CR2_ADDM7       /*!< 7-bit address detection (in 8-bit data mode) method selected */
 /**
   * @}
@@ -412,7 +413,7 @@ typedef struct
 /** @defgroup USART_LL_EC_HWCONTROL Hardware Control
   * @{
   */
-#define LL_USART_HWCONTROL_NONE                 (uint32_t)0x00000000U                /*!< CTS and RTS hardware flow control disabled */
+#define LL_USART_HWCONTROL_NONE                 0x00000000U                          /*!< CTS and RTS hardware flow control disabled */
 #define LL_USART_HWCONTROL_RTS                  USART_CR3_RTSE                       /*!< RTS output enabled, data is only requested when there is space in the receive buffer */
 #define LL_USART_HWCONTROL_CTS                  USART_CR3_CTSE                       /*!< CTS mode enabled, data is only transmitted when the nCTS input is asserted (tied to 0) */
 #define LL_USART_HWCONTROL_RTS_CTS              (USART_CR3_RTSE | USART_CR3_CTSE)    /*!< CTS and RTS hardware flow control enabled */
@@ -423,7 +424,7 @@ typedef struct
 /** @defgroup USART_LL_EC_WAKEUP_ON Wakeup Activation
   * @{
   */
-#define LL_USART_WAKEUP_ON_ADDRESS              (uint32_t)0x00000000U                   /*!< Wake up active on address match */
+#define LL_USART_WAKEUP_ON_ADDRESS              0x00000000U                             /*!< Wake up active on address match */
 #define LL_USART_WAKEUP_ON_STARTBIT             USART_CR3_WUS_1                         /*!< Wake up active on Start bit detection */
 #define LL_USART_WAKEUP_ON_RXNE                 (USART_CR3_WUS_0 | USART_CR3_WUS_1)     /*!< Wake up active on RXNE */
 /**
@@ -433,7 +434,7 @@ typedef struct
 /** @defgroup USART_LL_EC_IRDA_POWER IrDA Power
   * @{
   */
-#define LL_USART_IRDA_POWER_NORMAL              (uint32_t)0x00000000U /*!< IrDA normal power mode */
+#define LL_USART_IRDA_POWER_NORMAL              0x00000000U           /*!< IrDA normal power mode */
 #define LL_USART_IRDA_POWER_LOW                 USART_CR3_IRLP        /*!< IrDA low power mode */
 /**
   * @}
@@ -442,7 +443,7 @@ typedef struct
 /** @defgroup USART_LL_EC_LINBREAK_DETECT LIN Break Detection Length
   * @{
   */
-#define LL_USART_LINBREAK_DETECT_10B            (uint32_t)0x00000000U /*!< 10-bit break detection method selected */
+#define LL_USART_LINBREAK_DETECT_10B            0x00000000U           /*!< 10-bit break detection method selected */
 #define LL_USART_LINBREAK_DETECT_11B            USART_CR2_LBDL        /*!< 11-bit break detection method selected */
 /**
   * @}
@@ -451,7 +452,7 @@ typedef struct
 /** @defgroup USART_LL_EC_DE_POLARITY Driver Enable Polarity
   * @{
   */
-#define LL_USART_DE_POLARITY_HIGH               (uint32_t)0x00000000U /*!< DE signal is active high */
+#define LL_USART_DE_POLARITY_HIGH               0x00000000U           /*!< DE signal is active high */
 #define LL_USART_DE_POLARITY_LOW                USART_CR3_DEP         /*!< DE signal is active low */
 /**
   * @}
@@ -460,8 +461,8 @@ typedef struct
 /** @defgroup USART_LL_EC_DMA_REG_DATA DMA Register Data
   * @{
   */
-#define LL_USART_DMA_REG_DATA_TRANSMIT          (uint32_t)0U          /*!< Get address of data register used for transmission */
-#define LL_USART_DMA_REG_DATA_RECEIVE           (uint32_t)1U          /*!< Get address of data register used for reception */
+#define LL_USART_DMA_REG_DATA_TRANSMIT          0x00000000U          /*!< Get address of data register used for transmission */
+#define LL_USART_DMA_REG_DATA_RECEIVE           0x00000001U          /*!< Get address of data register used for reception */
 /**
   * @}
   */
@@ -510,7 +511,7 @@ typedef struct
   * @param  __BAUDRATE__ Baud rate value to achieve
   * @retval USARTDIV value to be used for BRR register filling in OverSampling_8 case
   */
-#define __LL_USART_DIV_SAMPLING8(__PERIPHCLK__, __BAUDRATE__) (((__PERIPHCLK__)*2)/(__BAUDRATE__))
+#define __LL_USART_DIV_SAMPLING8(__PERIPHCLK__, __BAUDRATE__) ((((__PERIPHCLK__)*2) + ((__BAUDRATE__)/2))/(__BAUDRATE__))
 
 /**
   * @brief  Compute USARTDIV value according to Peripheral Clock and
@@ -519,7 +520,7 @@ typedef struct
   * @param  __BAUDRATE__ Baud rate value to achieve
   * @retval USARTDIV value to be used for BRR register filling in OverSampling_16 case
   */
-#define __LL_USART_DIV_SAMPLING16(__PERIPHCLK__, __BAUDRATE__) ((__PERIPHCLK__)/(__BAUDRATE__))
+#define __LL_USART_DIV_SAMPLING16(__PERIPHCLK__, __BAUDRATE__) (((__PERIPHCLK__) + ((__BAUDRATE__)/2))/(__BAUDRATE__))
 
 /**
   * @}
@@ -758,8 +759,8 @@ __STATIC_INLINE uint32_t LL_USART_GetWakeUpMethod(USART_TypeDef *USARTx)
 
 /**
   * @brief  Set Word length (i.e. nb of data bits, excluding start and stop bits)
-  * @rmtoll CR1          M1            LL_USART_SetDataWidth\n
-  *         CR1          M2            LL_USART_SetDataWidth
+  * @rmtoll CR1          M0            LL_USART_SetDataWidth\n
+  *         CR1          M1            LL_USART_SetDataWidth
   * @param  USARTx USART Instance
   * @param  DataWidth This parameter can be one of the following values:
   *         @arg @ref LL_USART_DATAWIDTH_7B
@@ -774,8 +775,8 @@ __STATIC_INLINE void LL_USART_SetDataWidth(USART_TypeDef *USARTx, uint32_t DataW
 
 /**
   * @brief  Return Word length (i.e. nb of data bits, excluding start and stop bits)
-  * @rmtoll CR1          M1            LL_USART_GetDataWidth\n
-  *         CR1          M2            LL_USART_GetDataWidth
+  * @rmtoll CR1          M0            LL_USART_GetDataWidth\n
+  *         CR1          M1            LL_USART_GetDataWidth
   * @param  USARTx USART Instance
   * @retval Returned value can be one of the following values:
   *         @arg @ref LL_USART_DATAWIDTH_7B
@@ -1047,8 +1048,8 @@ __STATIC_INLINE uint32_t LL_USART_GetStopBitsLength(USART_TypeDef *USARTx)
   *         - Stop bits configuration using @ref LL_USART_SetStopBitsLength() function
   * @rmtoll CR1          PS            LL_USART_ConfigCharacter\n
   *         CR1          PCE           LL_USART_ConfigCharacter\n
+  *         CR1          M0            LL_USART_ConfigCharacter\n
   *         CR1          M1            LL_USART_ConfigCharacter\n
-  *         CR1          M2            LL_USART_ConfigCharacter\n
   *         CR2          STOP          LL_USART_ConfigCharacter
   * @param  USARTx USART Instance
   * @param  DataWidth This parameter can be one of the following values:
@@ -1062,8 +1063,8 @@ __STATIC_INLINE uint32_t LL_USART_GetStopBitsLength(USART_TypeDef *USARTx)
   * @param  StopBits This parameter can be one of the following values:
   *         @arg @ref LL_USART_STOPBITS_0_5
   *         @arg @ref LL_USART_STOPBITS_1
-  *         @arg @ref LL_USART_STOPBITS_2
   *         @arg @ref LL_USART_STOPBITS_1_5
+  *         @arg @ref LL_USART_STOPBITS_2
   * @retval None
   */
 __STATIC_INLINE void LL_USART_ConfigCharacter(USART_TypeDef *USARTx, uint32_t DataWidth, uint32_t Parity,
@@ -1347,7 +1348,7 @@ __STATIC_INLINE uint32_t LL_USART_IsEnabledRxTimeout(USART_TypeDef *USARTx)
 __STATIC_INLINE void LL_USART_ConfigNodeAddress(USART_TypeDef *USARTx, uint32_t AddressLen, uint32_t NodeAddress)
 {
   MODIFY_REG(USARTx->CR2, USART_CR2_ADD | USART_CR2_ADDM7,
-             (uint32_t)(AddressLen | (NodeAddress << USART_POSITION_CR2_ADD)));
+             (uint32_t)(AddressLen | (NodeAddress << USART_CR2_ADD_Pos)));
 }
 
 /**
@@ -1362,7 +1363,7 @@ __STATIC_INLINE void LL_USART_ConfigNodeAddress(USART_TypeDef *USARTx, uint32_t 
   */
 __STATIC_INLINE uint32_t LL_USART_GetNodeAddress(USART_TypeDef *USARTx)
 {
-  return (uint32_t)(READ_BIT(USARTx->CR2, USART_CR2_ADD) >> USART_POSITION_CR2_ADD);
+  return (uint32_t)(READ_BIT(USARTx->CR2, USART_CR2_ADD) >> USART_CR2_ADD_Pos);
 }
 
 /**
@@ -1572,6 +1573,7 @@ __STATIC_INLINE uint32_t LL_USART_GetWKUPType(USART_TypeDef *USARTx)
   *         according to used Peripheral Clock, Oversampling mode, and expected Baud Rate values
   * @note   Peripheral clock and Baud rate values provided as function parameters should be valid
   *         (Baud rate value != 0)
+  * @note   In case of oversampling by 16 and 8, BRR content must be greater than or equal to 16d.
   * @rmtoll BRR          BRR           LL_USART_SetBaudRate
   * @param  USARTx USART Instance
   * @param  PeriphClk Peripheral Clock
@@ -1604,6 +1606,7 @@ __STATIC_INLINE void LL_USART_SetBaudRate(USART_TypeDef *USARTx, uint32_t Periph
   * @brief  Return current Baud Rate value, according to USARTDIV present in BRR register
   *         (full BRR content), and to used Peripheral Clock and Oversampling mode values
   * @note   In case of non-initialized or invalid value stored in BRR register, value 0 will be returned.
+  * @note   In case of oversampling by 16 and 8, BRR content must be greater than or equal to 16d.
   * @rmtoll BRR          BRR           LL_USART_GetBaudRate
   * @param  USARTx USART Instance
   * @param  PeriphClk Peripheral Clock
@@ -1669,7 +1672,7 @@ __STATIC_INLINE uint32_t LL_USART_GetRxTimeout(USART_TypeDef *USARTx)
   */
 __STATIC_INLINE void LL_USART_SetBlockLength(USART_TypeDef *USARTx, uint32_t BlockLength)
 {
-  MODIFY_REG(USARTx->RTOR, USART_RTOR_BLEN, BlockLength << USART_POSITION_RTOR_BLEN);
+  MODIFY_REG(USARTx->RTOR, USART_RTOR_BLEN, BlockLength << USART_RTOR_BLEN_Pos);
 }
 
 /**
@@ -1680,7 +1683,7 @@ __STATIC_INLINE void LL_USART_SetBlockLength(USART_TypeDef *USARTx, uint32_t Blo
   */
 __STATIC_INLINE uint32_t LL_USART_GetBlockLength(USART_TypeDef *USARTx)
 {
-  return (uint32_t)(READ_BIT(USARTx->RTOR, USART_RTOR_BLEN) >> USART_POSITION_RTOR_BLEN);
+  return (uint32_t)(READ_BIT(USARTx->RTOR, USART_RTOR_BLEN) >> USART_RTOR_BLEN_Pos);
 }
 
 /**
@@ -1892,7 +1895,7 @@ __STATIC_INLINE uint32_t LL_USART_IsEnabledSmartcard(USART_TypeDef *USARTx)
   */
 __STATIC_INLINE void LL_USART_SetSmartcardAutoRetryCount(USART_TypeDef *USARTx, uint32_t AutoRetryCount)
 {
-  MODIFY_REG(USARTx->CR3, USART_CR3_SCARCNT, AutoRetryCount << USART_POSITION_CR3_SCARCNT);
+  MODIFY_REG(USARTx->CR3, USART_CR3_SCARCNT, AutoRetryCount << USART_CR3_SCARCNT_Pos);
 }
 
 /**
@@ -1905,7 +1908,7 @@ __STATIC_INLINE void LL_USART_SetSmartcardAutoRetryCount(USART_TypeDef *USARTx, 
   */
 __STATIC_INLINE uint32_t LL_USART_GetSmartcardAutoRetryCount(USART_TypeDef *USARTx)
 {
-  return (uint32_t)(READ_BIT(USARTx->CR3, USART_CR3_SCARCNT) >> USART_POSITION_CR3_SCARCNT);
+  return (uint32_t)(READ_BIT(USARTx->CR3, USART_CR3_SCARCNT) >> USART_CR3_SCARCNT_Pos);
 }
 
 /**
@@ -1949,7 +1952,7 @@ __STATIC_INLINE uint32_t LL_USART_GetSmartcardPrescaler(USART_TypeDef *USARTx)
   */
 __STATIC_INLINE void LL_USART_SetSmartcardGuardTime(USART_TypeDef *USARTx, uint32_t GuardTime)
 {
-  MODIFY_REG(USARTx->GTPR, USART_GTPR_GT, GuardTime << USART_POSITION_GTPR_GT);
+  MODIFY_REG(USARTx->GTPR, USART_GTPR_GT, GuardTime << USART_GTPR_GT_Pos);
 }
 
 /**
@@ -1963,7 +1966,7 @@ __STATIC_INLINE void LL_USART_SetSmartcardGuardTime(USART_TypeDef *USARTx, uint3
   */
 __STATIC_INLINE uint32_t LL_USART_GetSmartcardGuardTime(USART_TypeDef *USARTx)
 {
-  return (uint32_t)(READ_BIT(USARTx->GTPR, USART_GTPR_GT) >> USART_POSITION_GTPR_GT);
+  return (uint32_t)(READ_BIT(USARTx->GTPR, USART_GTPR_GT) >> USART_GTPR_GT_Pos);
 }
 
 /**
@@ -2110,7 +2113,7 @@ __STATIC_INLINE uint32_t LL_USART_IsEnabledLIN(USART_TypeDef *USARTx)
   */
 __STATIC_INLINE void LL_USART_SetDEDeassertionTime(USART_TypeDef *USARTx, uint32_t Time)
 {
-  MODIFY_REG(USARTx->CR1, USART_CR1_DEDT, Time << USART_POSITION_CR1_DEDT);
+  MODIFY_REG(USARTx->CR1, USART_CR1_DEDT, Time << USART_CR1_DEDT_Pos);
 }
 
 /**
@@ -2123,7 +2126,7 @@ __STATIC_INLINE void LL_USART_SetDEDeassertionTime(USART_TypeDef *USARTx, uint32
   */
 __STATIC_INLINE uint32_t LL_USART_GetDEDeassertionTime(USART_TypeDef *USARTx)
 {
-  return (uint32_t)(READ_BIT(USARTx->CR1, USART_CR1_DEDT) >> USART_POSITION_CR1_DEDT);
+  return (uint32_t)(READ_BIT(USARTx->CR1, USART_CR1_DEDT) >> USART_CR1_DEDT_Pos);
 }
 
 /**
@@ -2137,7 +2140,7 @@ __STATIC_INLINE uint32_t LL_USART_GetDEDeassertionTime(USART_TypeDef *USARTx)
   */
 __STATIC_INLINE void LL_USART_SetDEAssertionTime(USART_TypeDef *USARTx, uint32_t Time)
 {
-  MODIFY_REG(USARTx->CR1, USART_CR1_DEAT, Time << USART_POSITION_CR1_DEAT);
+  MODIFY_REG(USARTx->CR1, USART_CR1_DEAT, Time << USART_CR1_DEAT_Pos);
 }
 
 /**
@@ -2150,7 +2153,7 @@ __STATIC_INLINE void LL_USART_SetDEAssertionTime(USART_TypeDef *USARTx, uint32_t
   */
 __STATIC_INLINE uint32_t LL_USART_GetDEAssertionTime(USART_TypeDef *USARTx)
 {
-  return (uint32_t)(READ_BIT(USARTx->CR1, USART_CR1_DEAT) >> USART_POSITION_CR1_DEAT);
+  return (uint32_t)(READ_BIT(USARTx->CR1, USART_CR1_DEAT) >> USART_CR1_DEAT_Pos);
 }
 
 /**
@@ -2236,8 +2239,8 @@ __STATIC_INLINE uint32_t LL_USART_GetDESignalPolarity(USART_TypeDef *USARTx)
   * @note   In UART mode, the following bits must be kept cleared:
   *           - LINEN bit in the USART_CR2 register,
   *           - CLKEN bit in the USART_CR2 register,
-  *           - SCEN bit in the USART_CR3 register.
-  *           - IREN bit in the USART_CR3 register.
+  *           - SCEN bit in the USART_CR3 register,
+  *           - IREN bit in the USART_CR3 register,
   *           - HDSEL bit in the USART_CR3 register.
   * @note   Call of this function is equivalent to following function call sequence :
   *         - Clear LINEN in CR2 using @ref LL_USART_DisableLIN() function
@@ -2248,8 +2251,8 @@ __STATIC_INLINE uint32_t LL_USART_GetDESignalPolarity(USART_TypeDef *USARTx)
   * @note   Other remaining configurations items related to Asynchronous Mode
   *         (as Baud Rate, Word length, Parity, ...) should be set using
   *         dedicated functions
-  * @rmtoll CR2          CLKEN         LL_USART_ConfigAsyncMode\n
-  *         CR2          LINEN         LL_USART_ConfigAsyncMode\n
+  * @rmtoll CR2          LINEN         LL_USART_ConfigAsyncMode\n
+  *         CR2          CLKEN         LL_USART_ConfigAsyncMode\n
   *         CR3          SCEN          LL_USART_ConfigAsyncMode\n
   *         CR3          IREN          LL_USART_ConfigAsyncMode\n
   *         CR3          HDSEL         LL_USART_ConfigAsyncMode
@@ -2260,7 +2263,7 @@ __STATIC_INLINE void LL_USART_ConfigAsyncMode(USART_TypeDef *USARTx)
 {
   /* In Asynchronous mode, the following bits must be kept cleared:
   - LINEN, CLKEN bits in the USART_CR2 register,
-  - SCEN and HDSEL bits in the USART_CR3 register.*/
+  - SCEN, IREN and HDSEL bits in the USART_CR3 register.*/
   CLEAR_BIT(USARTx->CR2, (USART_CR2_LINEN | USART_CR2_CLKEN));
   CLEAR_BIT(USARTx->CR3, (USART_CR3_SCEN | USART_CR3_IREN | USART_CR3_HDSEL));
 }
@@ -2268,14 +2271,16 @@ __STATIC_INLINE void LL_USART_ConfigAsyncMode(USART_TypeDef *USARTx)
 /**
   * @brief  Perform basic configuration of USART for enabling use in Synchronous Mode
   * @note   In Synchronous mode, the following bits must be kept cleared:
-  *             LINEN bit in the USART_CR2 register,
-  *             SCEN, IREN and HDSEL bits in the USART_CR3 register.
+  *           - LINEN bit in the USART_CR2 register,
+  *           - SCEN bit in the USART_CR3 register,
+  *           - IREN bit in the USART_CR3 register,
+  *           - HDSEL bit in the USART_CR3 register.
   *         This function also sets the USART in Synchronous mode.
   * @note   Macro @ref IS_USART_INSTANCE(USARTx) can be used to check whether or not
   *         Synchronous mode is supported by the USARTx instance.
   * @note   Call of this function is equivalent to following function call sequence :
   *         - Clear LINEN in CR2 using @ref LL_USART_DisableLIN() function
-  *         - Clear IREN in CR3 using @ref LL_USART_DisableSmartcard() function
+  *         - Clear IREN in CR3 using @ref LL_USART_DisableIrda() function
   *         - Clear SCEN in CR3 using @ref LL_USART_DisableSmartcard() function
   *         - Clear HDSEL in CR3 using @ref LL_USART_DisableHalfDuplex() function
   *         - Set CLKEN in CR2 using @ref LL_USART_EnableSCLKOutput() function
@@ -2304,8 +2309,10 @@ __STATIC_INLINE void LL_USART_ConfigSyncMode(USART_TypeDef *USARTx)
 /**
   * @brief  Perform basic configuration of USART for enabling use in LIN Mode
   * @note   In LIN mode, the following bits must be kept cleared:
-  *             STOP and CLKEN bits in the USART_CR2 register,
-  *             IREN, SCEN and HDSEL bits in the USART_CR3 register.
+  *           - STOP and CLKEN bits in the USART_CR2 register,
+  *           - SCEN bit in the USART_CR3 register,
+  *           - IREN bit in the USART_CR3 register,
+  *           - HDSEL bit in the USART_CR3 register.
   *         This function also set the UART/USART in LIN mode.
   * @note   Macro @ref IS_UART_LIN_INSTANCE(USARTx) can be used to check whether or not
   *         LIN feature is supported by the USARTx instance.
@@ -2342,8 +2349,10 @@ __STATIC_INLINE void LL_USART_ConfigLINMode(USART_TypeDef *USARTx)
 /**
   * @brief  Perform basic configuration of USART for enabling use in Half Duplex Mode
   * @note   In Half Duplex mode, the following bits must be kept cleared:
-  *             LINEN, and CLKEN bits in the USART_CR2 register,
-  *             SCEN and IREN bits in the USART_CR3 register.
+  *           - LINEN bit in the USART_CR2 register,
+  *           - CLKEN bit in the USART_CR2 register,
+  *           - SCEN bit in the USART_CR3 register,
+  *           - IREN bit in the USART_CR3 register,
   *         This function also sets the UART/USART in Half Duplex mode.
   * @note   Macro @ref IS_UART_HALFDUPLEX_INSTANCE(USARTx) can be used to check whether or not
   *         Half-Duplex mode is supported by the USARTx instance.
@@ -2367,7 +2376,7 @@ __STATIC_INLINE void LL_USART_ConfigLINMode(USART_TypeDef *USARTx)
 __STATIC_INLINE void LL_USART_ConfigHalfDuplexMode(USART_TypeDef *USARTx)
 {
   /* In Half Duplex mode, the following bits must be kept cleared:
-  - LINEN, and CLKEN bits in the USART_CR2 register,
+  - LINEN and CLKEN bits in the USART_CR2 register,
   - SCEN and IREN bits in the USART_CR3 register.*/
   CLEAR_BIT(USARTx->CR2, (USART_CR2_LINEN | USART_CR2_CLKEN));
   CLEAR_BIT(USARTx->CR3, (USART_CR3_SCEN | USART_CR3_IREN));
@@ -2378,8 +2387,9 @@ __STATIC_INLINE void LL_USART_ConfigHalfDuplexMode(USART_TypeDef *USARTx)
 /**
   * @brief  Perform basic configuration of USART for enabling use in Smartcard Mode
   * @note   In Smartcard mode, the following bits must be kept cleared:
-  *             LINEN bit in the USART_CR2 register,
-  *             IREN and HDSEL bits in the USART_CR3 register.
+  *           - LINEN bit in the USART_CR2 register,
+  *           - IREN bit in the USART_CR3 register,
+  *           - HDSEL bit in the USART_CR3 register.
   *         This function also configures Stop bits to 1.5 bits and
   *         sets the USART in Smartcard mode (SCEN bit).
   *         Clock Output is also enabled (CLKEN).
@@ -2420,8 +2430,10 @@ __STATIC_INLINE void LL_USART_ConfigSmartcardMode(USART_TypeDef *USARTx)
 /**
   * @brief  Perform basic configuration of USART for enabling use in Irda Mode
   * @note   In IRDA mode, the following bits must be kept cleared:
-  *             LINEN, STOP and CLKEN bits in the USART_CR2 register,
-  *             SCEN and HDSEL bits in the USART_CR3 register.
+  *           - LINEN bit in the USART_CR2 register,
+  *           - STOP and CLKEN bits in the USART_CR2 register,
+  *           - SCEN bit in the USART_CR3 register,
+  *           - HDSEL bit in the USART_CR3 register.
   *         This function also sets the UART/USART in IRDA mode (IREN bit).
   * @note   Macro @ref IS_IRDA_INSTANCE(USARTx) can be used to check whether or not
   *         IrDA feature is supported by the USARTx instance.
@@ -2460,8 +2472,11 @@ __STATIC_INLINE void LL_USART_ConfigIrdaMode(USART_TypeDef *USARTx)
   *         (several USARTs connected in a network, one of the USARTs can be the master,
   *         its TX output connected to the RX inputs of the other slaves USARTs).
   * @note   In MultiProcessor mode, the following bits must be kept cleared:
-  *             LINEN, CLKEN bits in the USART_CR2 register,
-  *             IREN, SCEN and HDSEL bits in the USART_CR3 register.
+  *           - LINEN bit in the USART_CR2 register,
+  *           - CLKEN bit in the USART_CR2 register,
+  *           - SCEN bit in the USART_CR3 register,
+  *           - IREN bit in the USART_CR3 register,
+  *           - HDSEL bit in the USART_CR3 register.
   * @note   Call of this function is equivalent to following function call sequence :
   *         - Clear LINEN in CR2 using @ref LL_USART_DisableLIN() function
   *         - Clear CLKEN in CR2 using @ref LL_USART_DisableSCLKOutput() function
@@ -2752,6 +2767,20 @@ __STATIC_INLINE uint32_t LL_USART_IsActiveFlag_REACK(USART_TypeDef *USARTx)
   return (READ_BIT(USARTx->ISR, USART_ISR_REACK) == (USART_ISR_REACK));
 }
 
+#if defined(USART_TCBGT_SUPPORT)
+/* Function available only on devices supporting Transmit Complete before Guard Time feature */
+/**
+  * @brief  Check if the Smartcard Transmission Complete Before Guard Time Flag is set or not
+  * @rmtoll ISR          TCBGT         LL_USART_IsActiveFlag_TCBGT
+  * @param  USARTx USART Instance
+  * @retval State of bit (1 or 0).
+  */
+__STATIC_INLINE uint32_t LL_USART_IsActiveFlag_TCBGT(USART_TypeDef *USARTx)
+{
+  return (READ_BIT(USARTx->ISR, USART_ISR_TCBGT) == (USART_ISR_TCBGT));
+}
+#endif
+
 /**
   * @brief  Clear Parity Error Flag
   * @rmtoll ICR          PECF          LL_USART_ClearFlag_PE
@@ -2817,6 +2846,20 @@ __STATIC_INLINE void LL_USART_ClearFlag_TC(USART_TypeDef *USARTx)
 {
   WRITE_REG(USARTx->ICR, USART_ICR_TCCF);
 }
+
+#if defined(USART_TCBGT_SUPPORT)
+/* Function available only on devices supporting Transmit Complete before Guard Time feature */
+/**
+  * @brief  Clear Smartcard Transmission Complete Before Guard Time Flag
+  * @rmtoll ICR          TCBGTCF       LL_USART_ClearFlag_TCBGT
+  * @param  USARTx USART Instance
+  * @retval None
+  */
+__STATIC_INLINE void LL_USART_ClearFlag_TCBGT(USART_TypeDef *USARTx)
+{
+  WRITE_REG(USARTx->ICR, USART_ICR_TCBGTCF);
+}
+#endif
 
 /**
   * @brief  Clear LIN Break Detection Flag
@@ -3044,6 +3087,22 @@ __STATIC_INLINE void LL_USART_EnableIT_WKUP(USART_TypeDef *USARTx)
   SET_BIT(USARTx->CR3, USART_CR3_WUFIE);
 }
 
+#if defined(USART_TCBGT_SUPPORT)
+/* Function available only on devices supporting Transmit Complete before Guard Time feature */
+/**
+  * @brief  Enable Smartcard Transmission Complete Before Guard Time Interrupt
+  * @note   Macro @ref IS_SMARTCARD_INSTANCE(USARTx) can be used to check whether or not
+  *         Smartcard feature is supported by the USARTx instance.
+  * @rmtoll CR3          TCBGTIE       LL_USART_EnableIT_TCBGT
+  * @param  USARTx USART Instance
+  * @retval None
+  */
+__STATIC_INLINE void LL_USART_EnableIT_TCBGT(USART_TypeDef *USARTx)
+{
+  SET_BIT(USARTx->CR3, USART_CR3_TCBGTIE);
+}
+#endif
+
 /**
   * @brief  Disable IDLE Interrupt
   * @rmtoll CR1          IDLEIE        LL_USART_DisableIT_IDLE
@@ -3188,6 +3247,22 @@ __STATIC_INLINE void LL_USART_DisableIT_WKUP(USART_TypeDef *USARTx)
   CLEAR_BIT(USARTx->CR3, USART_CR3_WUFIE);
 }
 
+#if defined(USART_TCBGT_SUPPORT)
+/* Function available only on devices supporting Transmit Complete before Guard Time feature */
+/**
+  * @brief  Disable Smartcard Transmission Complete Before Guard Time Interrupt
+  * @note   Macro @ref IS_SMARTCARD_INSTANCE(USARTx) can be used to check whether or not
+  *         Smartcard feature is supported by the USARTx instance.
+  * @rmtoll CR3          TCBGTIE       LL_USART_DisableIT_TCBGT
+  * @param  USARTx USART Instance
+  * @retval None
+  */
+__STATIC_INLINE void LL_USART_DisableIT_TCBGT(USART_TypeDef *USARTx)
+{
+  CLEAR_BIT(USARTx->CR3, USART_CR3_TCBGTIE);
+}
+#endif
+
 /**
   * @brief  Check if the USART IDLE Interrupt  source is enabled or disabled.
   * @rmtoll CR1          IDLEIE        LL_USART_IsEnabledIT_IDLE
@@ -3327,6 +3402,22 @@ __STATIC_INLINE uint32_t LL_USART_IsEnabledIT_WKUP(USART_TypeDef *USARTx)
 {
   return (READ_BIT(USARTx->CR3, USART_CR3_WUFIE) == (USART_CR3_WUFIE));
 }
+
+#if defined(USART_TCBGT_SUPPORT)
+/* Function available only on devices supporting Transmit Complete before Guard Time feature */
+/**
+  * @brief  Check if the Smartcard Transmission Complete Before Guard Time Interrupt is enabled or disabled.
+  * @note   Macro @ref IS_SMARTCARD_INSTANCE(USARTx) can be used to check whether or not
+  *         Smartcard feature is supported by the USARTx instance.
+  * @rmtoll CR3          TCBGTIE       LL_USART_IsEnabledIT_TCBGT
+  * @param  USARTx USART Instance
+  * @retval State of bit (1 or 0).
+  */
+__STATIC_INLINE uint32_t LL_USART_IsEnabledIT_TCBGT(USART_TypeDef *USARTx)
+{
+  return (READ_BIT(USARTx->CR3, USART_CR3_TCBGTIE) == (USART_CR3_TCBGTIE));
+}
+#endif
 
 /**
   * @}

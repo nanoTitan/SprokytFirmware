@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file      startup_stm32l471xx.s
   * @author    MCD Application Team
-  * @version   V1.0.3
-  * @date      29-January-2016
+  * @version   V1.3.0
+  * @date      17-February-2017
   * @brief     STM32L471xx devices vector table for GCC toolchain.
   *            This module performs:
   *                - Set the initial SP
@@ -17,7 +17,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -204,7 +204,7 @@ g_pfnVectors:
 	.word	USART3_IRQHandler
 	.word	EXTI15_10_IRQHandler
 	.word	RTC_Alarm_IRQHandler
-	.word	DFSDM3_IRQHandler
+	.word	DFSDM1_FLT3_IRQHandler
 	.word	TIM8_BRK_IRQHandler
 	.word	TIM8_UP_IRQHandler
 	.word	TIM8_TRG_COM_IRQHandler
@@ -223,9 +223,9 @@ g_pfnVectors:
 	.word	DMA2_Channel3_IRQHandler
 	.word	DMA2_Channel4_IRQHandler
 	.word	DMA2_Channel5_IRQHandler
-	.word	DFSDM0_IRQHandler
-	.word	DFSDM1_IRQHandler
-	.word	DFSDM2_IRQHandler
+	.word	DFSDM1_FLT0_IRQHandler
+	.word	DFSDM1_FLT1_IRQHandler
+	.word	DFSDM1_FLT2_IRQHandler
 	.word	COMP_IRQHandler
 	.word	LPTIM1_IRQHandler
 	.word	LPTIM2_IRQHandler
@@ -407,8 +407,8 @@ g_pfnVectors:
 	.weak	RTC_Alarm_IRQHandler
 	.thumb_set RTC_Alarm_IRQHandler,Default_Handler
 
-	.weak	DFSDM3_IRQHandler
-	.thumb_set DFSDM3_IRQHandler,Default_Handler
+	.weak	DFSDM1_FLT3_IRQHandler
+	.thumb_set DFSDM1_FLT3_IRQHandler,Default_Handler
 
 	.weak	TIM8_BRK_IRQHandler
 	.thumb_set TIM8_BRK_IRQHandler,Default_Handler
@@ -464,14 +464,14 @@ g_pfnVectors:
 	.weak	DMA2_Channel5_IRQHandler
 	.thumb_set DMA2_Channel5_IRQHandler,Default_Handler
 
-	.weak	DFSDM0_IRQHandler
-	.thumb_set DFSDM0_IRQHandler,Default_Handler	
+	.weak	DFSDM1_FLT0_IRQHandler
+	.thumb_set DFSDM1_FLT0_IRQHandler,Default_Handler	
 	
-	.weak	DFSDM1_IRQHandler
-	.thumb_set DFSDM1_IRQHandler,Default_Handler	
+	.weak	DFSDM1_FLT1_IRQHandler
+	.thumb_set DFSDM1_FLT1_IRQHandler,Default_Handler	
 	
-	.weak	DFSDM2_IRQHandler
-	.thumb_set DFSDM2_IRQHandler,Default_Handler	
+	.weak	DFSDM1_FLT2_IRQHandler
+	.thumb_set DFSDM1_FLT2_IRQHandler,Default_Handler	
 	
 	.weak	COMP_IRQHandler
 	.thumb_set COMP_IRQHandler,Default_Handler

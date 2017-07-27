@@ -1,20 +1,14 @@
 /**
-  *******************************************************************************
-  * @file    Projects/Multi/Applications/DataLogFusion/Inc/stm32f4xx_it.h
-  * @author  CL
-  * @version V1.6.0
-  * @date    8-November-2016
-  * @brief   header for stm32f4xx_it.c.
-  *******************************************************************************
+  ******************************************************************************
+  * @file        stm32f4xx_it.h
+  * @author      MEMS Application Team
+  * @version     V2.0.0
+  * @date        01-May-2017
+  * @brief       Header for stm32f4xx_it.c
+  ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -38,7 +32,7 @@
   * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
-  ********************************************************************************
+  ******************************************************************************
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -49,16 +43,21 @@
 extern "C" {
 #endif
 
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
+/* Exported variables --------------------------------------------------------*/
+extern TIM_HandleTypeDef FX_TimHandle;
 
+/* Exported functions ------------------------------------------------------- */
 void NMI_Handler(void);
 void HardFault_Handler(void);
 void DebugMon_Handler(void);
 void SysTick_Handler(void);
-void EXTI15_10_IRQHandler( void );
+void EXTI15_10_IRQHandler(void);
 
 #ifdef __cplusplus
 }

@@ -2,14 +2,14 @@
  ******************************************************************************
  * @file    LSM6DS3_ACC_GYRO_driver_HL.c
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file provides a set of high-level functions needed to manage
             the LSM6DS3 sensor
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -135,7 +135,7 @@ static DrvStatusTypeDef LSM6DS3_G_Set_ODR_Value_When_Disabled( DrvContextTypeDef
  * @{
  */
 
-static DrvStatusTypeDef LSM6DS3_X_Enable_Free_Fall_Detection( DrvContextTypeDef *handle );
+static DrvStatusTypeDef LSM6DS3_X_Enable_Free_Fall_Detection( DrvContextTypeDef *handle, SensorIntPin_t int_pin );
 static DrvStatusTypeDef LSM6DS3_X_Disable_Free_Fall_Detection( DrvContextTypeDef *handle );
 static DrvStatusTypeDef LSM6DS3_X_Get_Free_Fall_Detection_Status( DrvContextTypeDef *handle, uint8_t *status );
 static DrvStatusTypeDef LSM6DS3_X_Set_Free_Fall_Threshold( DrvContextTypeDef *handle, uint8_t thr );
@@ -148,19 +148,19 @@ static DrvStatusTypeDef LSM6DS3_X_Enable_Step_Counter_Reset( DrvContextTypeDef *
 static DrvStatusTypeDef LSM6DS3_X_Disable_Step_Counter_Reset( DrvContextTypeDef *handle );
 static DrvStatusTypeDef LSM6DS3_X_Set_Pedometer_Threshold( DrvContextTypeDef *handle, uint8_t thr );
 
-static DrvStatusTypeDef LSM6DS3_X_Enable_Tilt_Detection( DrvContextTypeDef *handle );
+static DrvStatusTypeDef LSM6DS3_X_Enable_Tilt_Detection( DrvContextTypeDef *handle, SensorIntPin_t int_pin );
 static DrvStatusTypeDef LSM6DS3_X_Disable_Tilt_Detection( DrvContextTypeDef *handle );
 static DrvStatusTypeDef LSM6DS3_X_Get_Tilt_Detection_Status( DrvContextTypeDef *handle, uint8_t *status );
 
-static DrvStatusTypeDef LSM6DS3_X_Enable_Wake_Up_Detection( DrvContextTypeDef *handle );
+static DrvStatusTypeDef LSM6DS3_X_Enable_Wake_Up_Detection( DrvContextTypeDef *handle, SensorIntPin_t int_pin );
 static DrvStatusTypeDef LSM6DS3_X_Disable_Wake_Up_Detection( DrvContextTypeDef *handle );
 static DrvStatusTypeDef LSM6DS3_X_Get_Wake_Up_Detection_Status( DrvContextTypeDef *handle, uint8_t *status );
 static DrvStatusTypeDef LSM6DS3_X_Set_Wake_Up_Threshold( DrvContextTypeDef *handle, uint8_t thr );
 
-static DrvStatusTypeDef LSM6DS3_X_Enable_Single_Tap_Detection( DrvContextTypeDef *handle );
+static DrvStatusTypeDef LSM6DS3_X_Enable_Single_Tap_Detection( DrvContextTypeDef *handle, SensorIntPin_t int_pin );
 static DrvStatusTypeDef LSM6DS3_X_Disable_Single_Tap_Detection( DrvContextTypeDef *handle );
 static DrvStatusTypeDef LSM6DS3_X_Get_Single_Tap_Detection_Status( DrvContextTypeDef *handle, uint8_t *status );
-static DrvStatusTypeDef LSM6DS3_X_Enable_Double_Tap_Detection( DrvContextTypeDef *handle );
+static DrvStatusTypeDef LSM6DS3_X_Enable_Double_Tap_Detection( DrvContextTypeDef *handle, SensorIntPin_t int_pin );
 static DrvStatusTypeDef LSM6DS3_X_Disable_Double_Tap_Detection( DrvContextTypeDef *handle );
 static DrvStatusTypeDef LSM6DS3_X_Get_Double_Tap_Detection_Status( DrvContextTypeDef *handle, uint8_t *status );
 static DrvStatusTypeDef LSM6DS3_X_Set_Tap_Threshold( DrvContextTypeDef *handle, uint8_t thr );
@@ -168,7 +168,7 @@ static DrvStatusTypeDef LSM6DS3_X_Set_Tap_Shock_Time( DrvContextTypeDef *handle,
 static DrvStatusTypeDef LSM6DS3_X_Set_Tap_Quiet_Time( DrvContextTypeDef *handle, uint8_t time );
 static DrvStatusTypeDef LSM6DS3_X_Set_Tap_Duration_Time( DrvContextTypeDef *handle, uint8_t time );
 
-static DrvStatusTypeDef LSM6DS3_X_Enable_6D_Orientation( DrvContextTypeDef *handle );
+static DrvStatusTypeDef LSM6DS3_X_Enable_6D_Orientation( DrvContextTypeDef *handle, SensorIntPin_t int_pin );
 static DrvStatusTypeDef LSM6DS3_X_Disable_6D_Orientation( DrvContextTypeDef *handle );
 static DrvStatusTypeDef LSM6DS3_X_Get_6D_Orientation_Status( DrvContextTypeDef *handle, uint8_t *status );
 static DrvStatusTypeDef LSM6DS3_X_Get_6D_Orientation_XL( DrvContextTypeDef *handle, uint8_t *xl );
@@ -177,6 +177,8 @@ static DrvStatusTypeDef LSM6DS3_X_Get_6D_Orientation_YL( DrvContextTypeDef *hand
 static DrvStatusTypeDef LSM6DS3_X_Get_6D_Orientation_YH( DrvContextTypeDef *handle, uint8_t *yh );
 static DrvStatusTypeDef LSM6DS3_X_Get_6D_Orientation_ZL( DrvContextTypeDef *handle, uint8_t *zl );
 static DrvStatusTypeDef LSM6DS3_X_Get_6D_Orientation_ZH( DrvContextTypeDef *handle, uint8_t *zh );
+
+static DrvStatusTypeDef LSM6DS3_X_Get_Event_Status( DrvContextTypeDef *handle, ACCELERO_Event_Status_t *status );
 
 static DrvStatusTypeDef LSM6DS3_FIFO_Set_ODR_Value( DrvContextTypeDef *handle, float odr );
 static DrvStatusTypeDef LSM6DS3_FIFO_Get_Full_Status( DrvContextTypeDef *handle, uint8_t *status );
@@ -250,6 +252,7 @@ LSM6DS3_X_ExtDrv_t LSM6DS3_X_ExtDrv =
   LSM6DS3_X_Get_6D_Orientation_YH,
   LSM6DS3_X_Get_6D_Orientation_ZL,
   LSM6DS3_X_Get_6D_Orientation_ZH,
+  LSM6DS3_X_Get_Event_Status,
   LSM6DS3_FIFO_Set_ODR_Value,
   LSM6DS3_FIFO_Get_Full_Status,
   LSM6DS3_FIFO_Get_Empty_Status,
@@ -2204,11 +2207,12 @@ static DrvStatusTypeDef LSM6DS3_G_Set_ODR_Value_When_Disabled( DrvContextTypeDef
 /**
  * @brief Enable the free fall detection for LSM6DS3 accelerometer sensor
  * @param handle the device handle
+ * @param int_pin the interrupt pin to be used
  * @note  This function sets the LSM6DS3 accelerometer ODR to 416Hz and the LSM6DS3 accelerometer full scale to 2g
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-static DrvStatusTypeDef LSM6DS3_X_Enable_Free_Fall_Detection( DrvContextTypeDef *handle )
+static DrvStatusTypeDef LSM6DS3_X_Enable_Free_Fall_Detection( DrvContextTypeDef *handle, SensorIntPin_t int_pin )
 {
 
   /* Output Data Rate selection */
@@ -2253,9 +2257,24 @@ static DrvStatusTypeDef LSM6DS3_X_Enable_Free_Fall_Detection( DrvContextTypeDef 
     return COMPONENT_ERROR;
   }
 
-  /* INT1_FF setting */
-  if ( LSM6DS3_ACC_GYRO_W_FFEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_FF_ENABLED ) == MEMS_ERROR )
+  /* Enable free fall event on either INT1 or INT2 pin */
+  switch (int_pin)
   {
+  case INT1_PIN:
+    if ( LSM6DS3_ACC_GYRO_W_FFEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_FF_ENABLED ) == MEMS_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+    break;
+
+  case INT2_PIN:
+    if ( LSM6DS3_ACC_GYRO_W_FFEvOnInt2( (void *)handle, LSM6DS3_ACC_GYRO_INT2_FF_ENABLED ) == MEMS_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+    break;
+
+  default:
     return COMPONENT_ERROR;
   }
 
@@ -2273,8 +2292,14 @@ static DrvStatusTypeDef LSM6DS3_X_Enable_Free_Fall_Detection( DrvContextTypeDef 
 static DrvStatusTypeDef LSM6DS3_X_Disable_Free_Fall_Detection( DrvContextTypeDef *handle )
 {
 
-  /* INT1_FF setting */
+  /* Disable free fall event on INT1 pin */
   if ( LSM6DS3_ACC_GYRO_W_FFEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_FF_DISABLED ) == MEMS_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  /* Disable free fall event on INT2 pin */
+  if ( LSM6DS3_ACC_GYRO_W_FFEvOnInt2( (void *)handle, LSM6DS3_ACC_GYRO_INT2_FF_DISABLED ) == MEMS_ERROR )
   {
     return COMPONENT_ERROR;
   }
@@ -2300,6 +2325,7 @@ static DrvStatusTypeDef LSM6DS3_X_Disable_Free_Fall_Detection( DrvContextTypeDef
  * @brief Get the status of the free fall detection for LSM6DS3 accelerometer sensor
  * @param handle the device handle
  * @param status the pointer to the status of free fall detection: 0 means no detection, 1 means detection happened
+ * @note This function is deprecated and has been replaced by LSM6DS3_X_Get_Event_Status
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -2443,6 +2469,7 @@ static DrvStatusTypeDef LSM6DS3_X_Disable_Pedometer( DrvContextTypeDef *handle )
  * @brief Get the pedometer status for LSM6DS3 accelerometer sensor
  * @param handle the device handle
  * @param status the pointer to the pedometer status: 0 means no step detected, 1 means step detected
+ * @note This function is deprecated and has been replaced by LSM6DS3_X_Get_Event_Status
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -2554,11 +2581,12 @@ static DrvStatusTypeDef LSM6DS3_X_Set_Pedometer_Threshold( DrvContextTypeDef *ha
 /**
  * @brief Enable the tilt detection for LSM6DS3 accelerometer sensor
  * @param handle the device handle
+ * @param int_pin the interrupt pin to be used
  * @note  This function sets the LSM6DS3 accelerometer ODR to 26Hz and the LSM6DS3 accelerometer full scale to 2g
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-static DrvStatusTypeDef LSM6DS3_X_Enable_Tilt_Detection( DrvContextTypeDef *handle )
+static DrvStatusTypeDef LSM6DS3_X_Enable_Tilt_Detection( DrvContextTypeDef *handle, SensorIntPin_t int_pin )
 {
 
   /* Output Data Rate selection */
@@ -2585,9 +2613,24 @@ static DrvStatusTypeDef LSM6DS3_X_Enable_Tilt_Detection( DrvContextTypeDef *hand
     return COMPONENT_ERROR;
   }
 
-  /* Enable tilt event on INT1. */
-  if ( LSM6DS3_ACC_GYRO_W_TiltEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_TILT_ENABLED ) == MEMS_ERROR )
+  /* Enable tilt detection on either INT1 or INT2 pin */
+  switch (int_pin)
   {
+  case INT1_PIN:
+    if ( LSM6DS3_ACC_GYRO_W_TiltEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_TILT_ENABLED ) == MEMS_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+    break;
+
+  case INT2_PIN:
+    if ( LSM6DS3_ACC_GYRO_W_TiltEvOnInt2( (void *)handle, LSM6DS3_ACC_GYRO_INT2_TILT_ENABLED ) == MEMS_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+    break;
+
+  default:
     return COMPONENT_ERROR;
   }
 
@@ -2607,6 +2650,12 @@ static DrvStatusTypeDef LSM6DS3_X_Disable_Tilt_Detection( DrvContextTypeDef *han
 
   /* Disable tilt event on INT1. */
   if ( LSM6DS3_ACC_GYRO_W_TiltEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_TILT_DISABLED ) == MEMS_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  /* Disable tilt event on INT2. */
+  if ( LSM6DS3_ACC_GYRO_W_TiltEvOnInt2( (void *)handle, LSM6DS3_ACC_GYRO_INT2_TILT_DISABLED ) == MEMS_ERROR )
   {
     return COMPONENT_ERROR;
   }
@@ -2632,6 +2681,7 @@ static DrvStatusTypeDef LSM6DS3_X_Disable_Tilt_Detection( DrvContextTypeDef *han
  * @brief Get the tilt detection status for LSM6DS3 accelerometer sensor
  * @param handle the device handle
  * @param status the pointer to the tilt detection status: 0 means no tilt detected, 1 means tilt detected
+ * @note This function is deprecated and has been replaced by LSM6DS3_X_Get_Event_Status
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -2665,11 +2715,12 @@ static DrvStatusTypeDef LSM6DS3_X_Get_Tilt_Detection_Status( DrvContextTypeDef *
 /**
  * @brief Enable the wake up detection for LSM6DS3 accelerometer sensor
  * @param handle the device handle
+ * @param int_pin the interrupt pin to be used
  * @note  This function sets the LSM6DS3 accelerometer ODR to 416Hz and the LSM6DS3 accelerometer full scale to 2g
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-static DrvStatusTypeDef LSM6DS3_X_Enable_Wake_Up_Detection( DrvContextTypeDef *handle )
+static DrvStatusTypeDef LSM6DS3_X_Enable_Wake_Up_Detection( DrvContextTypeDef *handle, SensorIntPin_t int_pin )
 {
 
   /* Output Data Rate selection */
@@ -2696,9 +2747,24 @@ static DrvStatusTypeDef LSM6DS3_X_Enable_Wake_Up_Detection( DrvContextTypeDef *h
     return COMPONENT_ERROR;
   }
 
-  /* Enable wake up event on INT1. */
-  if ( LSM6DS3_ACC_GYRO_W_WUEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_WU_ENABLED ) == MEMS_ERROR )
+  /* Enable wake up detection on either INT1 or INT2 pin */
+  switch (int_pin)
   {
+  case INT1_PIN:
+    if ( LSM6DS3_ACC_GYRO_W_WUEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_WU_ENABLED ) == MEMS_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+    break;
+
+  case INT2_PIN:
+    if ( LSM6DS3_ACC_GYRO_W_WUEvOnInt2( (void *)handle, LSM6DS3_ACC_GYRO_INT2_WU_ENABLED ) == MEMS_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+    break;
+
+  default:
     return COMPONENT_ERROR;
   }
 
@@ -2716,8 +2782,14 @@ static DrvStatusTypeDef LSM6DS3_X_Enable_Wake_Up_Detection( DrvContextTypeDef *h
 static DrvStatusTypeDef LSM6DS3_X_Disable_Wake_Up_Detection( DrvContextTypeDef *handle )
 {
 
-  /* INT1_WU setting */
+  /* Disable wake up event on INT1. */
   if ( LSM6DS3_ACC_GYRO_W_WUEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_WU_DISABLED ) == MEMS_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  /* Disable wake up event on INT2. */
+  if ( LSM6DS3_ACC_GYRO_W_WUEvOnInt2( (void *)handle, LSM6DS3_ACC_GYRO_INT2_WU_DISABLED ) == MEMS_ERROR )
   {
     return COMPONENT_ERROR;
   }
@@ -2743,6 +2815,7 @@ static DrvStatusTypeDef LSM6DS3_X_Disable_Wake_Up_Detection( DrvContextTypeDef *
  * @brief Get the status of the wake up detection for LSM6DS3 accelerometer sensor
  * @param handle the device handle
  * @param status the pointer to the status of the wake up detection: 0 means no detection, 1 means detection happened
+ * @note This function is deprecated and has been replaced by LSM6DS3_X_Get_Event_Status
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -2796,11 +2869,12 @@ static DrvStatusTypeDef LSM6DS3_X_Set_Wake_Up_Threshold( DrvContextTypeDef *hand
 /**
  * @brief Enable the single tap detection for LSM6DS3 accelerometer sensor
  * @param handle the device handle
+ * @param int_pin the interrupt pin to be used
  * @note  This function sets the LSM6DS3 accelerometer ODR to 416Hz and the LSM6DS3 accelerometer full scale to 2g
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-static DrvStatusTypeDef LSM6DS3_X_Enable_Single_Tap_Detection( DrvContextTypeDef *handle )
+static DrvStatusTypeDef LSM6DS3_X_Enable_Single_Tap_Detection( DrvContextTypeDef *handle, SensorIntPin_t int_pin )
 {
 
   /* Output Data Rate selection */
@@ -2855,9 +2929,24 @@ static DrvStatusTypeDef LSM6DS3_X_Enable_Single_Tap_Detection( DrvContextTypeDef
 
   /* _NOTE_: Single/Double Tap event - don't care of this flag for single tap. */
 
-  /* Enable single tap interrupt on INT1 pin. */
-  if ( LSM6DS3_ACC_GYRO_W_SingleTapOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_SINGLE_TAP_ENABLED ) == MEMS_ERROR )
+  /* Enable single tap on either INT1 or INT2 pin */
+  switch (int_pin)
   {
+  case INT1_PIN:
+    if ( LSM6DS3_ACC_GYRO_W_SingleTapOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_SINGLE_TAP_ENABLED ) == MEMS_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+    break;
+
+  case INT2_PIN:
+    if ( LSM6DS3_ACC_GYRO_W_SingleTapOnInt2( (void *)handle, LSM6DS3_ACC_GYRO_INT2_SINGLE_TAP_ENABLED ) == MEMS_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+    break;
+
+  default:
     return COMPONENT_ERROR;
   }
 
@@ -2877,6 +2966,12 @@ static DrvStatusTypeDef LSM6DS3_X_Disable_Single_Tap_Detection( DrvContextTypeDe
 
   /* Disable single tap interrupt on INT1 pin. */
   if ( LSM6DS3_ACC_GYRO_W_SingleTapOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_SINGLE_TAP_DISABLED ) == MEMS_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  /* Disable single tap interrupt on INT2 pin. */
+  if ( LSM6DS3_ACC_GYRO_W_SingleTapOnInt2( (void *)handle, LSM6DS3_ACC_GYRO_INT2_SINGLE_TAP_DISABLED ) == MEMS_ERROR )
   {
     return COMPONENT_ERROR;
   }
@@ -2930,6 +3025,7 @@ static DrvStatusTypeDef LSM6DS3_X_Disable_Single_Tap_Detection( DrvContextTypeDe
  * @brief Get the single tap detection status for LSM6DS3 accelerometer sensor
  * @param handle the device handle
  * @param status the pointer to the single tap detection status: 0 means no single tap detected, 1 means single tap detected
+ * @note This function is deprecated and has been replaced by LSM6DS3_X_Get_Event_Status
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -2965,11 +3061,12 @@ static DrvStatusTypeDef LSM6DS3_X_Get_Single_Tap_Detection_Status( DrvContextTyp
 /**
  * @brief Enable the double tap detection for LSM6DS3 accelerometer sensor
  * @param handle the device handle
+ * @param int_pin the interrupt pin to be used
  * @note  This function sets the LSM6DS3 accelerometer ODR to 416Hz and the LSM6DS3 accelerometer full scale to 2g
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-static DrvStatusTypeDef LSM6DS3_X_Enable_Double_Tap_Detection( DrvContextTypeDef *handle )
+static DrvStatusTypeDef LSM6DS3_X_Enable_Double_Tap_Detection( DrvContextTypeDef *handle, SensorIntPin_t int_pin )
 {
 
   /* Output Data Rate selection */
@@ -3033,9 +3130,24 @@ static DrvStatusTypeDef LSM6DS3_X_Enable_Double_Tap_Detection( DrvContextTypeDef
     return COMPONENT_ERROR;
   }
 
-  /* Enable double tap interrupt on INT1 pin. */
-  if ( LSM6DS3_ACC_GYRO_W_TapEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_TAP_ENABLED ) == MEMS_ERROR )
+  /* Enable double tap on either INT1 or INT2 pin */
+  switch (int_pin)
   {
+  case INT1_PIN:
+    if ( LSM6DS3_ACC_GYRO_W_TapEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_TAP_ENABLED ) == MEMS_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+    break;
+
+  case INT2_PIN:
+    if ( LSM6DS3_ACC_GYRO_W_TapEvOnInt2( (void *)handle, LSM6DS3_ACC_GYRO_INT2_TAP_ENABLED ) == MEMS_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+    break;
+
+  default:
     return COMPONENT_ERROR;
   }
 
@@ -3055,6 +3167,12 @@ static DrvStatusTypeDef LSM6DS3_X_Disable_Double_Tap_Detection( DrvContextTypeDe
 
   /* Disable double tap interrupt on INT1 pin. */
   if ( LSM6DS3_ACC_GYRO_W_TapEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_TAP_DISABLED ) == MEMS_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  /* Disable double tap interrupt on INT2 pin. */
+  if ( LSM6DS3_ACC_GYRO_W_TapEvOnInt2( (void *)handle, LSM6DS3_ACC_GYRO_INT2_TAP_DISABLED ) == MEMS_ERROR )
   {
     return COMPONENT_ERROR;
   }
@@ -3117,6 +3235,7 @@ static DrvStatusTypeDef LSM6DS3_X_Disable_Double_Tap_Detection( DrvContextTypeDe
  * @brief Get the double tap detection status for LSM6DS3 accelerometer sensor
  * @param handle the device handle
  * @param status the pointer to the double tap detection status: 0 means no double tap detected, 1 means double tap detected
+ * @note This function is deprecated and has been replaced by LSM6DS3_X_Get_Event_Status
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -3232,11 +3351,12 @@ static DrvStatusTypeDef LSM6DS3_X_Set_Tap_Duration_Time( DrvContextTypeDef *hand
 /**
  * @brief Enable the 6D orientation detection for LSM6DS3 accelerometer sensor
  * @param handle the device handle
+ * @param int_pin the interrupt pin to be used
  * @note  This function sets the LSM6DS3 accelerometer ODR to 416Hz and the LSM6DS3 accelerometer full scale to 2g
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-static DrvStatusTypeDef LSM6DS3_X_Enable_6D_Orientation( DrvContextTypeDef *handle )
+static DrvStatusTypeDef LSM6DS3_X_Enable_6D_Orientation( DrvContextTypeDef *handle, SensorIntPin_t int_pin )
 {
 
   /* Output Data Rate selection */
@@ -3257,9 +3377,24 @@ static DrvStatusTypeDef LSM6DS3_X_Enable_6D_Orientation( DrvContextTypeDef *hand
     return COMPONENT_ERROR;
   }
 
-  /* INT1_6D setting. */
-  if ( LSM6DS3_ACC_GYRO_W_6DEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_6D_ENABLED ) == MEMS_ERROR )
+  /* Enable 6D orientation on either INT1 or INT2 pin */
+  switch (int_pin)
   {
+  case INT1_PIN:
+    if ( LSM6DS3_ACC_GYRO_W_6DEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_6D_ENABLED ) == MEMS_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+    break;
+
+  case INT2_PIN:
+    if ( LSM6DS3_ACC_GYRO_W_6DEvOnInt2( (void *)handle, LSM6DS3_ACC_GYRO_INT2_6D_ENABLED ) == MEMS_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+    break;
+
+  default:
     return COMPONENT_ERROR;
   }
 
@@ -3277,8 +3412,14 @@ static DrvStatusTypeDef LSM6DS3_X_Enable_6D_Orientation( DrvContextTypeDef *hand
 static DrvStatusTypeDef LSM6DS3_X_Disable_6D_Orientation( DrvContextTypeDef *handle )
 {
 
-  /* INT1_6D setting. */
+  /* Disable 6D orientation interrupt on INT1 pin. */
   if ( LSM6DS3_ACC_GYRO_W_6DEvOnInt1( (void *)handle, LSM6DS3_ACC_GYRO_INT1_6D_DISABLED ) == MEMS_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  /* Disable 6D orientation interrupt on INT2 pin. */
+  if ( LSM6DS3_ACC_GYRO_W_6DEvOnInt2( (void *)handle, LSM6DS3_ACC_GYRO_INT2_6D_DISABLED ) == MEMS_ERROR )
   {
     return COMPONENT_ERROR;
   }
@@ -3298,6 +3439,7 @@ static DrvStatusTypeDef LSM6DS3_X_Disable_6D_Orientation( DrvContextTypeDef *han
  * @brief Get the status of the 6D orientation detection for LSM6DS3 accelerometer sensor
  * @param handle the device handle
  * @param status the pointer to the status of the 6D orientation detection: 0 means no detection, 1 means detection happened
+ * @note This function is deprecated and has been replaced by LSM6DS3_X_Get_Event_Status
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -3530,6 +3672,113 @@ static DrvStatusTypeDef LSM6DS3_X_Get_6D_Orientation_ZH( DrvContextTypeDef *hand
   return COMPONENT_OK;
 }
 
+
+/**
+ * @brief Get the status of all hardware events for LSM6DS3 accelerometer sensor
+ * @param handle the device handle
+ * @param status the pointer to the status of all hardware events
+ * @retval COMPONENT_OK in case of success
+ * @retval COMPONENT_ERROR in case of failure
+ */
+static DrvStatusTypeDef LSM6DS3_X_Get_Event_Status( DrvContextTypeDef *handle, ACCELERO_Event_Status_t *status )
+{
+  uint8_t Wake_Up_Src = 0, Tap_Src = 0, D6D_Src = 0, Func_Src = 0, Md1_Cfg = 0, Md2_Cfg = 0, Int1_Ctrl = 0;
+
+  memset((void *)status, 0x0, sizeof(ACCELERO_Event_Status_t));
+
+  if(LSM6DS3_X_Read_Reg(handle, LSM6DS3_ACC_GYRO_WAKE_UP_SRC, &Wake_Up_Src ) == COMPONENT_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  if(LSM6DS3_X_Read_Reg(handle, LSM6DS3_ACC_GYRO_TAP_SRC, &Tap_Src ) == COMPONENT_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  if(LSM6DS3_X_Read_Reg(handle, LSM6DS3_ACC_GYRO_D6D_SRC, &D6D_Src ) == COMPONENT_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  if(LSM6DS3_X_Read_Reg(handle, LSM6DS3_ACC_GYRO_FUNC_SRC, &Func_Src ) == COMPONENT_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  if(LSM6DS3_X_Read_Reg(handle, LSM6DS3_ACC_GYRO_MD1_CFG, &Md1_Cfg ) == COMPONENT_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+  
+  if(LSM6DS3_X_Read_Reg(handle, LSM6DS3_ACC_GYRO_MD2_CFG, &Md2_Cfg ) == COMPONENT_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+  
+  if(LSM6DS3_X_Read_Reg(handle, LSM6DS3_ACC_GYRO_INT1_CTRL, &Int1_Ctrl ) == COMPONENT_ERROR )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  if((Md1_Cfg & LSM6DS3_ACC_GYRO_INT1_FF_MASK) || (Md2_Cfg & LSM6DS3_ACC_GYRO_INT2_FF_MASK))
+  {
+    if((Wake_Up_Src & LSM6DS3_ACC_GYRO_FF_EV_STATUS_MASK))
+    {
+      status->FreeFallStatus = 1;  
+    }
+  }
+
+  if((Md1_Cfg & LSM6DS3_ACC_GYRO_INT1_WU_MASK) || (Md2_Cfg & LSM6DS3_ACC_GYRO_INT2_WU_MASK))
+  {
+    if((Wake_Up_Src & LSM6DS3_ACC_GYRO_WU_EV_STATUS_MASK))
+    {
+      status->WakeUpStatus = 1;  
+    }
+  }
+
+  if((Md1_Cfg & LSM6DS3_ACC_GYRO_INT1_SINGLE_TAP_MASK) || (Md2_Cfg & LSM6DS3_ACC_GYRO_INT2_SINGLE_TAP_MASK))
+  {
+    if((Tap_Src & LSM6DS3_ACC_GYRO_SINGLE_TAP_EV_STATUS_MASK))
+    {
+      status->TapStatus = 1;  
+    }
+  }
+
+  if((Md1_Cfg & LSM6DS3_ACC_GYRO_INT1_TAP_MASK) || (Md2_Cfg & LSM6DS3_ACC_GYRO_INT2_TAP_MASK))
+  {
+    if((Tap_Src & LSM6DS3_ACC_GYRO_DOUBLE_TAP_EV_STATUS_MASK))
+    {
+      status->DoubleTapStatus = 1;  
+    }
+  }
+
+  if((Md1_Cfg & LSM6DS3_ACC_GYRO_INT1_6D_MASK) || (Md2_Cfg & LSM6DS3_ACC_GYRO_INT2_6D_MASK))
+  {
+    if((D6D_Src & LSM6DS3_ACC_GYRO_D6D_EV_STATUS_MASK))
+    {
+      status->D6DOrientationStatus = 1;  
+    }
+  }
+
+  if((Int1_Ctrl & LSM6DS3_ACC_GYRO_INT1_PEDO_MASK))
+  {
+    if((Func_Src & LSM6DS3_ACC_GYRO_PEDO_EV_STATUS_MASK))
+    {
+      status->StepStatus = 1;  
+    }
+  }
+
+  if((Md1_Cfg & LSM6DS3_ACC_GYRO_INT1_TILT_MASK) || (Md2_Cfg & LSM6DS3_ACC_GYRO_INT2_TILT_MASK))
+  {
+    if((Func_Src & LSM6DS3_ACC_GYRO_TILT_EV_STATUS_MASK))
+    {
+      status->TiltStatus = 1;  
+    }
+  }
+
+  return COMPONENT_OK;
+}
 
 
 /**

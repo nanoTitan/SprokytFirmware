@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    x_nucleo_iks01a2.h
   * @author  MEMS Application Team
-  * @version V3.0.0
-  * @date    12-August-2016
+  * @version V4.0.0
+  * @date    1-May-2017
   * @brief   This file contains definitions for the x_nucleo_iks01a2.c
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -86,6 +86,12 @@ extern "C" {
  * @{
  */
 
+#define IKS01A2_HTS221_WHO_AM_I        (uint8_t)0xBC
+#define IKS01A2_LPS22HB_WHO_AM_I       (uint8_t)0xB1
+#define IKS01A2_LSM6DSL_WHO_AM_I       (uint8_t)0x6A
+#define IKS01A2_LSM303AGR_ACC_WHO_AM_I (uint8_t)0x33
+#define IKS01A2_LSM303AGR_MAG_WHO_AM_I (uint8_t)0x40
+ 
 /* I2C clock speed configuration (in Hz) */
 #if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L1XX_NUCLEO)))
 #define NUCLEO_I2C_EXPBD_SPEED                         400000

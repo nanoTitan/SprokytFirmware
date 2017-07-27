@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32l0xx_hal_lptim_ex.h
   * @author  MCD Application Team
-  * @version V1.5.0
-  * @date    8-January-2016
+  * @version V1.8.0
+  * @date    25-November-2016
   * @brief   Header file of LPTIM Extended HAL module.
   ******************************************************************************
   * @attention
@@ -64,8 +64,8 @@
 /** @defgroup LPTIM_Trigger_Source Trigger source
   * @{
   */
-#define LPTIM_TRIGSOURCE_SOFTWARE               ((uint32_t)0x0000FFFF)
-#define LPTIM_TRIGSOURCE_0                      ((uint32_t)0x00000000)
+#define LPTIM_TRIGSOURCE_SOFTWARE               ((uint32_t)0x0000FFFFU)
+#define LPTIM_TRIGSOURCE_0                      ((uint32_t)0x00000000U)
 #define LPTIM_TRIGSOURCE_1                      ((uint32_t)LPTIM_CFGR_TRIGSEL_0)
 #define LPTIM_TRIGSOURCE_2                      LPTIM_CFGR_TRIGSEL_1
 #define LPTIM_TRIGSOURCE_3                      ((uint32_t)LPTIM_CFGR_TRIGSEL_0 | LPTIM_CFGR_TRIGSEL_1)

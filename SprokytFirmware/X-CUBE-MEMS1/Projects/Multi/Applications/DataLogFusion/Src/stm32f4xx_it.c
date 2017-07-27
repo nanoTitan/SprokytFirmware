@@ -1,22 +1,14 @@
 /**
-  *******************************************************************************
-  * @file    Projects/Multi/Applications/DataLogFusion/Src/stm32f4xx_it.c
-  * @author  CL
-  * @version V1.6.0
-  * @date    8-November-2016
-  * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all exceptions handler and
-  *          peripherals interrupt service routine.
-  *******************************************************************************
+  ******************************************************************************
+  * @file        stm32f4xx_it.c
+  * @author      MEMS Application Team
+  * @version     V2.0.0
+  * @date        01-May-2017
+  * @brief       Interrupt Service Routines
+  ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -40,31 +32,32 @@
   * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
-  * ******************************************************************************
+  ******************************************************************************
   */
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
-#include "main.h"
-#include "osx_motion_fx.h"
 
-/** @addtogroup OSX_MOTION_FX_Applications
+/** @addtogroup MOTION_FX_Applications
   * @{
   */
 
-/** @addtogroup DATALOGFUSION
+/** @addtogroup DATALOG_FUSION
+  * @{
+  */
+
+/** @addtogroup Interrupt_Handlers  Interrupt Handlers
   * @{
   */
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
-/* Extern variables ----------------------------------------------------------*/
-extern TIM_HandleTypeDef DataLogTimHandle;
-
 /* Private variables ---------------------------------------------------------*/
+/* Public variables ----------------------------------------------------------*/
+
 /* Private function prototypes -----------------------------------------------*/
-void TIMDataLog_IRQHandler(void);
+void TIM_FX_IRQHandler(void);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -73,29 +66,19 @@ void TIMDataLog_IRQHandler(void);
 /******************************************************************************/
 
 /**
- * @brief  This function handles TIMDataLog interrupt request
- * @param  None
- * @retval None
- */
-void TIMDataLog_IRQHandler(void)
-{
-  HAL_TIM_IRQHandler(&DataLogTimHandle);
-}
-
-/**
- * @brief  This function handles NMI exception
- * @param  None
- * @retval None
- */
+  * @brief  This function handles NMI exception
+  * @param  None
+  * @retval None
+  */
 void NMI_Handler(void)
 {
 }
 
 /**
- * @brief  This function handles Hard Fault exception
- * @param  None
- * @retval None
- */
+  * @brief  This function handles Hard Fault exception
+  * @param  None
+  * @retval None
+  */
 void HardFault_Handler(void)
 {
   /* Go to infinite loop when Hard Fault exception occurs */
@@ -105,19 +88,19 @@ void HardFault_Handler(void)
 }
 
 /**
- * @brief  This function handles Debug Monitor exception
- * @param  None
- * @retval None
- */
+  * @brief  This function handles Debug Monitor exception
+  * @param  None
+  * @retval None
+  */
 void DebugMon_Handler(void)
 {
 }
 
 /**
- * @brief  This function handles SysTick Handler
- * @param  None
- * @retval None
- */
+  * @brief  This function handles SysTick Handler
+  * @param  None
+  * @retval None
+  */
 void SysTick_Handler(void)
 {
   HAL_IncTick();
@@ -131,22 +114,37 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
- * @brief  This function handles External lines from 15 to 10 interrupt request
- * @param  None
- * @retval None
- */
-void EXTI15_10_IRQHandler( void )
+  * @brief This function handles TIM_FX global interrupt.
+  * @param  None
+  * @retval None
+  */
+void TIM_FX_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&FX_TimHandle);
+}
+
+
+/**
+  * @brief  This function handles External line 10-15 interrupt request.
+  * @param  None
+  * @retval None
+  */
+void EXTI15_10_IRQHandler(void)
 {
   HAL_GPIO_EXTI_IRQHandler(KEY_BUTTON_PIN);
 }
 
-/**
- * @}
- */
 
 /**
- * @}
- */
+  * @}
+  */
 
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

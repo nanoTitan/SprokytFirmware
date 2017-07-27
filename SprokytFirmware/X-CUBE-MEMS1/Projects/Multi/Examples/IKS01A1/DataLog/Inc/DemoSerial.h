@@ -2,13 +2,13 @@
   *******************************************************************************
   * @file    Projects/Multi/Examples/IKS01A1/DataLog/Inc/DemoSerial.h
   * @author  CL
-  * @version V3.0.0
-  * @date    12-August-2016
+  * @version V4.0.0
+  * @date    1-May-2017
   * @brief   header for DemoSerial.c.
   *******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -51,7 +51,7 @@
 #define I2C_DATA_MAX_LENGTH_BYTES       16
 
 
-#define STREAMING_MSG_LENGTH            51
+#define STREAMING_MSG_LENGTH            55
 
 int HandleMSG(TMsg *Msg);
 void BUILD_REPLY_HEADER(TMsg *Msg);

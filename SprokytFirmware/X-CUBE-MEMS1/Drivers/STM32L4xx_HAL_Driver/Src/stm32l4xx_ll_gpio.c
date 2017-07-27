@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32l4xx_ll_gpio.c
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    29-January-2016
+  * @version V1.7.0
+  * @date    17-February-2017
   * @brief   GPIO LL module driver.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -42,14 +42,14 @@
 #ifdef  USE_FULL_ASSERT
 #include "stm32_assert.h"
 #else
-#define assert_param(expr) ((void)0)
+#define assert_param(expr) ((void)0U)
 #endif
 
 /** @addtogroup STM32L4xx_LL_Driver
   * @{
   */
 
-#if defined (GPIOA) || defined (GPIOB) || defined (GPIOC) || defined (GPIOD) || defined (GPIOE) || defined (GPIOF) || defined (GPIOG) || defined (GPIOH)
+#if defined (GPIOA) || defined (GPIOB) || defined (GPIOC) || defined (GPIOD) || defined (GPIOE) || defined (GPIOF) || defined (GPIOG) || defined (GPIOH) || defined (GPIOI)
 
 /** @addtogroup GPIO_LL
   * @{
@@ -62,7 +62,7 @@
 /** @addtogroup GPIO_LL_Private_Macros
   * @{
   */
-#define IS_LL_GPIO_PIN(__VALUE__)          ((((uint32_t)0x00000000U) < (__VALUE__)) && ((__VALUE__) <= (LL_GPIO_PIN_ALL)))
+#define IS_LL_GPIO_PIN(__VALUE__)          (((0x00000000U) < (__VALUE__)) && ((__VALUE__) <= (LL_GPIO_PIN_ALL)))
 
 #define IS_LL_GPIO_MODE(__VALUE__)         (((__VALUE__) == LL_GPIO_MODE_INPUT)     ||\
                                             ((__VALUE__) == LL_GPIO_MODE_OUTPUT)    ||\
@@ -142,35 +142,48 @@ ErrorStatus LL_GPIO_DeInit(GPIO_TypeDef *GPIOx)
     LL_AHB2_GRP1_ForceReset(LL_AHB2_GRP1_PERIPH_GPIOC);
     LL_AHB2_GRP1_ReleaseReset(LL_AHB2_GRP1_PERIPH_GPIOC);
   }
+#if defined(GPIOD)
   else if (GPIOx == GPIOD)
   {
     LL_AHB2_GRP1_ForceReset(LL_AHB2_GRP1_PERIPH_GPIOD);
     LL_AHB2_GRP1_ReleaseReset(LL_AHB2_GRP1_PERIPH_GPIOD);
   }
+#endif /* GPIOD */
+#if defined(GPIOE)
   else if (GPIOx == GPIOE)
   {
     LL_AHB2_GRP1_ForceReset(LL_AHB2_GRP1_PERIPH_GPIOE);
     LL_AHB2_GRP1_ReleaseReset(LL_AHB2_GRP1_PERIPH_GPIOE);
   }
-#if defined (GPIOF)
+#endif /* GPIOE */
+#if defined(GPIOF)
   else if (GPIOx == GPIOF)
   {
     LL_AHB2_GRP1_ForceReset(LL_AHB2_GRP1_PERIPH_GPIOF);
     LL_AHB2_GRP1_ReleaseReset(LL_AHB2_GRP1_PERIPH_GPIOF);
   }
-#endif
-#if defined (GPIOG)
+#endif /* GPIOF */
+#if defined(GPIOG)
   else if (GPIOx == GPIOG)
   {
     LL_AHB2_GRP1_ForceReset(LL_AHB2_GRP1_PERIPH_GPIOG);
     LL_AHB2_GRP1_ReleaseReset(LL_AHB2_GRP1_PERIPH_GPIOG);
   }
-#endif
+#endif /* GPIOG */
+#if defined(GPIOH)
   else if (GPIOx == GPIOH)
   {
     LL_AHB2_GRP1_ForceReset(LL_AHB2_GRP1_PERIPH_GPIOH);
     LL_AHB2_GRP1_ReleaseReset(LL_AHB2_GRP1_PERIPH_GPIOH);
   }
+#endif /* GPIOH */
+#if defined(GPIOI)
+  else if (GPIOx == GPIOI)
+  {
+    LL_AHB2_GRP1_ForceReset(LL_AHB2_GRP1_PERIPH_GPIOI);
+    LL_AHB2_GRP1_ReleaseReset(LL_AHB2_GRP1_PERIPH_GPIOI);
+  }
+#endif /* GPIOI */
   else
   {
     status = ERROR;
@@ -287,7 +300,7 @@ void LL_GPIO_StructInit(LL_GPIO_InitTypeDef *GPIO_InitStruct)
   * @}
   */
 
-#endif /* defined (GPIOA) || defined (GPIOB) || defined (GPIOC) || defined (GPIOD) || defined (GPIOE) || defined (GPIOF) || defined (GPIOG) || defined (GPIOH) */
+#endif /* defined (GPIOA) || defined (GPIOB) || defined (GPIOC) || defined (GPIOD) || defined (GPIOE) || defined (GPIOF) || defined (GPIOG) || defined (GPIOH) || defined (GPIOI) */
 
 /**
   * @}
@@ -296,4 +309,3 @@ void LL_GPIO_StructInit(LL_GPIO_InitTypeDef *GPIO_InitStruct)
 #endif /* USE_FULL_LL_DRIVER */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-

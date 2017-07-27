@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    x_nucleo_iks01a2_accelero.c
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file provides a set of functions needed to manage the accelerometer sensor
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -148,6 +148,7 @@ static DrvStatusTypeDef BSP_LSM6DSL_ACCELERO_Init( void **handle )
 
   /* Setup sensor handle. */
   ACCELERO_SensorHandle[ LSM6DSL_X_0 ].who_am_i      = LSM6DSL_ACC_GYRO_WHO_AM_I;
+  ACCELERO_SensorHandle[ LSM6DSL_X_0 ].ifType        = 0; /* I2C interface */
   ACCELERO_SensorHandle[ LSM6DSL_X_0 ].address       = LSM6DSL_ACC_GYRO_I2C_ADDRESS_HIGH;
   ACCELERO_SensorHandle[ LSM6DSL_X_0 ].instance      = LSM6DSL_X_0;
   ACCELERO_SensorHandle[ LSM6DSL_X_0 ].isInitialized = 0;
@@ -203,6 +204,7 @@ static DrvStatusTypeDef BSP_LSM303AGR_ACCELERO_Init( void **handle )
 
   /* Setup sensor handle. */
   ACCELERO_SensorHandle[ LSM303AGR_X_0 ].who_am_i      = LSM303AGR_ACC_WHO_AM_I;
+  ACCELERO_SensorHandle[ LSM303AGR_X_0 ].ifType        = 0; /* I2C interface */
   ACCELERO_SensorHandle[ LSM303AGR_X_0 ].address       = LSM303AGR_ACC_I2C_ADDRESS;
   ACCELERO_SensorHandle[ LSM303AGR_X_0 ].instance      = LSM303AGR_X_0;
   ACCELERO_SensorHandle[ LSM303AGR_X_0 ].isInitialized = 0;
@@ -212,6 +214,7 @@ static DrvStatusTypeDef BSP_LSM303AGR_ACCELERO_Init( void **handle )
   ACCELERO_SensorHandle[ LSM303AGR_X_0 ].pVTable       = ( void * )&LSM303AGR_X_Drv;
   ACCELERO_SensorHandle[ LSM303AGR_X_0 ].pExtVTable    = 0;
 
+  LSM303AGR_X_0_Data.comboData = &LSM303AGR_Combo_Data[0];
   ACCELERO_Data[ LSM303AGR_X_0 ].pComponentData = ( void * )&LSM303AGR_X_0_Data;
   ACCELERO_Data[ LSM303AGR_X_0 ].pExtData       = 0;
 
@@ -1047,11 +1050,12 @@ DrvStatusTypeDef BSP_ACCELERO_Get_DRDY_Status( void *handle, uint8_t *status )
 /**
  * @brief Enable the free fall detection (available only for LSM6DSL sensor)
  * @param handle the device handle
+ * @param int_pin the interrupt pin to be used
  * @note  This function sets the LSM6DSL accelerometer ODR to 416Hz and the LSM6DSL accelerometer full scale to 2g
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-DrvStatusTypeDef BSP_ACCELERO_Enable_Free_Fall_Detection_Ext( void *handle )
+DrvStatusTypeDef BSP_ACCELERO_Enable_Free_Fall_Detection_Ext( void *handle, SensorIntPin_t int_pin )
 {
 
   DrvContextTypeDef *ctx = (DrvContextTypeDef *)handle;
@@ -1078,7 +1082,7 @@ DrvStatusTypeDef BSP_ACCELERO_Enable_Free_Fall_Detection_Ext( void *handle )
 
     else
     {
-      return extDriver->Enable_Free_Fall_Detection( ctx );
+      return extDriver->Enable_Free_Fall_Detection( ctx, int_pin );
     }
   }
 
@@ -1139,6 +1143,7 @@ DrvStatusTypeDef BSP_ACCELERO_Disable_Free_Fall_Detection_Ext( void *handle )
  * @brief Get the status of the free fall detection (available only for LSM6DSL sensor)
  * @param handle the device handle
  * @param status the pointer to the status of free fall detection: 0 means no detection, 1 means detection happened
+ * @note This function is deprecated and has been replaced by BSP_ACCELERO_Get_Event_Status_Ext
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -1327,6 +1332,7 @@ DrvStatusTypeDef BSP_ACCELERO_Disable_Pedometer_Ext( void *handle )
  * @brief Get the pedometer status (available only for LSM6DSL sensor)
  * @param handle the device handle
  * @param status the pointer to the pedometer status: 0 means no step detected, 1 means step detected
+ * @note This function is deprecated and has been replaced by BSP_ACCELERO_Get_Event_Status_Ext
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -1531,11 +1537,12 @@ DrvStatusTypeDef BSP_ACCELERO_Set_Pedometer_Threshold_Ext( void *handle, uint8_t
 /**
  * @brief Enable the tilt detection (available only for LSM6DSL sensor)
  * @param handle the device handle
+ * @param int_pin the interrupt pin to be used
  * @note  This function sets the LSM6DSL accelerometer ODR to 26Hz and the LSM6DSL accelerometer full scale to 2g
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-DrvStatusTypeDef BSP_ACCELERO_Enable_Tilt_Detection_Ext( void *handle )
+DrvStatusTypeDef BSP_ACCELERO_Enable_Tilt_Detection_Ext( void *handle, SensorIntPin_t int_pin )
 {
 
   DrvContextTypeDef *ctx = (DrvContextTypeDef *)handle;
@@ -1562,7 +1569,7 @@ DrvStatusTypeDef BSP_ACCELERO_Enable_Tilt_Detection_Ext( void *handle )
 
     else
     {
-      return extDriver->Enable_Tilt_Detection( ctx );
+      return extDriver->Enable_Tilt_Detection( ctx, int_pin );
     }
   }
 
@@ -1623,6 +1630,7 @@ DrvStatusTypeDef BSP_ACCELERO_Disable_Tilt_Detection_Ext( void *handle )
  * @brief Get the tilt detection status (available only for LSM6DSL sensor)
  * @param handle the device handle
  * @param status the pointer to the tilt detection status: 0 means no tilt detected, 1 means tilt detected
+ * @note This function is deprecated and has been replaced by BSP_ACCELERO_Get_Event_Status_Ext
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -1673,11 +1681,12 @@ DrvStatusTypeDef BSP_ACCELERO_Get_Tilt_Detection_Status_Ext( void *handle, uint8
 /**
  * @brief Enable the wake up detection (available only for LSM6DSL sensor)
  * @param handle the device handle
+ * @param int_pin the interrupt pin to be used
  * @note  This function sets the LSM6DSL accelerometer ODR to 416Hz and the LSM6DSL accelerometer full scale to 2g
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-DrvStatusTypeDef BSP_ACCELERO_Enable_Wake_Up_Detection_Ext( void *handle )
+DrvStatusTypeDef BSP_ACCELERO_Enable_Wake_Up_Detection_Ext( void *handle, SensorIntPin_t int_pin )
 {
 
   DrvContextTypeDef *ctx = (DrvContextTypeDef *)handle;
@@ -1704,7 +1713,7 @@ DrvStatusTypeDef BSP_ACCELERO_Enable_Wake_Up_Detection_Ext( void *handle )
 
     else
     {
-      return extDriver->Enable_Wake_Up_Detection( ctx );
+      return extDriver->Enable_Wake_Up_Detection( ctx, int_pin );
     }
   }
 
@@ -1765,6 +1774,7 @@ DrvStatusTypeDef BSP_ACCELERO_Disable_Wake_Up_Detection_Ext( void *handle )
  * @brief Get the status of the wake up detection (available only for LSM6DSL sensor)
  * @param handle the device handle
  * @param status the pointer to the status of the wake up detection: 0 means no detection, 1 means detection happened
+ * @note This function is deprecated and has been replaced by BSP_ACCELERO_Get_Event_Status_Ext
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -1861,11 +1871,12 @@ DrvStatusTypeDef BSP_ACCELERO_Set_Wake_Up_Threshold_Ext( void *handle, uint8_t t
 /**
  * @brief Enable the single tap detection (available only for LSM6DSL sensor)
  * @param handle the device handle
+ * @param int_pin the interrupt pin to be used
  * @note  This function sets the LSM6DSL accelerometer ODR to 416Hz and the LSM6DSL accelerometer full scale to 2g
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-DrvStatusTypeDef BSP_ACCELERO_Enable_Single_Tap_Detection_Ext( void *handle )
+DrvStatusTypeDef BSP_ACCELERO_Enable_Single_Tap_Detection_Ext( void *handle, SensorIntPin_t int_pin )
 {
 
   DrvContextTypeDef *ctx = (DrvContextTypeDef *)handle;
@@ -1892,7 +1903,7 @@ DrvStatusTypeDef BSP_ACCELERO_Enable_Single_Tap_Detection_Ext( void *handle )
 
     else
     {
-      return extDriver->Enable_Single_Tap_Detection( ctx );
+      return extDriver->Enable_Single_Tap_Detection( ctx, int_pin );
     }
   }
 
@@ -1953,6 +1964,7 @@ DrvStatusTypeDef BSP_ACCELERO_Disable_Single_Tap_Detection_Ext( void *handle )
  * @brief Get the single tap detection status (available only for LSM6DSL sensor)
  * @param handle the device handle
  * @param status the pointer to the single tap detection status: 0 means no single tap detected, 1 means single tap detected
+ * @note This function is deprecated and has been replaced by BSP_ACCELERO_Get_Event_Status_Ext
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -2003,11 +2015,12 @@ DrvStatusTypeDef BSP_ACCELERO_Get_Single_Tap_Detection_Status_Ext( void *handle,
 /**
  * @brief Enable the double tap detection (available only for LSM6DSL sensor)
  * @param handle the device handle
+ * @param int_pin the interrupt pin to be used
  * @note  This function sets the LSM6DSL accelerometer ODR to 416Hz and the LSM6DSL accelerometer full scale to 2g
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-DrvStatusTypeDef BSP_ACCELERO_Enable_Double_Tap_Detection_Ext( void *handle )
+DrvStatusTypeDef BSP_ACCELERO_Enable_Double_Tap_Detection_Ext( void *handle, SensorIntPin_t int_pin )
 {
 
   DrvContextTypeDef *ctx = (DrvContextTypeDef *)handle;
@@ -2034,7 +2047,7 @@ DrvStatusTypeDef BSP_ACCELERO_Enable_Double_Tap_Detection_Ext( void *handle )
 
     else
     {
-      return extDriver->Enable_Double_Tap_Detection( ctx );
+      return extDriver->Enable_Double_Tap_Detection( ctx, int_pin );
     }
   }
 
@@ -2095,6 +2108,7 @@ DrvStatusTypeDef BSP_ACCELERO_Disable_Double_Tap_Detection_Ext( void *handle )
  * @brief Get the double tap detection status (available only for LSM6DSL sensor)
  * @param handle the device handle
  * @param status the pointer to the double tap detection status: 0 means no double tap detected, 1 means double tap detected
+ * @note This function is deprecated and has been replaced by BSP_ACCELERO_Get_Event_Status_Ext
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -2329,11 +2343,12 @@ DrvStatusTypeDef BSP_ACCELERO_Set_Tap_Duration_Time_Ext( void *handle, uint8_t t
 /**
  * @brief Enable the 6D orientation detection (available only for LSM6DSL sensor)
  * @param handle the device handle
+ * @param int_pin the interrupt pin to be used
  * @note  This function sets the LSM6DSL accelerometer ODR to 416Hz and the LSM6DSL accelerometer full scale to 2g
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-DrvStatusTypeDef BSP_ACCELERO_Enable_6D_Orientation_Ext( void *handle )
+DrvStatusTypeDef BSP_ACCELERO_Enable_6D_Orientation_Ext( void *handle, SensorIntPin_t int_pin )
 {
 
   DrvContextTypeDef *ctx = (DrvContextTypeDef *)handle;
@@ -2360,7 +2375,7 @@ DrvStatusTypeDef BSP_ACCELERO_Enable_6D_Orientation_Ext( void *handle )
 
     else
     {
-      return extDriver->Enable_6D_Orientation( ctx );
+      return extDriver->Enable_6D_Orientation( ctx, int_pin );
     }
   }
 
@@ -2421,6 +2436,7 @@ DrvStatusTypeDef BSP_ACCELERO_Disable_6D_Orientation_Ext( void *handle )
  * @brief Get the status of the 6D orientation detection (available only for LSM6DSL sensor)
  * @param handle the device handle
  * @param status the pointer to the status of the 6D orientation detection: 0 means no detection, 1 means detection happened
+ * @note This function is deprecated and has been replaced by BSP_ACCELERO_Get_Event_Status_Ext
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
@@ -2763,6 +2779,56 @@ DrvStatusTypeDef BSP_ACCELERO_Get_6D_Orientation_ZH_Ext( void *handle, uint8_t *
     else
     {
       return extDriver->Get_6D_Orientation_ZH( ctx, zh );
+    }
+  }
+
+  else
+  {
+    return COMPONENT_ERROR;
+  }
+}
+
+
+/**
+ * @brief Get the status of all hardware events (available only for LSM6DSL sensor)
+ * @param handle the device handle
+ * @param status the pointer to the status of all hardware events
+ * @retval COMPONENT_OK in case of success
+ * @retval COMPONENT_ERROR in case of failure
+ */
+DrvStatusTypeDef BSP_ACCELERO_Get_Event_Status_Ext( void *handle, ACCELERO_Event_Status_t *status )
+{
+
+  DrvContextTypeDef *ctx = (DrvContextTypeDef *)handle;
+
+  if(ctx == NULL)
+  {
+    return COMPONENT_ERROR;
+  }
+
+  if ( ctx->pExtVTable == NULL )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  if ( status == NULL )
+  {
+    return COMPONENT_ERROR;
+  }
+
+  /* At the moment this feature is only implemented for LSM6DSL */
+  if ( ctx->who_am_i == LSM6DSL_ACC_GYRO_WHO_AM_I )
+  {
+    LSM6DSL_X_ExtDrv_t *extDriver = ( LSM6DSL_X_ExtDrv_t * )ctx->pExtVTable;
+
+    if ( extDriver->Get_Event_Status == NULL )
+    {
+      return COMPONENT_ERROR;
+    }
+
+    else
+    {
+      return extDriver->Get_Event_Status( ctx, status );
     }
   }
 

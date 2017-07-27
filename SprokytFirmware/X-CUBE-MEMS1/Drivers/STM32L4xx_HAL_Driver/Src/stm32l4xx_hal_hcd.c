@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32l4xx_hal_hcd.c
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    29-January-2016
+  * @version V1.7.0
+  * @date    17-February-2017
   * @brief   HCD HAL module driver.
   *          This file provides firmware functions to manage the following 
   *          functionalities of the USB Peripheral Controller:
@@ -42,7 +42,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -72,7 +72,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32l4xx_hal.h"
 
-#if defined(STM32L475xx) || defined(STM32L476xx) || defined(STM32L485xx) || defined(STM32L486xx)
+#if defined(STM32L475xx) || defined(STM32L476xx) || defined(STM32L485xx) || defined(STM32L486xx) || \
+    defined(STM32L496xx) || defined(STM32L4A6xx)
 
 /** @addtogroup STM32L4xx_HAL_Driver
   * @{
@@ -153,7 +154,7 @@ HAL_StatusTypeDef HAL_HCD_Init(HCD_HandleTypeDef *hhcd)
  USB_CoreInit(hhcd->Instance, hhcd->Init);
  
  /* Force Host Mode*/
- USB_SetCurrentMode(hhcd->Instance , USB_OTG_HOST_MODE);
+ USB_SetCurrentMode(hhcd->Instance , USB_HOST_MODE);
  
  /* Init Host */
  USB_HostInit(hhcd->Instance, hhcd->Init);
@@ -922,23 +923,25 @@ static void HCD_HC_IN_IRQHandler   (HCD_HandleTypeDef *hhcd, uint8_t chnum)
      __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_TXERR);
   }
   else if ((USBx_HC(chnum)->HCINT) &  USB_OTG_HCINT_NAK)
-  {  
+  { 
     if(hhcd->hc[chnum].ep_type == EP_TYPE_INTR)
     {
-      __HAL_HCD_UNMASK_HALT_HC_INT(chnum); 
-      USB_HC_Halt(hhcd->Instance, chnum);  
+      __HAL_HCD_UNMASK_HALT_HC_INT(chnum);
+      USB_HC_Halt(hhcd->Instance, chnum); 
     }
-    else if  ((hhcd->hc[chnum].ep_type == EP_TYPE_CTRL)||
-              (hhcd->hc[chnum].ep_type == EP_TYPE_BULK))
+   
+   /* Clear the NAK flag before re-enabling the channel for new IN request */
+    hhcd->hc[chnum].state = HC_NAK;
+    __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK);
+   
+    if  ((hhcd->hc[chnum].ep_type == EP_TYPE_CTRL)||
+         (hhcd->hc[chnum].ep_type == EP_TYPE_BULK))
     {
       /* re-activate the channel  */
-      tmpreg = USBx_HC(chnum)->HCCHAR;
-      tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
-      tmpreg |= USB_OTG_HCCHAR_CHENA;
-      USBx_HC(chnum)->HCCHAR = tmpreg;
+      USBx_HC(chnum)->HCCHAR &= ~USB_OTG_HCCHAR_CHDIS;        
+      USBx_HC(chnum)->HCCHAR |= USB_OTG_HCCHAR_CHENA;
+     
     }
-    hhcd->hc[chnum].state = HC_NAK;
-     __HAL_HCD_CLEAR_HC_INT(chnum, USB_OTG_HCINT_NAK);
   }
 }
 
@@ -1238,6 +1241,7 @@ static void HCD_Port_IRQHandler  (HCD_HandleTypeDef *hhcd)
   * @}
   */
 
-#endif /* STM32L475xx || STM32L476xx || STM32L485xx || STM32L486xx */
+#endif /* STM32L475xx || STM32L476xx || STM32L485xx || STM32L486xx || */
+       /* STM32L496xx || STM32L4A6xx */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

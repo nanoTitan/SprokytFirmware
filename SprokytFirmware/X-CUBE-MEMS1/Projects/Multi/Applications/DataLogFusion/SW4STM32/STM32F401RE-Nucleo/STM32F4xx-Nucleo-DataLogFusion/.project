@@ -76,7 +76,7 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>Middlewares/STM32_OSX_MotionFX_Library</name>
+			<name>Middlewares/STM32_MotionFX_Library</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -103,7 +103,7 @@
 		<link>
 			<name>Drivers/CMSIS/system_stm32f4xx.c</name>
 			<type>1</type>
-			<locationURI>$%7BPARENT-3-PROJECT_LOC%7D/Src/system_stm32f4xx.c</locationURI>
+			<locationURI>$%7BPARENT-7-PROJECT_LOC%7D/Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates/system_stm32f4xx.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/STM32F4xx_HAL_Driver/stm32f4xx_hal.c</name>
@@ -191,6 +191,11 @@
 			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/startup_stm32f401xe.s</locationURI>
 		</link>
 		<link>
+			<name>Example/User/DemoDatalog.c</name>
+			<type>1</type>
+			<locationURI>$%7BPARENT-3-PROJECT_LOC%7D/Src/DemoDatalog.c</locationURI>
+		</link>
+		<link>
 			<name>Example/User/DemoSerial.c</name>
 			<type>1</type>
 			<locationURI>$%7BPARENT-3-PROJECT_LOC%7D/Src/DemoSerial.c</locationURI>
@@ -236,9 +241,9 @@
 			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/syscalls.c</locationURI>
 		</link>
 		<link>
-			<name>Middlewares/STM32_OSX_MotionFX_Library/libosxMotionFX107_CM4_GCC_ot.a</name>
+			<name>Middlewares/STM32_MotionFX_Library/libMotionFX200_CM4F_GCC_ot.a</name>
 			<type>1</type>
-			<locationURI>$%7BPARENT-7-PROJECT_LOC%7D/Middlewares/ST/STM32_OSX_MotionFX_Library/Lib/libosxMotionFX107_CM4_GCC_ot.a</locationURI>
+			<locationURI>$%7BPARENT-7-PROJECT_LOC%7D/Middlewares/ST/STM32_MotionFX_Library/Lib/libMotionFX200_CM4F_GCC_ot.a</locationURI>
 		</link>
 		<link>
 			<name>Drivers/BSP/Components/HTS221_Driver.c</name>

@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    Projects/Multi/Examples/IKS01A1/LSM6DS3_FIFOMode/Src/main.c
  * @author  CL
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   Main program body
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -37,7 +37,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h> /* strlen */
-#include <stdio.h>  /* sprintf */
+#include <stdio.h>  /* snprintf */
 #include "main.h"
 
 /** @addtogroup X_NUCLEO_IKS01A1_Examples
@@ -77,13 +77,13 @@ typedef enum
 
 #define UART_TRANSMIT_TIMEOUT  5000
 
-
+#define MAX_BUF_SIZE 256
 
 /* Private variables ---------------------------------------------------------*/
 /* This variable MUST be volatile because it could change into a ISR */
 static volatile uint8_t memsIntDetected = 0;
 
-static char dataOut[256];
+static char dataOut[MAX_BUF_SIZE];
 static void *LSM6DS3_G_0_handle = NULL;
 
 /* This variable MUST be volatile because it could change into a ISR */
@@ -130,11 +130,7 @@ int main(void)
   BSP_LED_Init(LED2);
 
   /* Initialize button */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_EXTI);
-#elif (defined (USE_STM32L1XX_NUCLEO))
-  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
-#endif
 
   /* Initialize UART */
   USARTConfig();
@@ -155,7 +151,7 @@ int main(void)
     Error_Handler(__func__);
   }
 
-  sprintf(dataOut, "\r\n------ LSM6DS3 FIFO Mode DEMO ------\r\n\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\n------ LSM6DS3 FIFO Mode DEMO ------\r\n\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   while (1)
@@ -188,7 +184,7 @@ int main(void)
         if (samplesInFIFO != oldSamplesInFIFO)
         {
           oldSamplesInFIFO = samplesInFIFO;
-          sprintf(dataOut, ".");
+          snprintf(dataOut, MAX_BUF_SIZE, ".");
           HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
         }
 
@@ -331,7 +327,7 @@ static DrvStatusTypeDef LSM6DS3_FIFO_Set_Bypass_Mode(void)
     return COMPONENT_ERROR;
   }
 
-  sprintf(dataOut, "Press USER button to start the DEMO...\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "Press USER button to start the DEMO...\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   return COMPONENT_OK;
@@ -347,7 +343,7 @@ static DrvStatusTypeDef LSM6DS3_FIFO_Set_Bypass_Mode(void)
  */
 static DrvStatusTypeDef LSM6DS3_FIFO_Set_FIFO_Mode(void)
 {
-  sprintf(dataOut, "\r\nLSM6DS3 starts to store the data into FIFO...\r\n\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nLSM6DS3 starts to store the data into FIFO...\r\n\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   HAL_Delay(1000);
@@ -384,12 +380,12 @@ static DrvStatusTypeDef LSM6DS3_Read_All_FIFO_Data(void)
   so the 'samplesToRead' has to be divided by 3 */
   samplesToRead /= 3;
 
-  sprintf(dataOut, "\r\n\r\n%d samples in FIFO.\r\n\r\nStarted downloading data from FIFO...\r\n\r\n", samplesToRead);
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\n\r\n%d samples in FIFO.\r\n\r\nStarted downloading data from FIFO...\r\n\r\n", samplesToRead);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   HAL_Delay(1000);
 
-  sprintf(dataOut, "[DATA ##]     GYR_X     GYR_Y     GYR_Z\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "[DATA ##]     GYR_X     GYR_Y     GYR_Z\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   for (i = 0; i < samplesToRead; i++)
@@ -400,7 +396,7 @@ static DrvStatusTypeDef LSM6DS3_Read_All_FIFO_Data(void)
     }
   }
 
-  sprintf(dataOut, "\r\nFIFO download completed.\r\n\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nFIFO download completed.\r\n\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   return COMPONENT_OK;
@@ -456,7 +452,7 @@ static DrvStatusTypeDef LSM6DS3_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIn
     }
   }
 
-  sprintf(dataOut, "[DATA %02d]  %8ld  %8ld  %8ld\r\n", sampleIndex + 1, gyr_x, gyr_y, gyr_z);
+  snprintf(dataOut, MAX_BUF_SIZE, "[DATA %02d]  %8ld  %8ld  %8ld\r\n", sampleIndex + 1, gyr_x, gyr_y, gyr_z);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   return COMPONENT_OK;
@@ -472,19 +468,9 @@ static DrvStatusTypeDef LSM6DS3_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIn
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   /* User button pressed */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   if(GPIO_Pin == KEY_BUTTON_PIN)
-#elif (defined (USE_STM32L1XX_NUCLEO))
-  if(GPIO_Pin == USER_BUTTON_PIN)
-#endif
   {
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
     if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_RESET)
-#elif (defined (USE_STM32L1XX_NUCLEO))
-    if (BSP_PB_GetState(BUTTON_USER) == GPIO_PIN_RESET)
-#elif (defined (USE_STM32L0XX_NUCLEO))
-    if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_SET)
-#endif
     {
       /* Change this variable only if demoFifoStatus is STATUS_IDLE */
       if (demoFifoStatus == STATUS_IDLE)
@@ -516,7 +502,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  */
 void Error_Handler(const char *function_name)
 {
-  sprintf(dataOut, "\r\nError in '%s' function.\r\n", function_name);
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nError in '%s' function.\r\n", function_name);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   while (1)

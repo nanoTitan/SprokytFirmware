@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    x_nucleo_iks01a2_humidity.c
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file provides a set of functions needed to manage the humidity sensor
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -133,6 +133,7 @@ static DrvStatusTypeDef BSP_HTS221_HUMIDITY_Init( void **handle )
 
   /* Setup sensor handle. */
   HUMIDITY_SensorHandle[ HTS221_H_0 ].who_am_i      = HTS221_WHO_AM_I_VAL;
+  HUMIDITY_SensorHandle[ HTS221_H_0 ].ifType        = 0; /* I2C interface */
   HUMIDITY_SensorHandle[ HTS221_H_0 ].address       = HTS221_ADDRESS_DEFAULT;
   HUMIDITY_SensorHandle[ HTS221_H_0 ].instance      = HTS221_H_0;
   HUMIDITY_SensorHandle[ HTS221_H_0 ].isInitialized = 0;

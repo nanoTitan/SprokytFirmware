@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32l0xx_hal_pwr_ex.c
   * @author  MCD Application Team
-  * @version V1.5.0
-  * @date    8-January-2016
+  * @version V1.8.0
+  * @date    25-November-2016
   * @brief   Extended PWR HAL module driver.
   *          This file provides firmware functions to manage the following
   *          functionalities of the Power Controller (PWR) peripheral:
@@ -59,7 +59,7 @@
 /** @defgroup PWR_Extended_TimeOut_Value PWREx Flag Setting Time Out Value
   * @{
   */ 
-#define PWR_FLAG_SETTING_DELAY_US 50
+#define PWR_FLAG_SETTING_DELAY_US 50U
 /**
   * @}
   */
@@ -80,6 +80,16 @@
 @endverbatim
   * @{
   */
+
+/**
+  * @brief Return Voltage Scaling Range.   
+  * @retval VOS bit field (PWR_REGULATOR_VOLTAGE_SCALE1, PWR_REGULATOR_VOLTAGE_SCALE2 or PWR_REGULATOR_VOLTAGE_SCALE3)
+  */  
+uint32_t HAL_PWREx_GetVoltageRange(void)
+{
+  return  (PWR->CR & PWR_CR_VOS);
+}
+
 
 /**
   * @brief  Enables the Fast WakeUp from Ultra Low Power mode.
@@ -153,16 +163,16 @@ void HAL_PWREx_EnableLowPowerRunMode(void)
   */
 HAL_StatusTypeDef HAL_PWREx_DisableLowPowerRunMode(void)
 {
-  uint32_t wait_loop_index = 0;
+  uint32_t wait_loop_index = 0U;
   
   /* Exit the Low Power Run mode */
   CLEAR_BIT(PWR->CR, PWR_CR_LPRUN);
   CLEAR_BIT(PWR->CR, PWR_CR_LPSDSR);
   
   /* Wait until REGLPF is reset */
-  wait_loop_index = (PWR_FLAG_SETTING_DELAY_US * (SystemCoreClock / 1000000));
+  wait_loop_index = (PWR_FLAG_SETTING_DELAY_US * (SystemCoreClock / 1000000U));
 
-  while ((wait_loop_index != 0) && (HAL_IS_BIT_SET(PWR->CSR, PWR_CSR_REGLPF)))
+  while ((wait_loop_index != 0U) && (HAL_IS_BIT_SET(PWR->CSR, PWR_CSR_REGLPF)))
   {
     wait_loop_index--;
   }

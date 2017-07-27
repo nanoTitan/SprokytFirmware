@@ -91,15 +91,10 @@ extern uint8_t Sensor_IO_Read( void *handle, uint8_t ReadAddr, uint8_t *pBuffer,
 *******************************************************************************/
 LPS22HB_Error_et LPS22HB_ReadReg( void *handle, uint8_t RegAddr, uint16_t NumByteToRead, uint8_t *Data )
 {
-  int i = 0;
-
-  for (i = 0; i < NumByteToRead; i++ )
-  {
-    if( Sensor_IO_Read(handle, RegAddr + i, &Data[i], 1 ))
-      return LPS22HB_ERROR;
-  }
-  
-  return LPS22HB_OK;
+  if ( Sensor_IO_Read( handle, RegAddr, Data, NumByteToRead ) )
+    return LPS22HB_ERROR;
+  else
+    return LPS22HB_OK;
 }
 
 /*******************************************************************************
@@ -112,15 +107,10 @@ LPS22HB_Error_et LPS22HB_ReadReg( void *handle, uint8_t RegAddr, uint16_t NumByt
 *******************************************************************************/
 LPS22HB_Error_et LPS22HB_WriteReg( void *handle, uint8_t RegAddr, uint16_t NumByteToWrite, uint8_t *Data )
 {
-  int i = 0;
-
-  for (i = 0; i < NumByteToWrite; i++ )
-  {
-    if( Sensor_IO_Write(handle, RegAddr + i, &Data[i], 1 ))
-      return LPS22HB_ERROR;
-  }
-  
-  return LPS22HB_OK;
+  if ( Sensor_IO_Write( handle, RegAddr, Data, NumByteToWrite ) )
+    return LPS22HB_ERROR;
+  else
+    return LPS22HB_OK;
 }
 
 /**

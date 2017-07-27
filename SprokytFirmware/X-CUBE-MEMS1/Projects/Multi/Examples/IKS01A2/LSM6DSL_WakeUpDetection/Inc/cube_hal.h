@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    Projects/Multi/Examples/IKS01A2/LSM6DSL_WakeUpDetection/Inc/cube_hal.h
   * @author  CL
-  * @version V3.0.0
-  * @date    12-August-2016
+  * @version V4.0.0
+  * @date    1-May-2017
   * @brief   header for cube_hal_f4.c, cube_hal_l0.c, cube_hal_l1.c and cube_hal_l4.c
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:

@@ -2,14 +2,14 @@
  ******************************************************************************
  * @file    LSM303AGR_ACC_driver_HL.c
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file provides a set of high-level functions needed to manage
             the LSM303AGR accelerator sensor
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -133,6 +133,11 @@ ACCELERO_Drv_t LSM303AGR_X_Drv =
 };
 
 /**
+ * @brief LSM303AGR_ACC combo data structure definition
+ */
+LSM303AGR_Combo_Data_t LSM303AGR_Combo_Data[LSM303AGR_SENSORS_MAX_NUM];
+
+/**
  * @}
  */
 
@@ -152,6 +157,7 @@ static DrvStatusTypeDef LSM303AGR_X_Init( DrvContextTypeDef *handle )
   uint8_t axes_status[] = { 1, 1, 1 };
   ACCELERO_Data_t *pData = ( ACCELERO_Data_t * )handle->pData;
   LSM303AGR_X_Data_t *pComponentData = ( LSM303AGR_X_Data_t * )pData->pComponentData;
+  LSM303AGR_Combo_Data_t *comboData = pComponentData->comboData;
 
   if ( LSM303AGR_X_Check_WhoAmI( handle ) == COMPONENT_ERROR )
   {
@@ -191,6 +197,8 @@ static DrvStatusTypeDef LSM303AGR_X_Init( DrvContextTypeDef *handle )
     return COMPONENT_ERROR;
   }
 
+  comboData->isAccInitialized = 1;
+
   handle->isInitialized = 1;
 
   return COMPONENT_OK;
@@ -208,6 +216,7 @@ static DrvStatusTypeDef LSM303AGR_X_DeInit( DrvContextTypeDef *handle )
 
   ACCELERO_Data_t *pData = ( ACCELERO_Data_t * )handle->pData;
   LSM303AGR_X_Data_t *pComponentData = ( LSM303AGR_X_Data_t * )pData->pComponentData;
+  LSM303AGR_Combo_Data_t *comboData = pComponentData->comboData;
 
   if ( LSM303AGR_X_Check_WhoAmI( handle ) == COMPONENT_ERROR )
   {
@@ -222,6 +231,8 @@ static DrvStatusTypeDef LSM303AGR_X_DeInit( DrvContextTypeDef *handle )
 
   /* Reset output data rate. */
   pComponentData->Previous_ODR = 0.0f;
+
+  comboData->isAccInitialized = 0;
 
   handle->isInitialized = 0;
 

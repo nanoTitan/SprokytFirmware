@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32l4xx_hal_opamp.c
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    29-January-2016
+  * @version V1.7.0
+  * @date    17-February-2017
   * @brief   OPAMP HAL module driver.
   *          This file provides firmware functions to manage the following 
   *          functionalities of the operational amplifier(s) peripheral: 
@@ -20,8 +20,12 @@
           ##### OPAMP Peripheral Features #####
 ================================================================================
            
-  [..] The device integrates 2 operational amplifiers OPAMP1 & OPAMP2
+  [..] The device integrates 1 or 2 operational amplifiers OPAMP1 & OPAMP2
        
+       (#) The OPAMP(s) provide(s) several exclusive running modes.       
+       (++) 1 OPAMP: STM32L431xx STM32L432xx STM32L433xx STM32L442xx STM32L443xx
+       (++) 2 OPAMP: STM32L471xx STM32L475xx STM32L476xx STM32L485xx STM32L486xx
+
        (#) The OPAMP(s) provide(s) several exclusive running modes.
        (++) Standalone mode
        (++) Programmable Gain Amplifier (PGA) mode (Resistor feedback output)
@@ -176,7 +180,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -443,10 +447,10 @@ HAL_StatusTypeDef HAL_OPAMP_DeInit(OPAMP_HandleTypeDef *hopamp)
 
     /* Update the OPAMP state*/
     hopamp->State = HAL_OPAMP_STATE_RESET;   
+    
+    /* Process unlocked */
+    __HAL_UNLOCK(hopamp);
   }
-  
-  /* Process unlocked */
-  __HAL_UNLOCK(hopamp);
   
   return status;
 }

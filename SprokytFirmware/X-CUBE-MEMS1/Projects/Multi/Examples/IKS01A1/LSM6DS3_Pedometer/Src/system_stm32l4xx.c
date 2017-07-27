@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    system_stm32l4xx.c
   * @author  MCD Application Team
-  * @version V1.0.3
-  * @date    29-January-2016
+  * @version V1.3.0
+  * @date    17-February-2017
   * @brief   CMSIS Cortex-M4 Device Peripheral Access Layer System Source File
   *
   *   This file provides two functions and one global variable to be called from
@@ -68,7 +68,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -110,15 +110,15 @@
 #include "stm32l4xx.h"
 
 #if !defined  (HSE_VALUE)
-#define HSE_VALUE    ((uint32_t)8000000) /*!< Value of the External oscillator in Hz */
+  #define HSE_VALUE    ((uint32_t)8000000) /*!< Value of the External oscillator in Hz */
 #endif /* HSE_VALUE */
 
 #if !defined  (MSI_VALUE)
-#define MSI_VALUE    ((uint32_t)4000000) /*!< Value of the Internal oscillator in Hz*/
+  #define MSI_VALUE    ((uint32_t)4000000) /*!< Value of the Internal oscillator in Hz*/
 #endif /* MSI_VALUE */
 
 #if !defined  (HSI_VALUE)
-#define HSI_VALUE    ((uint32_t)16000000) /*!< Value of the Internal oscillator in Hz*/
+  #define HSI_VALUE    ((uint32_t)16000000) /*!< Value of the Internal oscillator in Hz*/
 #endif /* HSI_VALUE */
 
 /**
@@ -159,21 +159,20 @@
 /** @addtogroup STM32L4xx_System_Private_Variables
   * @{
   */
-/* The SystemCoreClock variable is updated in three ways:
-    1) by calling CMSIS function SystemCoreClockUpdate()
-    2) by calling HAL API function HAL_RCC_GetHCLKFreq()
-    3) each time HAL_RCC_ClockConfig() is called to configure the system clock frequency
-       Note: If you use this function to configure the system clock; then there
-             is no need to call the 2 first functions listed above, since SystemCoreClock
-             variable is updated automatically.
-*/
-uint32_t SystemCoreClock = 4000000;
+  /* The SystemCoreClock variable is updated in three ways:
+      1) by calling CMSIS function SystemCoreClockUpdate()
+      2) by calling HAL API function HAL_RCC_GetHCLKFreq()
+      3) each time HAL_RCC_ClockConfig() is called to configure the system clock frequency
+         Note: If you use this function to configure the system clock; then there
+               is no need to call the 2 first functions listed above, since SystemCoreClock
+               variable is updated automatically.
+  */
+  uint32_t SystemCoreClock = 4000000;
 
-const uint8_t  AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
-const uint8_t  APBPrescTable[8] =  {0, 0, 0, 0, 1, 2, 3, 4};
-const uint32_t MSIRangeTable[12] = {100000, 200000, 400000, 800000, 1000000, 2000000, \
-                                    4000000, 8000000, 16000000, 24000000, 32000000, 48000000
-                                   };
+  const uint8_t  AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+  const uint8_t  APBPrescTable[8] =  {0, 0, 0, 0, 1, 2, 3, 4};
+  const uint32_t MSIRangeTable[12] = {100000, 200000, 400000, 800000, 1000000, 2000000, \
+                                      4000000, 8000000, 16000000, 24000000, 32000000, 48000000};
 /**
   * @}
   */
@@ -199,9 +198,9 @@ const uint32_t MSIRangeTable[12] = {100000, 200000, 400000, 800000, 1000000, 200
 void SystemInit(void)
 {
   /* FPU settings ------------------------------------------------------------*/
-#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
-  SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2)); /* set CP10 and CP11 Full Access */
-#endif
+  #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
+    SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
+  #endif
   /* Reset the RCC clock configuration to the default reset state ------------*/
   /* Set MSION bit */
   RCC->CR |= RCC_CR_MSION;
@@ -277,13 +276,11 @@ void SystemCoreClockUpdate(void)
 
   /* Get MSI Range frequency--------------------------------------------------*/
   if((RCC->CR & RCC_CR_MSIRGSEL) == RESET)
-  {
-    /* MSISRANGE from RCC_CSR applies */
+  { /* MSISRANGE from RCC_CSR applies */
     msirange = (RCC->CSR & RCC_CSR_MSISRANGE) >> 8;
   }
   else
-  {
-    /* MSIRANGE from RCC_CR applies */
+  { /* MSIRANGE from RCC_CR applies */
     msirange = (RCC->CR & RCC_CR_MSIRANGE) >> 4;
   }
   /*MSI frequency range in HZ*/
@@ -327,7 +324,7 @@ void SystemCoreClockUpdate(void)
       }
       pllvco = pllvco * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> 8);
       pllr = (((RCC->PLLCFGR & RCC_PLLCFGR_PLLR) >> 25) + 1) * 2;
-      SystemCoreClock = pllvco / pllr;
+      SystemCoreClock = pllvco/pllr;
       break;
 
     default:

@@ -1,20 +1,14 @@
 /**
-  *******************************************************************************
-  * @file    Projects/Multi/Applications/DataLogFusion/Inc/DemoSerial.h
-  * @author  CL
-  * @version V1.6.0
-  * @date    8-November-2016
-  * @brief   header for DemoSerial.c.
-  *******************************************************************************
+  ******************************************************************************
+  * @file        DemoSerial.h
+  * @author      MEMS Application Team
+  * @version     V2.0.0
+  * @date        01-May-2017
+  * @brief       Header for DemoSerial.c module
+  ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -38,31 +32,59 @@
   * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
-  ********************************************************************************
+  ******************************************************************************
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __DEMO_SERIAL_H__
 #define __DEMO_SERIAL_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Includes ------------------------------------------------------------------*/
 #include "cube_hal.h"
 #include "serial_protocol.h"
 #include "Serial_CMD.h"
+#include "MotionFX_Manager.h"
 
-#define SENDER_UART                     0x01
-#define SENDER_USB                      0x02
-#define SENDER_SPI                      0x03
+/* Private defines -----------------------------------------------------------*/
+#define SENDER_UART  0x01
+#define SENDER_USB   0x02
+#define SENDER_SPI   0x03
 
-#define DEV_ADDR                        50
-#define I2C_DATA_MAX_LENGTH_BYTES       16
+#define DEV_ADDR                   ((uint8_t)50)
+#define I2C_DATA_MAX_LENGTH_BYTES            16
+#define STREAMING_MSG_LENGTH                 111
+#define MIN(A,B) ((A)<(B)?(A):(B))
 
+/* Exported variables --------------------------------------------------------*/
+extern uint8_t DataLoggerActive;
+extern uint32_t Sensors_Enabled;
+extern TIM_HandleTypeDef FX_TimHandle;
 
-#define STREAMING_MSG_LENGTH            51
+extern void *ACCELERO_handle;
+extern void *GYRO_handle;
+extern void *MAGNETO_handle;
+extern void *HUMIDITY_handle;
+extern void *TEMPERATURE_handle;
+extern void *PRESSURE_handle;
+extern UART_HandleTypeDef UartHandle;
 
+/* Exported functions ------------------------------------------------------- */
 int HandleMSG(TMsg *Msg);
+
+/* Private functions ------------------------------------------------------- */
 void BUILD_REPLY_HEADER(TMsg *Msg);
-void BUILD_NACK_HEADER(TMsg *Msg);
 void INIT_STREAMING_MSG(TMsg *Msg);
+void BUILD_NACK_HEADER(TMsg *Msg);
 void INIT_STREAMING_HEADER(TMsg *Msg);
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __DEMO_SERIAL_H__ */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

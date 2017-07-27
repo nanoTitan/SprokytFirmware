@@ -1,14 +1,14 @@
 /**
  ******************************************************************************
- * @file    main.c
+ * @file    Projects/Multi/Examples/IKS01A1/LSM6DS3_FreeFallDetection/Src/main.c
  * @author  CL
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   Main program body
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -58,7 +58,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
-static volatile uint8_t mems_int1_detected        = 0;
+static volatile uint8_t mems_event_detected        = 0;
 static volatile uint8_t free_fall_enable_request  = 1;
 static volatile uint8_t free_fall_disable_request = 0;
 
@@ -85,7 +85,7 @@ static void enableAllSensors( void );
 int main( void )
 {
 
-  uint8_t status = 0;
+  ACCELERO_Event_Status_t status;
 
   /* STM32F4xx HAL library initialization:
   - Configure the Flash prefetch, instruction and Data caches
@@ -102,13 +102,7 @@ int main( void )
   BSP_LED_Init( LED2 );
 
   /* Initialize button */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_EXTI);
-#endif
-
-#if (defined (USE_STM32L1XX_NUCLEO))
-  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
-#endif
 
   /* Initialize all sensors */
   initializeAllSensors();
@@ -118,23 +112,24 @@ int main( void )
   while (1)
   {
 
-    if ( mems_int1_detected != 0 )
+    if ( mems_event_detected != 0 )
     {
-      if ( BSP_ACCELERO_Get_Free_Fall_Detection_Status_Ext( LSM6DS3_X_0_handle, &status ) == COMPONENT_OK )
+      mems_event_detected = 0;
+
+      if ( BSP_ACCELERO_Get_Event_Status_Ext( LSM6DS3_X_0_handle, &status ) == COMPONENT_OK )
       {
-        if ( status != 0 )
+        if ( status.FreeFallStatus != 0 )
         {
           BSP_LED_On( LED2 );
           HAL_Delay( FF_INDICATION_DELAY );
           BSP_LED_Off( LED2 );
         }
       }
-      mems_int1_detected = 0;
     }
 
     if ( free_fall_enable_request != 0 )
     {
-      if ( BSP_ACCELERO_Enable_Free_Fall_Detection_Ext( LSM6DS3_X_0_handle ) == COMPONENT_OK )
+      if ( BSP_ACCELERO_Enable_Free_Fall_Detection_Ext( LSM6DS3_X_0_handle, INT1_PIN ) == COMPONENT_OK )
       {
         free_fall_enabled = 1;
         free_fall_enable_request = 0;
@@ -193,19 +188,9 @@ void HAL_GPIO_EXTI_Callback( uint16_t GPIO_Pin )
 {
 
   /* User button. */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   if(GPIO_Pin == KEY_BUTTON_PIN)
-#elif (defined (USE_STM32L1XX_NUCLEO))
-  if(GPIO_Pin == USER_BUTTON_PIN)
-#endif
   {
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
     if ( BSP_PB_GetState( BUTTON_KEY ) == GPIO_PIN_RESET )
-#elif (defined (USE_STM32L1XX_NUCLEO))
-    if ( BSP_PB_GetState( BUTTON_USER ) == GPIO_PIN_RESET )
-#elif (defined (USE_STM32L0XX_NUCLEO))
-    if ( BSP_PB_GetState( BUTTON_KEY ) == GPIO_PIN_SET )
-#endif
     {
       // Toggle enable/disable free-fall detection (available only for LSM6DS3 sensor).
       if ( free_fall_enabled != 0 )
@@ -222,7 +207,7 @@ void HAL_GPIO_EXTI_Callback( uint16_t GPIO_Pin )
   /* Free fall detection (available only for LSM6DS3 sensor). */
   else if ( GPIO_Pin == M_INT1_PIN )
   {
-    mems_int1_detected = 1;
+    mems_event_detected = 1;
   }
 }
 

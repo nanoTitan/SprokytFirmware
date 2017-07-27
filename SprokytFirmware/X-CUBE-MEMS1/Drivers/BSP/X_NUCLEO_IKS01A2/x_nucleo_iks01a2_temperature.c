@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    x_nucleo_iks01a2_temperature.c
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file provides a set of functions needed to manage the temperature sensor
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -147,6 +147,7 @@ static DrvStatusTypeDef BSP_HTS221_TEMPERATURE_Init( void **handle )
 
   /* Setup sensor handle. */
   TEMPERATURE_SensorHandle[ HTS221_T_0 ].who_am_i      = HTS221_WHO_AM_I_VAL;
+  TEMPERATURE_SensorHandle[ HTS221_T_0 ].ifType        = 0; /* I2C interface */
   TEMPERATURE_SensorHandle[ HTS221_T_0 ].address       = HTS221_ADDRESS_DEFAULT;
   TEMPERATURE_SensorHandle[ HTS221_T_0 ].instance      = HTS221_T_0;
   TEMPERATURE_SensorHandle[ HTS221_T_0 ].isInitialized = 0;
@@ -199,6 +200,7 @@ static DrvStatusTypeDef BSP_LPS22HB_TEMPERATURE_Init( void **handle )
 
   /* Setup sensor handle. */
   TEMPERATURE_SensorHandle[ LPS22HB_T_0 ].who_am_i      = LPS22HB_WHO_AM_I_VAL;
+  TEMPERATURE_SensorHandle[ LPS22HB_T_0 ].ifType        = 0; /* I2C interface */
   TEMPERATURE_SensorHandle[ LPS22HB_T_0 ].address       = LPS22HB_ADDRESS_HIGH;
   TEMPERATURE_SensorHandle[ LPS22HB_T_0 ].instance      = LPS22HB_T_0;
   TEMPERATURE_SensorHandle[ LPS22HB_T_0 ].isInitialized = 0;

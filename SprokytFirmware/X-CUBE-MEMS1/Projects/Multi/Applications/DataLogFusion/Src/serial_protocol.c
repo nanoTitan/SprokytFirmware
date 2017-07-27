@@ -1,20 +1,14 @@
 /**
-  *******************************************************************************
-  * @file    Projects/Multi/Applications/DataLogFusion/Src/serial_protocol.c
-  * @author  CL
-  * @version V1.6.0
-  * @date    8-November-2016
-  * @brief   This file implements some utilities for the serial protocol
-  *******************************************************************************
+  ******************************************************************************
+  * @file        serial_protocol.c
+  * @author      MEMS Application Team
+  * @version     V2.0.0
+  * @date        01-May-2017
+  * @brief       This file implements some utilities for the serial protocol
+  ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -38,18 +32,22 @@
   * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
-  * ******************************************************************************
+  ******************************************************************************
   */
-
 
 /* Standard include ----------------------------------------------------------*/
 #include "serial_protocol.h"
+#include <string.h>
 
-/** @addtogroup OSX_MOTION_FX_Applications
+/** @addtogroup MOTION_FX_Applications
   * @{
   */
 
-/** @addtogroup DATALOGFUSION
+/** @addtogroup DATALOG_FUSION
+  * @{
+  */
+
+/** @defgroup Serial_Protocol Serial_Protocol
   * @{
   */
 
@@ -61,11 +59,11 @@
 /* Private functions ---------------------------------------------------------*/
 
 /**
- * @brief  Byte stuffing process for one byte
- * @param  Dest destination
- * @param  Source source
- * @retval Total number of bytes processed
-*/
+  * @brief  Byte stuffing process for one byte
+  * @param  Dest destination
+  * @param  Source source
+  * @retval Total number of bytes processed
+  */
 int ByteStuffCopyByte(uint8_t *Dest, uint8_t Source)
 {
   switch(Source)
@@ -74,42 +72,47 @@ int ByteStuffCopyByte(uint8_t *Dest, uint8_t Source)
       Dest[0] = TMsg_BS;
       Dest[1] = TMsg_BS_EOF;
       return 2;
+
     case TMsg_BS:
       Dest[0] = TMsg_BS;
       Dest[1] = TMsg_BS;
       return 2;
+
     default:
       Dest[0] = Source;
       return 1;
   }
 }
 
+
 /**
- * @brief  Byte stuffing process for a Msg
- * @param  Dest destination
- * @param  Source source
- * @retval Total number of bytes processed
- */
+  * @brief  Byte stuffing process for a Msg
+  * @param  Dest destination
+  * @param  Source source
+  * @retval Total number of bytes processed
+  */
 int ByteStuffCopy(uint8_t *Dest, TMsg *Source)
 {
   int i, Count;
-  
+
   Count = 0;
   for (i = 0; i < Source->Len; i++)
   {
     Count += ByteStuffCopyByte(&Dest[Count], Source->Data[i]);
   }
+
   Dest[Count] = TMsg_EOF;
   Count++;
   return Count;
 }
 
+
 /**
- * @brief  Reverse Byte stuffing process for one byte
- * @param  Source source
- * @param  Dest destination
- * @retval Number of input bytes processed (1 or 2) or 0 for invalid sequence
- */
+  * @brief  Reverse Byte stuffing process for one byte
+  * @param  Source source
+  * @param  Dest destination
+  * @retval Number of input bytes processed (1 or 2) or 0 for invalid sequence
+  */
 int ReverseByteStuffCopyByte(uint8_t *Source, uint8_t *Dest)
 {
   if (Source[0] == TMsg_BS)
@@ -119,13 +122,16 @@ int ReverseByteStuffCopyByte(uint8_t *Source, uint8_t *Dest)
       *Dest = TMsg_BS;
       return 2;
     }
+
     if (Source[1] == TMsg_BS_EOF)
     {
       *Dest = TMsg_EOF;
       return 2;
     }
+
     return 0; // invalide sequence
   }
+
   else
   {
     *Dest = Source[0];
@@ -133,13 +139,14 @@ int ReverseByteStuffCopyByte(uint8_t *Source, uint8_t *Dest)
   }
 }
 
+
 /**
- * @brief  Reverse Byte stuffing process for two input data
- * @param  Source0 input data
- * @param  Source1 input data
- * @param  Dest the destination data
- * @retval Number of input bytes processed (1 or 2) or 0 for invalid sequence
- */
+  * @brief  Reverse Byte stuffing process for two input data
+  * @param  Source0 input data
+  * @param  Source1 input data
+  * @param  Dest the destination data
+  * @retval Number of input bytes processed (1 or 2) or 0 for invalid sequence
+  */
 int ReverseByteStuffCopyByte2(uint8_t Source0, uint8_t Source1, uint8_t *Dest)
 {
   if (Source0 == TMsg_BS)
@@ -149,13 +156,16 @@ int ReverseByteStuffCopyByte2(uint8_t Source0, uint8_t Source1, uint8_t *Dest)
       *Dest = TMsg_BS;
       return 2;
     }
+
     if (Source1 == TMsg_BS_EOF)
     {
       *Dest = TMsg_EOF;
       return 2;
     }
+
     return 0; // invalid sequence
   }
+
   else
   {
     *Dest = Source0;
@@ -163,16 +173,17 @@ int ReverseByteStuffCopyByte2(uint8_t Source0, uint8_t Source1, uint8_t *Dest)
   }
 }
 
+
 /**
- * @brief  Reverse Byte stuffing process for a Msg
- * @param  Dest destination
- * @param  Source source
- * @retval 1 if the operation succeeds, 0 if an error occurs
- */
+  * @brief  Reverse Byte stuffing process for a Msg
+  * @param  Dest destination
+  * @param  Source source
+  * @retval 1 if the operation succeeds, 0 if an error occurs
+  */
 int ReverseByteStuffCopy(TMsg *Dest, uint8_t *Source)
 {
   int Count = 0, State = 0;
-  
+
   while ((*Source) != TMsg_EOF)
   {
     if (State == 0)
@@ -181,12 +192,14 @@ int ReverseByteStuffCopy(TMsg *Dest, uint8_t *Source)
       {
         State = 1;
       }
+
       else
       {
         Dest->Data[Count] = *Source;
         Count++;
       }
     }
+
     else
     {
       if ((*Source) == TMsg_BS)
@@ -194,6 +207,7 @@ int ReverseByteStuffCopy(TMsg *Dest, uint8_t *Source)
         Dest->Data[Count] = TMsg_BS;
         Count++;
       }
+
       else
       {
         if ((*Source) == TMsg_BS_EOF)
@@ -201,63 +215,72 @@ int ReverseByteStuffCopy(TMsg *Dest, uint8_t *Source)
           Dest->Data[Count] = TMsg_EOF;
           Count++;
         }
+
         else
         {
           return 0; // invalid sequence
         }
       }
+
       State = 0;
     }
+
     Source++;
   }
+
   if (State != 0) return 0;
   Dest->Len = Count;
   return 1;
 }
 
+
 /**
- * @brief  Compute and add checksum
- * @param  Msg pointer to the message
- * @retval None
- */
+  * @brief  Compute and add checksum
+  * @param  Msg pointer to the message
+  * @retval None
+  */
 void CHK_ComputeAndAdd(TMsg *Msg)
 {
   uint8_t CHK = 0;
   int i;
-  
-  for(i = 0; i < Msg->Len; i++)
+
+  for (i = 0; i < Msg->Len; i++)
   {
     CHK -= Msg->Data[i];
   }
+
   Msg->Data[i] = CHK;
   Msg->Len++;
 }
 
+
 /**
- * @brief  Compute and remove checksum
- * @param  Msg pointer to the message
- * @retval A number different from 0 if the operation succeeds, 0 if an error occurs
- */
+  * @brief  Compute and remove checksum
+  * @param  Msg pointer to the message
+  * @retval A number different from 0 if the operation succeeds, 0 if an error occurs
+  */
 int CHK_CheckAndRemove(TMsg *Msg)
 {
   uint8_t CHK = 0;
   int i;
-  
-  for(i = 0; i < Msg->Len; i++)
+
+  for (i = 0; i < Msg->Len; i++)
   {
     CHK += Msg->Data[i];
   }
+
   Msg->Len--;
   return (CHK == 0);
 }
 
+
 /**
- * @brief  Build an array from the uint32_t (LSB first)
- * @param  Dest destination
- * @param  Source source
- * @param  Len number of bytes
- * @retval None
- */
+  * @brief  Build an array from the uint32_t (LSB first)
+  * @param  Dest destination
+  * @param  Source source
+  * @param  Len number of bytes
+  * @retval None
+  */
 void Serialize(uint8_t *Dest, uint32_t Source, uint32_t Len)
 {
   int i;
@@ -268,12 +291,13 @@ void Serialize(uint8_t *Dest, uint32_t Source, uint32_t Len)
   }
 }
 
+
 /**
- * @brief  Unbuild a Number from an array (LSB first)
- * @param  Source source
- * @param  Len number of bytes
- * @retval Rebuild unsigned int variable
- */
+  * @brief  Unbuild a Number from an array (LSB first)
+  * @param  Source source
+  * @param  Len number of bytes
+  * @retval Rebuild unsigned int variable
+  */
 uint32_t Deserialize(uint8_t *Source, uint32_t Len)
 {
   uint32_t app;
@@ -283,16 +307,18 @@ uint32_t Deserialize(uint8_t *Source, uint32_t Len)
     app <<= 8;
     app += Source[--Len];
   }
+
   return app;
 }
 
+
 /**
- * @brief  Build an array from the uint32_t (LSB first)
- * @param  Dest destination
- * @param  Source source
- * @param  Len number of bytes
- * @retval None
- */
+  * @brief  Build an array from the uint32_t (LSB first)
+  * @param  Dest destination
+  * @param  Source source
+  * @param  Len number of bytes
+  * @retval None
+  */
 void Serialize_s32(uint8_t *Dest, int32_t Source, uint32_t Len)
 {
   int i;
@@ -303,12 +329,13 @@ void Serialize_s32(uint8_t *Dest, int32_t Source, uint32_t Len)
   }
 }
 
+
 /**
- * @brief  Unbuild a Number from an array (LSB first)
- * @param  Source source
- * @param  Len number of bytes
- * @retval Rebuild signed int variable
- */
+  * @brief  Unbuild a Number from an array (LSB first)
+  * @param  Source source
+  * @param  Len number of bytes
+  * @retval Rebuild signed int variable
+  */
 int32_t Deserialize_s32(uint8_t *Source, uint32_t Len)
 {
   int32_t app;
@@ -318,9 +345,27 @@ int32_t Deserialize_s32(uint8_t *Source, uint32_t Len)
     app <<= 8;
     app += Source[--Len];
   }
+
   return app;
 }
 
+
+/**
+  * @brief  Build an array from the float
+  * @param  dest destination
+  * @param  data source
+  * @retval None
+  */
+void FloatToArray(uint8_t *dest, float data)
+{
+  memcpy(dest, (void *)&data, 4);
+}
+
+
+/**
+  * @}
+  */
+
 /**
   * @}
   */
@@ -329,4 +374,4 @@ int32_t Deserialize_s32(uint8_t *Source, uint32_t Len)
   * @}
   */
 
-/******************* (C) COPYRIGHT 2007 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

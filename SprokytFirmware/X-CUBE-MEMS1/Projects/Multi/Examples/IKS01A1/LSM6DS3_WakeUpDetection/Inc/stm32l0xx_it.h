@@ -2,13 +2,13 @@
   *******************************************************************************
   * @file    Projects/Multi/Examples/IKS01A1/LSM6DS3_WakeUpDetection/Inc/stm32l0xx_it.h
   * @author  CL
-  * @version V3.0.0
-  * @date    12-August-2016
+  * @version V4.0.0
+  * @date    1-May-2017
   * @brief   header for stm32l0xx_it.c.
   *******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -53,6 +53,7 @@ void NMI_Handler(void);
 void HardFault_Handler(void);
 void DebugMon_Handler(void);
 void SysTick_Handler(void);
+void EXTI0_1_IRQHandler(void);
 void EXTI4_15_IRQHandler(void);
 
 #ifdef __cplusplus

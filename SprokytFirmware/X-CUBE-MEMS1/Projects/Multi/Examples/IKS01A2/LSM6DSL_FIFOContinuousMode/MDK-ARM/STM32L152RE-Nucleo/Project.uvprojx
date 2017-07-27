@@ -15,7 +15,7 @@
         <TargetCommonOption>
           <Device>STM32L152RE</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32L1xx_DFP.1.0.2</PackID>
+          <PackID>Keil.STM32L1xx_DFP.1.2.0</PackID>
           <PackURL>http://www.keil.com/pack/</PackURL>
           <Cpu>IROM(0x08000000,0x80000) IRAM(0x20000000,0x14000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -328,11 +328,14 @@
             <v6LangP>0</v6LangP>
             <vShortEn>0</vShortEn>
             <vShortWch>0</vShortWch>
+            <v6Lto>0</v6Lto>
+            <v6WtE>0</v6WtE>
+            <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls>--C99</MiscControls>
               <Define>STM32L152xE USE_STM32L1XX_NUCLEO USE_HAL_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Inc;..\..\..\..\..\..\..\Drivers\CMSIS\Device\ST\STM32L1xx\Include;..\..\..\..\..\..\..\Drivers\STM32L1xx_HAL_Driver\Inc;..\..\..\..\..\..\..\Drivers\BSP\STM32L1xx_Nucleo;..\..\..\..\..\..\..\Drivers\BSP\X_NUCLEO_IKS01A2;..\..\..\..\..\..\..\Drivers\BSP\Components\Common;..\..\..\..\..\..\..\Drivers\BSP\Components\lsm6dsl</IncludePath>
+              <IncludePath>..\..\Inc;..\..\..\..\..\..\..\Drivers\CMSIS\Include;..\..\..\..\..\..\..\Drivers\CMSIS\Device\ST\STM32L1xx\Include;..\..\..\..\..\..\..\Drivers\STM32L1xx_HAL_Driver\Inc;..\..\..\..\..\..\..\Drivers\BSP\STM32L1xx_Nucleo;..\..\..\..\..\..\..\Drivers\BSP\X_NUCLEO_IKS01A2;..\..\..\..\..\..\..\Drivers\BSP\Components\Common;..\..\..\..\..\..\..\Drivers\BSP\Components\lsm6dsl</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -345,6 +348,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
+            <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -557,24 +561,8 @@
             </File>
           </Files>
         </Group>
-        <Group>
-          <GroupName>::CMSIS</GroupName>
-        </Group>
       </Groups>
     </Target>
   </Targets>
-
-  <RTE>
-    <apis/>
-    <components>
-      <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="4.1.0" condition="CMSIS Core">
-        <package name="CMSIS" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="ARM" version="4.3.0"/>
-        <targetInfos>
-          <targetInfo name="STM32L1xx_Nucleo"/>
-        </targetInfos>
-      </component>
-    </components>
-    <files/>
-  </RTE>
 
 </Project>

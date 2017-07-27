@@ -2,14 +2,14 @@
  *******************************************************************************
  * @file    LSM303AGR_MAG_driver_HL.c
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file provides a set of high-level functions needed to manage
             the LSM303AGR sensor
  *******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -121,6 +121,11 @@ MAGNETO_Drv_t LSM303AGR_M_Drv =
 };
 
 /**
+ * @brief LSM303AGR_MAG combo data structure definition
+ */
+extern LSM303AGR_Combo_Data_t LSM303AGR_Combo_Data[LSM303AGR_SENSORS_MAX_NUM];
+
+/**
  * @}
  */
 
@@ -136,6 +141,9 @@ MAGNETO_Drv_t LSM303AGR_M_Drv =
  */
 static DrvStatusTypeDef LSM303AGR_M_Init( DrvContextTypeDef *handle )
 {
+  MAGNETO_Data_t *pData = ( MAGNETO_Data_t * )handle->pData;
+  LSM303AGR_M_Data_t *pComponentData = ( LSM303AGR_M_Data_t * )pData->pComponentData;
+  LSM303AGR_Combo_Data_t *comboData = pComponentData->comboData;
 
   if ( LSM303AGR_M_Check_WhoAmI( handle ) == COMPONENT_ERROR )
   {
@@ -169,6 +177,8 @@ static DrvStatusTypeDef LSM303AGR_M_Init( DrvContextTypeDef *handle )
     return COMPONENT_ERROR;
   }
 
+  comboData->isMagInitialized = 1;
+
   handle->isInitialized = 1;
 
   return COMPONENT_OK;
@@ -183,6 +193,9 @@ static DrvStatusTypeDef LSM303AGR_M_Init( DrvContextTypeDef *handle )
  */
 static DrvStatusTypeDef LSM303AGR_M_DeInit( DrvContextTypeDef *handle )
 {
+  MAGNETO_Data_t *pData = ( MAGNETO_Data_t * )handle->pData;
+  LSM303AGR_M_Data_t *pComponentData = ( LSM303AGR_M_Data_t * )pData->pComponentData;
+  LSM303AGR_Combo_Data_t *comboData = pComponentData->comboData;
 
   if ( LSM303AGR_M_Check_WhoAmI( handle ) == COMPONENT_ERROR )
   {
@@ -194,6 +207,8 @@ static DrvStatusTypeDef LSM303AGR_M_DeInit( DrvContextTypeDef *handle )
   {
     return COMPONENT_ERROR;
   }
+
+  comboData->isMagInitialized = 0;
 
   handle->isInitialized = 0;
 
@@ -376,7 +391,7 @@ static DrvStatusTypeDef LSM303AGR_M_Get_AxesRaw( DrvContextTypeDef *handle, Sens
  */
 static DrvStatusTypeDef LSM303AGR_M_Get_Sensitivity( DrvContextTypeDef *handle, float *sensitivity )
 {
-  *sensitivity = 1.5f;
+  *sensitivity = ( float )LSM303AGR_MAG_SENSITIVITY_FOR_FS_50G;
 
   return COMPONENT_OK;
 }

@@ -94,8 +94,6 @@ extern uint8_t Sensor_IO_Read( void *handle, uint8_t ReadAddr, uint8_t *pBuffer,
 HTS221_Error_et HTS221_ReadReg( void *handle, uint8_t RegAddr, uint16_t NumByteToRead, uint8_t *Data )
 {
 
-  if ( NumByteToRead > 1 ) RegAddr |= 0x80;
-
   if ( Sensor_IO_Read( handle, RegAddr, Data, NumByteToRead ) )
     return HTS221_ERROR;
   else
@@ -112,8 +110,6 @@ HTS221_Error_et HTS221_ReadReg( void *handle, uint8_t RegAddr, uint16_t NumByteT
 *******************************************************************************/
 HTS221_Error_et HTS221_WriteReg( void *handle, uint8_t RegAddr, uint16_t NumByteToWrite, uint8_t *Data )
 {
-
-  if ( NumByteToWrite > 1 ) RegAddr |= 0x80;
 
   if ( Sensor_IO_Write( handle, RegAddr, Data, NumByteToWrite ) )
     return HTS221_ERROR;

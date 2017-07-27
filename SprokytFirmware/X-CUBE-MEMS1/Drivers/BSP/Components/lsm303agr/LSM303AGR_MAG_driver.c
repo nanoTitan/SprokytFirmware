@@ -66,8 +66,6 @@ extern uint8_t Sensor_IO_Read(void *handle, uint8_t ReadAddr, uint8_t *pBuffer, 
 status_t LSM303AGR_MAG_WriteReg(void *handle, u8_t Reg, u8_t *Bufp, u16_t len)
 {
 
-  if ( len > 1 ) Reg |= 0x80;
-
   if (Sensor_IO_Write(handle, Reg, Bufp, len))
   {
     return MEMS_ERROR;
@@ -89,8 +87,6 @@ status_t LSM303AGR_MAG_WriteReg(void *handle, u8_t Reg, u8_t *Bufp, u16_t len)
 *******************************************************************************/
 status_t LSM303AGR_MAG_ReadReg(void *handle, u8_t Reg, u8_t *Bufp, u16_t len)
 {
-
-  if ( len > 1 ) Reg |= 0x80;
 
   if (Sensor_IO_Read(handle, Reg, Bufp, len))
   {
@@ -211,21 +207,8 @@ status_t LSM303AGR_MAG_R_MD(void *handle, LSM303AGR_MAG_MD_t *value)
 *******************************************************************************/
 status_t LSM303AGR_MAG_Get_Raw_Magnetic(void *handle, u8_t *buff)
 {
-  u8_t i, j, k;
-  u8_t numberOfByteForDimension;
-
-  numberOfByteForDimension = 6 / 3;
-
-  k = 0;
-  for (i = 0; i < 3; i++ )
-  {
-    for (j = 0; j < numberOfByteForDimension; j++ )
-    {
-      if( !LSM303AGR_MAG_ReadReg(handle, LSM303AGR_MAG_OUTX_L_REG + k, &buff[k], 1))
-        return MEMS_ERROR;
-      k++;
-    }
-  }
+  if( !LSM303AGR_MAG_ReadReg( handle, LSM303AGR_MAG_OUTX_L_REG, buff, 6 ) )
+    return MEMS_ERROR;
 
   return MEMS_SUCCESS;
 }

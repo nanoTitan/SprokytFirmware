@@ -85,8 +85,6 @@ extern uint8_t Sensor_IO_Read( void *handle, uint8_t ReadAddr, uint8_t *pBuffer,
 LPS25HB_Error_et LPS25HB_ReadReg( void *handle, uint8_t RegAddr, uint16_t NumByteToRead, uint8_t *Data )
 {
 
-  if ( NumByteToRead > 1 ) RegAddr |= 0x80;
-
   if ( Sensor_IO_Read( handle, RegAddr, Data, NumByteToRead ) )
     return LPS25HB_ERROR;
   else
@@ -103,8 +101,6 @@ LPS25HB_Error_et LPS25HB_ReadReg( void *handle, uint8_t RegAddr, uint16_t NumByt
 *******************************************************************************/
 LPS25HB_Error_et LPS25HB_WriteReg( void *handle, uint8_t RegAddr, uint16_t NumByteToWrite, uint8_t *Data )
 {
-
-  if ( NumByteToWrite > 1 ) RegAddr |= 0x80;
 
   if ( Sensor_IO_Write( handle, RegAddr, Data, NumByteToWrite ) )
     return LPS25HB_ERROR;

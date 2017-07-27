@@ -1,20 +1,14 @@
 /**
-  *******************************************************************************
-  * @file    Projects/Multi/Applications/DataLogFusion/Src/stm32f4xx_hal_msp.c
-  * @author  CL
-  * @version V1.6.0
-  * @date    8-November-2016
-  * @brief   HAL MSP module.
-  *******************************************************************************
+  ******************************************************************************
+  * @file        stm32f4xx_hal_msp.c
+  * @author      MEMS Application Team
+  * @version     V2.0.0
+  * @date        01-May-2017
+  * @brief       HAL MSP module
+  ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -38,21 +32,21 @@
   * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
-  * ******************************************************************************
+  ******************************************************************************
   */
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-/** @addtogroup OSX_MOTION_FX_Applications
+/** @addtogroup MOTION_FX_Applications
   * @{
   */
 
-/** @addtogroup DATALOGFUSION
+/** @addtogroup DATALOG_FUSION
   * @{
   */
 
-int use_LSI = 0;
+extern int use_LSI;
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -60,6 +54,7 @@ int use_LSI = 0;
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
+
 /**
   * @brief RTC MSP Initialization
   *        This function configures the hardware resources used in this example
@@ -76,7 +71,7 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
 {
   RCC_OscInitTypeDef        RCC_OscInitStruct;
   RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
-  
+
   /*##-1- Configue LSE as RTC clock soucre ###################################*/
   if(use_LSI == 0)
   {
@@ -89,7 +84,7 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
       /* Initialization Error */
       Error_Handler();
     }
-  
+
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
     PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
     if(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
@@ -97,7 +92,8 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
       /* Initialization Error */
       Error_Handler();
     }
-  } else
+  }
+  else
   {
     RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
@@ -108,7 +104,7 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
       /* Initialization Error */
       Error_Handler();
     }
-  
+
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
     PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
     if(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
@@ -117,11 +113,11 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
       Error_Handler();
     }
   }
-  
+
   /*##-2- Enable RTC peripheral Clocks #######################################*/
   /* Enable RTC Clock */
   __HAL_RCC_RTC_ENABLE();
-  
+
   /*##-3- Configure the NVIC for RTC TimeStamp ###################################*/
   HAL_NVIC_SetPriority(TAMP_STAMP_IRQn, 0x0F, 0);
   HAL_NVIC_EnableIRQ(TAMP_STAMP_IRQn);
@@ -138,11 +134,10 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef *hrtc)
 {
   /*##-1- Reset peripherals ##################################################*/
   __HAL_RCC_RTC_DISABLE();
-  
+
   /*##-2- Disable the NVIC for TimeStamp #####################################*/
   HAL_NVIC_DisableIRQ(TAMP_STAMP_IRQn);
 }
-
 
 /**
   * @brief TIM MSP Initialization
@@ -152,21 +147,17 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef *hrtc)
   * @param htim: TIM handle pointer
   * @retval None
   */
-void HAL_TIM_OC_MspInit(TIM_HandleTypeDef *htim)
+void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
 {
-  /*##-1- Enable peripherals and GPIO Clocks #################################*/
-  /* TIMx Peripheral clock enable */
-  TIMDataLog_CLK_ENABLE();
-  
-  /*##-2- Configure the NVIC for TIMx #########################################*/
-  /* Set the TIMx priority */
-  HAL_NVIC_SetPriority(TIMDataLog_IRQn, 10, 0);
-  
-  /* Enable the TIMx global Interrupt */
-  HAL_NVIC_EnableIRQ(TIMDataLog_IRQn);
+  if(htim_base->Instance == TIM_FX)
+  {
+    /* Peripheral clock enable */
+    TIM_FX_CLK_ENABLE();
+    /* System interrupt init*/
+    HAL_NVIC_SetPriority(TIM_FX_IRQn, 0x0F, 0);
+    HAL_NVIC_EnableIRQ(TIM_FX_IRQn);
+  }
 }
-
-
 
 /**
   * @brief TIM MSP DeInitialization
@@ -176,15 +167,49 @@ void HAL_TIM_OC_MspInit(TIM_HandleTypeDef *htim)
   * @param htim: TIM handle pointer
   * @retval None
   */
-void HAL_TIM_OC_MspDeInit(TIM_HandleTypeDef *htim)
+void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
 {
-  /*##-1- Enable peripherals and GPIO Clocks #################################*/
-  /* TIMx Peripheral clock disable */
-  TIMDataLog_CLK_DISABLE();
-  
-  /* Disable the TIMx global Interrupt */
-  HAL_NVIC_DisableIRQ(TIMDataLog_IRQn);
+  if(htim_base->Instance == TIM_FX)
+  {
+    /* Peripheral clock disable */
+    TIM_FX_CLK_DISABLE();
+    /* Peripheral interrupt DeInit*/
+     HAL_NVIC_DisableIRQ(TIM_FX_IRQn);
+  }
 }
+
+/**
+  * @brief CRC MSP Initialization
+  *        This function configures the hardware resources used in this example:
+  *           - Peripheral's clock enable
+  * @param hcrc: CRC handle pointer
+  * @retval None
+  */
+void HAL_CRC_MspInit(CRC_HandleTypeDef *hcrc)
+{
+  if (hcrc->Instance == CRC)
+  {
+    /* Peripheral clock enable */
+    __HAL_RCC_CRC_CLK_ENABLE();
+  }
+}
+
+/**
+  * @brief CRC MSP DeInitialization
+  *        This function configures the hardware resources used in this example:
+  *           - Peripheral's clock disable
+  * @param hcrc: CRC handle pointer
+  * @retval None
+  */
+void HAL_CRC_MspDeInit(CRC_HandleTypeDef *hcrc)
+{
+  if (hcrc->Instance == CRC)
+  {
+    /* Peripheral clock disable */
+    __HAL_RCC_CRC_CLK_DISABLE();
+  }
+}
+
 
 /**
   * @}

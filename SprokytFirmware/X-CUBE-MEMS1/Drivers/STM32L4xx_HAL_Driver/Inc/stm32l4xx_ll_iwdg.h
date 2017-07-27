@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32l4xx_ll_iwdg.h
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    29-January-2016
+  * @version V1.7.0
+  * @date    17-February-2017
   * @brief   Header file of IWDG LL module.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -64,10 +64,10 @@ extern "C" {
   * @{
   */
 
-#define LL_IWDG_KEY_RELOAD                 ((uint32_t)0x0000AAAAU)               /*!< IWDG Reload Counter Enable   */
-#define LL_IWDG_KEY_ENABLE                 ((uint32_t)0x0000CCCCU)               /*!< IWDG Peripheral Enable       */
-#define LL_IWDG_KEY_WR_ACCESS_ENABLE       ((uint32_t)0x00005555U)               /*!< IWDG KR Write Access Enable  */
-#define LL_IWDG_KEY_WR_ACCESS_DISABLE      ((uint32_t)0x00000000U)               /*!< IWDG KR Write Access Disable */
+#define LL_IWDG_KEY_RELOAD                 0x0000AAAAU               /*!< IWDG Reload Counter Enable   */
+#define LL_IWDG_KEY_ENABLE                 0x0000CCCCU               /*!< IWDG Peripheral Enable       */
+#define LL_IWDG_KEY_WR_ACCESS_ENABLE       0x00005555U               /*!< IWDG KR Write Access Enable  */
+#define LL_IWDG_KEY_WR_ACCESS_DISABLE      0x00000000U               /*!< IWDG KR Write Access Disable */
 
 /**
   * @}
@@ -96,7 +96,7 @@ extern "C" {
 /** @defgroup IWDG_LL_EC_PRESCALER  Prescaler Divider
   * @{
   */
-#define LL_IWDG_PRESCALER_4                ((uint32_t)0x00000000U)               /*!< Divider by 4   */
+#define LL_IWDG_PRESCALER_4                0x00000000U                           /*!< Divider by 4   */
 #define LL_IWDG_PRESCALER_8                (IWDG_PR_PR_0)                        /*!< Divider by 8   */
 #define LL_IWDG_PRESCALER_16               (IWDG_PR_PR_1)                        /*!< Divider by 16  */
 #define LL_IWDG_PRESCALER_32               (IWDG_PR_PR_1 | IWDG_PR_PR_0)         /*!< Divider by 32  */
@@ -332,7 +332,7 @@ __STATIC_INLINE uint32_t LL_IWDG_IsActiveFlag_WVU(IWDG_TypeDef *IWDGx)
   */
 __STATIC_INLINE uint32_t LL_IWDG_IsReady(IWDG_TypeDef *IWDGx)
 {
-  return (READ_BIT(IWDGx->SR, IWDG_SR_PVU | IWDG_SR_RVU | IWDG_SR_WVU) == 0);
+  return (READ_BIT(IWDGx->SR, IWDG_SR_PVU | IWDG_SR_RVU | IWDG_SR_WVU) == 0U);
 }
 
 /**

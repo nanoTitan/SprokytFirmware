@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    Projects/Multi/Examples/IKS01A1/DataLog/Src/DemoSerial.c
   * @author  CL
-  * @version V3.0.0
-  * @date    12-August-2016
+  * @version V4.0.0
+  * @date    1-May-2017
   * @brief   Handle the Serial Protocol
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -63,7 +63,7 @@ extern void *PRESSURE_handle;
 /* Private variables ---------------------------------------------------------*/
 volatile uint8_t DataLoggerActive;
 volatile uint8_t SenderInterface = 0;
-uint8_t PresentationString[] = {"MEMS shield demo,100,3.0.0,0.0.0,IKS01A1"};
+uint8_t PresentationString[] = {"MEMS shield demo,100,4.0.0,0.0.0,IKS01A1"};
 volatile uint8_t DataStreamingDest = 1;
 
 

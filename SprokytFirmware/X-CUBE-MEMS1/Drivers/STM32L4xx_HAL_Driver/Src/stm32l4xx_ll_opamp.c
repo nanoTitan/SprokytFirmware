@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32l4xx_ll_opamp.c
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    29-January-2016
+  * @version V1.7.0
+  * @date    17-February-2017
   * @brief   OPAMP LL module driver
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -42,7 +42,7 @@
 #ifdef  USE_FULL_ASSERT
   #include "stm32_assert.h"
 #else
-  #define assert_param(expr) ((void)0)
+  #define assert_param(expr) ((void)0U)
 #endif
 
 /** @addtogroup STM32L4xx_LL_Driver
@@ -64,8 +64,8 @@
   * @{
   */
 
-/* Check of parameters for configuration of OPAMP hierarchical scope:          */
-/* OPAMP instance.                                                             */
+/* Check of parameters for configuration of OPAMP hierarchical scope:         */
+/* OPAMP instance.                                                            */
 
 #define IS_LL_OPAMP_POWER_MODE(__POWER_MODE__)                                 \
   (   ((__POWER_MODE__) == LL_OPAMP_POWERMODE_NORMAL)                          \
@@ -74,7 +74,8 @@
 #define IS_LL_OPAMP_FUNCTIONAL_MODE(__FUNCTIONAL_MODE__)                       \
   (   ((__FUNCTIONAL_MODE__) == LL_OPAMP_MODE_STANDALONE)                      \
    || ((__FUNCTIONAL_MODE__) == LL_OPAMP_MODE_FOLLOWER)                        \
-   || ((__FUNCTIONAL_MODE__) == LL_OPAMP_MODE_PGA)       )
+   || ((__FUNCTIONAL_MODE__) == LL_OPAMP_MODE_PGA)                             \
+  )
 
 /* Note: Comparator non-inverting inputs parameters are the same on all       */
 /*       OPAMP instances.                                                     */
@@ -82,7 +83,8 @@
 /*       compatibility with other STM32 families.                             */
 #define IS_LL_OPAMP_INPUT_NONINVERTING(__OPAMPX__, __INPUT_NONINVERTING__)     \
   (   ((__INPUT_NONINVERTING__) == LL_OPAMP_INPUT_NONINVERT_IO0)               \
-   || ((__INPUT_NONINVERTING__) == LL_OPAMP_INPUT_NONINVERT_DAC1_CH1))
+   || ((__INPUT_NONINVERTING__) == LL_OPAMP_INPUT_NONINV_DAC1_CH1)             \
+  )
 
 /* Note: Comparator non-inverting inputs parameters are the same on all       */
 /*       OPAMP instances.                                                     */
@@ -91,7 +93,8 @@
 #define IS_LL_OPAMP_INPUT_INVERTING(__OPAMPX__, __INPUT_INVERTING__)           \
   (   ((__INPUT_INVERTING__) == LL_OPAMP_INPUT_INVERT_IO0)                     \
    || ((__INPUT_INVERTING__) == LL_OPAMP_INPUT_INVERT_IO1)                     \
-   || ((__INPUT_INVERTING__) == LL_OPAMP_INPUT_INVERT_CONNECT_NO))
+   || ((__INPUT_INVERTING__) == LL_OPAMP_INPUT_INVERT_CONNECT_NO)              \
+  )
 
 /**
   * @}
@@ -124,7 +127,7 @@ ErrorStatus LL_OPAMP_DeInit(OPAMP_TypeDef* OPAMPx)
   /* Check the parameters */
   assert_param(IS_OPAMP_ALL_INSTANCE(OPAMPx));
   
-  LL_OPAMP_WriteReg(OPAMPx, CSR, 0x00000000);
+  LL_OPAMP_WriteReg(OPAMPx, CSR, 0x00000000U);
 
   return status;
 }
@@ -198,6 +201,7 @@ ErrorStatus LL_OPAMP_Init(OPAMP_TypeDef *OPAMPx, LL_OPAMP_InitTypeDef *OPAMP_Ini
                | LL_OPAMP_INPUT_INVERT_CONNECT_NO
               );
   }
+  
   return SUCCESS;
 }
 

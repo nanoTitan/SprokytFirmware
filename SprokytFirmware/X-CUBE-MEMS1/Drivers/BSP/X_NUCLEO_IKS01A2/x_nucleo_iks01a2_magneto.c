@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    x_nucleo_iks01a2_magneto.c
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file provides a set of functions needed to manage the magnetometer sensor
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -143,6 +143,7 @@ static DrvStatusTypeDef BSP_LSM303AGR_MAGNETO_Init( void **handle )
 
   /* Setup sensor handle. */
   MAGNETO_SensorHandle[ LSM303AGR_M_0 ].who_am_i      = LSM303AGR_MAG_WHO_AM_I;
+  MAGNETO_SensorHandle[ LSM303AGR_M_0 ].ifType        = 0; /* I2C interface */
   MAGNETO_SensorHandle[ LSM303AGR_M_0 ].address       = LSM303AGR_MAG_I2C_ADDRESS;
   MAGNETO_SensorHandle[ LSM303AGR_M_0 ].instance      = LSM303AGR_M_0;
   MAGNETO_SensorHandle[ LSM303AGR_M_0 ].isInitialized = 0;
@@ -152,6 +153,7 @@ static DrvStatusTypeDef BSP_LSM303AGR_MAGNETO_Init( void **handle )
   MAGNETO_SensorHandle[ LSM303AGR_M_0 ].pVTable       = ( void * )&LSM303AGR_M_Drv;
   MAGNETO_SensorHandle[ LSM303AGR_M_0 ].pExtVTable    = 0;
 
+  LSM303AGR_M_0_Data.comboData = &LSM303AGR_Combo_Data[0];
   MAGNETO_Data[ LSM303AGR_M_0 ].pComponentData = ( void * )&LSM303AGR_M_0_Data;
   MAGNETO_Data[ LSM303AGR_M_0 ].pExtData       = 0;
 

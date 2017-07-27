@@ -2,34 +2,24 @@
   ******************************************************************************
   * @file    stm32l0xx_hal_adc_ex.c
   * @author  MCD Application Team
-  * @version V1.5.0
-  * @date    8-January-2016
+  * @version V1.8.0
+  * @date    25-November-2016
   * @brief   This file provides firmware functions to manage the following 
   *          functionalities of the Analog to Digital Convertor (ADC)
   *          peripheral:
-  *           + Start calibration.
-  *           + Read the calibration factor.
-  *           + Set a calibration factor.
-  *          
+  *           + Operation functions
+  *             ++ Calibration
+  *               +++ ADC automatic self-calibration
+  *               +++ Calibration factors get or set
+  *          Other functions (generic functions) are available in file 
+  *          "stm32l0xx_hal_adc.c".
+  *
   @verbatim
-  ==============================================================================
-                    ##### ADC specific features #####
-  ==============================================================================
   [..] 
-  (#) Self calibration.
-
-
-                     ##### How to use this driver #####
-  ==============================================================================
-    [..]
-
-    (#) Call HAL_ADCEx_Calibration_Start() to start calibration
-    
-    (#) Read the calibration factor using HAL_ADCEx_Calibration_GetValue()
-  
-    (#) User can set a his calibration factor using HAL_ADCEx_Calibration_SetValue()
-  
-    @endverbatim
+  (@) Sections "ADC peripheral features" and "How to use this driver" are
+      available in file of generic functions "stm32l0xx_hal_adc.c".
+  [..]
+  @endverbatim
   ******************************************************************************
   * @attention
   *
@@ -57,7 +47,7 @@
   * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
-  ******************************************************************************  
+  ******************************************************************************
   */
 
 /* Includes ------------------------------------------------------------------*/
@@ -67,69 +57,66 @@
   * @{
   */
 
+/** @defgroup ADCEx ADCEx
+  * @brief ADC Extended HAL module driver
+  * @{
+  */
+
 #ifdef HAL_ADC_MODULE_ENABLED
 
-/** @addtogroup ADCEx 
-  * @brief ADC driver modules
-  * @{
-  */ 
-
 /* Private typedef -----------------------------------------------------------*/
-
 /* Private define ------------------------------------------------------------*/
 
-/* Fixed timeout values for ADC calibration, enable settling time, disable  */
+/** @defgroup ADCEx_Private_Constants ADC Extended Private Constants
+  * @{
+  */
+
+  /* Fixed timeout values for ADC calibration, enable settling time, disable  */
   /* settling time.                                                           */
   /* Values defined to be higher than worst cases: low clock frequency,       */
   /* maximum prescaler.                                                       */
   /* Unit: ms                                                                 */
-  #define ADC_CALIBRATION_TIMEOUT      10      
+  #define ADC_CALIBRATION_TIMEOUT      10U      
 
 /* Delay for VREFINT stabilization time. */
 /* Internal reference startup time max value is 3ms  (refer to device datasheet, parameter TVREFINT). */
 /* Unit: ms */
-#define SYSCFG_BUF_VREFINT_ENABLE_TIMEOUT       ((uint32_t) 3)
+#define SYSCFG_BUF_VREFINT_ENABLE_TIMEOUT       ((uint32_t) 3U)
 
 /* Delay for TEMPSENSOR stabilization time. */
-/* Temperature sensor startup time max value is 10µs  (refer to device datasheet, parameter tSTART). */
+/* Temperature sensor startup time max value is 10us  (refer to device datasheet, parameter tSTART). */
 /* Unit: ms */
-#define SYSCFG_BUF_TEMPSENSOR_ENABLE_TIMEOUT    ((uint32_t) 1)
+#define SYSCFG_BUF_TEMPSENSOR_ENABLE_TIMEOUT    ((uint32_t) 1U)
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
+/* Exported functions --------------------------------------------------------*/
 
+/** @defgroup ADCEx_Exported_Functions ADC Extended Exported Functions
+  * @{
+  */
 
-/** @addtogroup ADCEx_Exported_Functions
- *  @brief    ADC Extended features functions 
- *
-@verbatim   
+/** @defgroup ADCEx_Exported_Functions_Group1 Extended Input and Output operation functions
+  * @brief    Extended IO operation functions
+  *
+@verbatim
  ===============================================================================
-            ##### ADC Extended features functions #####
- ===============================================================================  
-    [..]
-This subsection provides functions allowing to:
-      (+) Start calibration.
-      (+) Get calibration factor.
-      (+) Set calibration factor.
-      (+) Enable VREFInt.
-      (+) Disable VREFInt.
-      (+) Enable VREFInt TempSensor.
-      (+) Disable VREFInt TempSensor.
-
+                      ##### IO operation functions #####
+ ===============================================================================
+    [..]  This section provides functions allowing to:
+      (+) Perform the ADC calibration.
 @endverbatim
   * @{
   */
 
-/** @addtogroup ADCEx_Exported_Functions_Group3
-  * @{
-  */
-
 /**
-  * @brief  Start an automatic calibration
-  * @param  hadc: pointer to a ADC_HandleTypeDef structure that contains
-  *         the configuration information for the specified ADC.
+  * @brief  Perform an ADC automatic self-calibration
+  *         Calibration prerequisite: ADC must be disabled (execute this
+  *         function before HAL_ADC_Start() or after HAL_ADC_Stop() ).
+  * @note   Calibration factor can be read after calibration, using function
+  *         HAL_ADC_GetValue() (value on 7 bits: from DR[6;0]).
+  * @param  hadc       ADC handle
   * @param  SingleDiff: Selection of single-ended or differential input
   *          This parameter can be only of the following values:
   *            @arg ADC_SINGLE_ENDED: Channel in mode input single ended
@@ -138,7 +125,8 @@ This subsection provides functions allowing to:
 HAL_StatusTypeDef HAL_ADCEx_Calibration_Start(ADC_HandleTypeDef* hadc, uint32_t SingleDiff)
 {
   HAL_StatusTypeDef tmp_hal_status = HAL_OK;
-  uint32_t tickstart=0;
+  uint32_t tickstart = 0U;
+  uint32_t backup_setting_adc_dma_transfer = 0U; /* Note: Variable not declared as volatile because register read is already declared as volatile */
   
   /* Check the parameters */
   assert_param(IS_ADC_ALL_INSTANCE(hadc->Instance));
@@ -154,11 +142,20 @@ HAL_StatusTypeDef HAL_ADCEx_Calibration_Start(ADC_HandleTypeDef* hadc, uint32_t 
                       HAL_ADC_STATE_REG_BUSY,
                       HAL_ADC_STATE_BUSY_INTERNAL);
     
+    /* Disable ADC DMA transfer request during calibration */
+    /* Note: Specificity of this STM32 serie: Calibration factor is           */
+    /*       available in data register and also transfered by DMA.           */
+    /*       To not insert ADC calibration factor among ADC conversion data   */
+    /*       in array variable, DMA transfer must be disabled during          */
+    /*       calibration.                                                     */
+    backup_setting_adc_dma_transfer = READ_BIT(hadc->Instance->CFGR1, ADC_CFGR1_DMAEN | ADC_CFGR1_DMACFG);
+    CLEAR_BIT(hadc->Instance->CFGR1, ADC_CFGR1_DMAEN | ADC_CFGR1_DMACFG);
+    
     /* Start ADC calibration */
     hadc->Instance->CR |= ADC_CR_ADCAL;
-
+    
     tickstart = HAL_GetTick();  
-
+    
     /* Wait for calibration completion */
     while(HAL_IS_BIT_SET(hadc->Instance->CR, ADC_CR_ADCAL))
     {
@@ -175,6 +172,9 @@ HAL_StatusTypeDef HAL_ADCEx_Calibration_Start(ADC_HandleTypeDef* hadc, uint32_t 
         return HAL_ERROR;
       }
     }
+    
+    /* Restore ADC DMA transfer request after calibration */
+    SET_BIT(hadc->Instance->CFGR1, backup_setting_adc_dma_transfer);
     
     /* Set ADC state */
     ADC_STATE_CLR_SET(hadc->State,
@@ -196,7 +196,6 @@ HAL_StatusTypeDef HAL_ADCEx_Calibration_Start(ADC_HandleTypeDef* hadc, uint32_t 
   return tmp_hal_status;
 }
 
-
 /**
   * @brief  Get the calibration factor.
   * @param  hadc: ADC handle.
@@ -211,7 +210,7 @@ uint32_t HAL_ADCEx_Calibration_GetValue(ADC_HandleTypeDef* hadc, uint32_t Single
   assert_param(IS_ADC_SINGLE_DIFFERENTIAL(SingleDiff)); 
   
   /* Return the ADC calibration value */ 
-  return ((hadc->Instance->CALFACT) & 0x0000007F);
+  return ((hadc->Instance->CALFACT) & 0x0000007FU);
 }
 
 /**
@@ -272,16 +271,16 @@ HAL_StatusTypeDef HAL_ADCEx_Calibration_SetValue(ADC_HandleTypeDef* hadc, uint32
 */
 HAL_StatusTypeDef HAL_ADCEx_EnableVREFINT(void)
 {
-  uint32_t tickstart = 0;
+  uint32_t tickstart = 0U;
   
-  /* Enable the Buffer for the ADC by setting EN_VREFINT bit and the ENBUF_SENSOR_ADC in the CFGR3 register */
-  SET_BIT(SYSCFG->CFGR3, (SYSCFG_CFGR3_ENBUF_VREFINT_ADC | SYSCFG_CFGR3_EN_VREFINT));
+  /* Enable the Buffer for the ADC by setting ENBUF_SENSOR_ADC bit in the CFGR3 register */
+  SET_BIT(SYSCFG->CFGR3, SYSCFG_CFGR3_ENBUF_VREFINT_ADC);
   
   /* Wait for Vrefint buffer effectively enabled */
   /* Get tick count */
   tickstart = HAL_GetTick();
   
-  while(HAL_IS_BIT_CLR(SYSCFG->CFGR3, SYSCFG_CFGR3_VREFINT_ADC_RDYF))
+  while(HAL_IS_BIT_CLR(SYSCFG->CFGR3, SYSCFG_CFGR3_VREFINT_RDYF))
   {
     if((HAL_GetTick() - tickstart) > SYSCFG_BUF_VREFINT_ENABLE_TIMEOUT)
     { 
@@ -299,8 +298,8 @@ HAL_StatusTypeDef HAL_ADCEx_EnableVREFINT(void)
   */
 void HAL_ADCEx_DisableVREFINT(void)
 {
-    /* Disable the Vrefint by resetting EN_VREFINT bit and the ENBUF_SENSOR_ADC in the CFGR3 register */
-    CLEAR_BIT(SYSCFG->CFGR3, (SYSCFG_CFGR3_ENBUF_VREFINT_ADC | SYSCFG_CFGR3_EN_VREFINT)); 
+  /* Disable the Vrefint by resetting ENBUF_SENSOR_ADC bit in the CFGR3 register */
+  CLEAR_BIT(SYSCFG->CFGR3, SYSCFG_CFGR3_ENBUF_VREFINT_ADC);
 }
 
 /**
@@ -313,16 +312,16 @@ void HAL_ADCEx_DisableVREFINT(void)
 */
 HAL_StatusTypeDef HAL_ADCEx_EnableVREFINTTempSensor(void)
 {
-  uint32_t tickstart = 0;
+  uint32_t tickstart = 0U;
   
-  /* Enable the Buffer for the ADC by setting EN_VREFINT bit and the ENBUF_SENSOR_ADC in the CFGR3 register */
-  SET_BIT(SYSCFG->CFGR3, (SYSCFG_CFGR3_ENBUF_SENSOR_ADC | SYSCFG_CFGR3_EN_VREFINT));
+  /* Enable the Buffer for the ADC by setting ENBUF_SENSOR_ADC bit in the CFGR3 register */
+  SET_BIT(SYSCFG->CFGR3, SYSCFG_CFGR3_ENBUF_SENSOR_ADC);
   
   /* Wait for Vrefint buffer effectively enabled */
   /* Get tick count */
   tickstart = HAL_GetTick();
   
-  while(HAL_IS_BIT_CLR(SYSCFG->CFGR3, SYSCFG_CFGR3_VREFINT_ADC_RDYF))
+  while(HAL_IS_BIT_CLR(SYSCFG->CFGR3, SYSCFG_CFGR3_VREFINT_RDYF))
   {
     if((HAL_GetTick() - tickstart) > SYSCFG_BUF_TEMPSENSOR_ENABLE_TIMEOUT)
     { 
@@ -334,19 +333,15 @@ HAL_StatusTypeDef HAL_ADCEx_EnableVREFINTTempSensor(void)
 }
 
 /**
-  * @brief Disables the VEREFINT and Sensor for the ADC.
+  * @brief Disables the VREFINT and Sensor for the ADC.
   * @note This is functional only if the LOCK is not set.
   * @retval None
   */
 void HAL_ADCEx_DisableVREFINTTempSensor(void)
 {
-    /* Disable the Vrefint by resetting EN_VREFINT bit and the ENBUF_SENSOR_ADC in the CFGR3 register */
-    CLEAR_BIT(SYSCFG->CFGR3, (SYSCFG_CFGR3_ENBUF_SENSOR_ADC | SYSCFG_CFGR3_EN_VREFINT));
+  /* Disable the Vrefint by resetting ENBUF_SENSOR_ADC bit in the CFGR3 register */
+  CLEAR_BIT(SYSCFG->CFGR3, SYSCFG_CFGR3_ENBUF_SENSOR_ADC);
 }
-
-/**
-  * @}
-  */
 
 /**
   * @}
@@ -359,6 +354,10 @@ void HAL_ADCEx_DisableVREFINTTempSensor(void)
 #endif /* HAL_ADC_MODULE_ENABLED */
 /**
   * @}
-  */ 
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

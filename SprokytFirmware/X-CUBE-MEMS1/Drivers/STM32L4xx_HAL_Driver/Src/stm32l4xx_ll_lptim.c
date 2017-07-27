@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32l4xx_ll_lptim.c
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    29-January-2016
+  * @version V1.7.0
+  * @date    17-February-2017
   * @brief   LPTIM LL module driver.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -43,7 +43,7 @@
 #ifdef  USE_FULL_ASSERT
   #include "stm32_assert.h"
 #else
-  #define assert_param(expr) ((void)0)
+  #define assert_param(expr) ((void)0U)
 #endif
 
 /** @addtogroup STM32L4xx_LL_Driver
@@ -114,7 +114,7 @@ ErrorStatus LL_LPTIM_DeInit(LPTIM_TypeDef* LPTIMx)
     LL_APB1_GRP1_ForceReset(LL_APB1_GRP1_PERIPH_LPTIM1);
     LL_APB1_GRP1_ReleaseReset(LL_APB1_GRP1_PERIPH_LPTIM1);  
   } 
-#if defined(LPTIM2)  
+#if defined(LPTIM2)
   else if (LPTIMx == LPTIM2)
   { 
     LL_APB1_GRP2_ForceReset(LL_APB1_GRP2_PERIPH_LPTIM2);
@@ -159,7 +159,7 @@ ErrorStatus LL_LPTIM_Init(LPTIM_TypeDef * LPTIMx, LL_LPTIM_InitTypeDef* LPTIM_In
   ErrorStatus result = SUCCESS;
   
   /* The LPTIMx_CFGR register must only be modified when the LPTIM is disabled 
-     (ENABLE bit is reset to ‘0’).
+     (ENABLE bit is reset to 0).
   */
   if (LL_LPTIM_IsEnabled(LPTIMx))
   {

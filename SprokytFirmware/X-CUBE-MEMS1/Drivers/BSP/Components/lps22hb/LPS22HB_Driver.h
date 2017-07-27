@@ -348,9 +348,9 @@ typedef struct
 * @brief  I2C address.
 */
 /* SD0/SA0(pin 5) is connected to the voltage supply*/
-//#define LPS22HB_ADDRESS  (uint8_t)0xBA
+#define LPS22HB_ADDRESS  (uint8_t)0xBA
 /*SDO/SA0 (pin5) is connected to the GND*/
-#define LPS22HB_ADDRESS  (uint8_t)0xB8
+//#define LPS22HB_ADDRESS  (uint8_t)0xB8
 
 /**
 * @brief  Set the LPS22HB driver version.

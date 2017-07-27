@@ -43,7 +43,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "MotionFX_Manager.h"
-#include "osx_license.h"
+//#include "osx_license.h"
 
 /** @addtogroup OSX_MOTION_FX_Applications
   * @{

@@ -64,7 +64,6 @@ extern uint8_t Sensor_IO_Read( void *handle, uint8_t ReadAddr, uint8_t *pBuffer,
 *******************************************************************************/
 status_t LIS3MDL_MAG_WriteReg(void *handle, u8_t Reg, u8_t *Bufp, u16_t len)
 {
-  if ( len > 1 ) Reg |= 0x80;
 
   if ( Sensor_IO_Write( handle, Reg, Bufp, len ) )
     return MEMS_ERROR;
@@ -82,7 +81,6 @@ status_t LIS3MDL_MAG_WriteReg(void *handle, u8_t Reg, u8_t *Bufp, u16_t len)
 *******************************************************************************/
 status_t LIS3MDL_MAG_ReadReg(void *handle, u8_t Reg, u8_t *Bufp, u16_t len)
 {
-  if ( len > 1 ) Reg |= 0x80;
 
   if ( Sensor_IO_Read( handle, Reg, Bufp, len ) )
     return MEMS_ERROR;

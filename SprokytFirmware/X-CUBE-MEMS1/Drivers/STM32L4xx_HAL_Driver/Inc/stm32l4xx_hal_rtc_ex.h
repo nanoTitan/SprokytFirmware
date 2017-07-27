@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32l4xx_hal_rtc_ex.h
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    29-January-2016
+  * @version V1.7.0
+  * @date    17-February-2017
   * @brief   Header file of RTC HAL Extended module.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -439,6 +439,7 @@ typedef struct
   */
 #define __HAL_RTC_WAKEUPTIMER_CLEAR_FLAG(__HANDLE__, __FLAG__) ((__HANDLE__)->Instance->ISR) = (~((__FLAG__) | RTC_ISR_INIT)|((__HANDLE__)->Instance->ISR & RTC_ISR_INIT)) 
 
+#if defined(RTC_TAMPER1_SUPPORT)
 /**
   * @brief  Enable the RTC Tamper1 input detection.
   * @param  __HANDLE__: specifies the RTC handle.
@@ -452,6 +453,7 @@ typedef struct
   * @retval None
   */
 #define __HAL_RTC_TAMPER1_DISABLE(__HANDLE__)                        ((__HANDLE__)->Instance->TAMPCR &= ~(RTC_TAMPCR_TAMP1E))
+#endif /* RTC_TAMPER1_SUPPORT */
 
 /**
   * @brief  Enable the RTC Tamper2 input detection.
@@ -467,6 +469,7 @@ typedef struct
   */
 #define __HAL_RTC_TAMPER2_DISABLE(__HANDLE__)                        ((__HANDLE__)->Instance->TAMPCR &= ~(RTC_TAMPCR_TAMP2E))
 
+#if defined(RTC_TAMPER3_SUPPORT)
 /**
   * @brief  Enable the RTC Tamper3 input detection.
   * @param  __HANDLE__: specifies the RTC handle.
@@ -480,6 +483,7 @@ typedef struct
   * @retval None
   */
 #define __HAL_RTC_TAMPER3_DISABLE(__HANDLE__)                        ((__HANDLE__)->Instance->TAMPCR &= ~(RTC_TAMPCR_TAMP3E))
+#endif /* RTC_TAMPER3_SUPPORT */
 
 /**
   * @brief  Enable the RTC Tamper interrupt.
@@ -517,9 +521,13 @@ typedef struct
   *            @arg  RTC_IT_TAMP3: Tamper3 interrupt
   * @retval None
   */
+#if defined(RTC_TAMPER1_SUPPORT) && defined(RTC_TAMPER3_SUPPORT)
 #define __HAL_RTC_TAMPER_GET_IT(__HANDLE__, __INTERRUPT__)           (((__INTERRUPT__) == RTC_IT_TAMP1) ? (((((__HANDLE__)->Instance->ISR) & ((__INTERRUPT__)>> 3)) != RESET) ? SET : RESET) : \
                                                                       ((__INTERRUPT__) == RTC_IT_TAMP2) ? (((((__HANDLE__)->Instance->ISR) & ((__INTERRUPT__)>> 5)) != RESET) ? SET : RESET) : \
                                                                       (((((__HANDLE__)->Instance->ISR) & ((__INTERRUPT__)>> 7)) != RESET) ? SET : RESET))
+#else
+#define __HAL_RTC_TAMPER_GET_IT(__HANDLE__, __INTERRUPT__)           (((((__HANDLE__)->Instance->ISR) & ((__INTERRUPT__)>> 5)) != RESET) ? SET : RESET)
+#endif /* RTC_TAMPER1_SUPPORT && RTC_TAMPER3_SUPPORT */
 
 /**
   * @brief  Check whether the specified RTC Tamper interrupt is enabled or not.

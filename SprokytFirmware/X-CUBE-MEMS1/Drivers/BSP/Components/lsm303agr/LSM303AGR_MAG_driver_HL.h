@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    LSM303AGR_MAG_driver_HL.h
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file contains definitions for the LSM303AGR_MAG_driver_HL.c firmware driver
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -50,7 +50,7 @@ extern "C" {
 
 /* Include magnetic sensor component drivers. */
 #include "LSM303AGR_MAG_driver.h"
-
+#include "LSM303AGR_Combo_driver_HL.h"
 
 
 /** @addtogroup BSP BSP
@@ -73,10 +73,7 @@ extern "C" {
  * @{
  */
 
-#define LSM303AGR_MAG_SENSITIVITY_FOR_FS_4G   0.14  /**< Sensitivity value for 4 gauss full scale [LSB/gauss] */
-#define LSM303AGR_MAG_SENSITIVITY_FOR_FS_8G   0.29  /**< Sensitivity value for 8 gauss full scale [LSB/gauss] */
-#define LSM303AGR_MAG_SENSITIVITY_FOR_FS_12G  0.43  /**< Sensitivity value for 12 gauss full scale [LSB/gauss] */
-#define LSM303AGR_MAG_SENSITIVITY_FOR_FS_16G  0.58  /**< Sensitivity value for 16 gauss full scale [LSB/gauss] */
+#define LSM303AGR_MAG_SENSITIVITY_FOR_FS_50G  1.5  /**< Sensitivity value for 16 gauss full scale [mgauss/LSB] */
 
 /**
  * @}
@@ -94,10 +91,9 @@ extern "C" {
  * @brief LSM303AGR_MAG magneto specific data internal structure definition
  */
 
-// _NOTE_: Not used - type reserved for future purposes.
 typedef struct
 {
-  uint8_t dummy;
+  LSM303AGR_Combo_Data_t *comboData;       /* Combo data to manage in software SPI 3-Wire initialization of the combo sensors */
 } LSM303AGR_M_Data_t;
 
 /**

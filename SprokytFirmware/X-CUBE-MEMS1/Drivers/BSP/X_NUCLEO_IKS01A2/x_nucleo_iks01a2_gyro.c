@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    x_nucleo_iks01a2_gyro.c
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file provides a set of functions needed to manage the gyroscope sensor
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -131,6 +131,7 @@ static DrvStatusTypeDef BSP_LSM6DSL_GYRO_Init( void **handle )
   /* Setup sensor handle. */
   /* Gyroscope - sensor 0 */
   GYRO_SensorHandle[ LSM6DSL_G_0 ].who_am_i      = LSM6DSL_ACC_GYRO_WHO_AM_I;
+  GYRO_SensorHandle[ LSM6DSL_G_0 ].ifType        = 0; /* I2C interface */
   GYRO_SensorHandle[ LSM6DSL_G_0 ].address       = LSM6DSL_ACC_GYRO_I2C_ADDRESS_HIGH;
   GYRO_SensorHandle[ LSM6DSL_G_0 ].instance      = LSM6DSL_G_0;
   GYRO_SensorHandle[ LSM6DSL_G_0 ].isInitialized = 0;

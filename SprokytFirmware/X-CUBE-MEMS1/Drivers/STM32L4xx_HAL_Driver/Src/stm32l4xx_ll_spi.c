@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32l4xx_ll_spi.c
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    29-January-2016
+  * @version V1.7.0
+  * @date    17-February-2017
   * @brief   SPI LL module driver.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -43,7 +43,7 @@
 #ifdef  USE_FULL_ASSERT
 #include "stm32_assert.h"
 #else
-#define assert_param(expr) ((void)0)
+#define assert_param(expr) ((void)0U)
 #endif
 
 /** @addtogroup STM32L4xx_LL_Driver
@@ -52,7 +52,7 @@
 
 #if defined (SPI1) || defined (SPI2) || defined (SPI3)
 
-/** @defgroup SPI_LL SPI
+/** @addtogroup SPI_LL
   * @{
   */
 
@@ -124,7 +124,7 @@
 #define IS_LL_SPI_CRCCALCULATION(__VALUE__) (((__VALUE__) == LL_SPI_CRCCALCULATION_ENABLE) \
                                           || ((__VALUE__) == LL_SPI_CRCCALCULATION_DISABLE))
 
-#define IS_LL_SPI_CRC_POLYNOMIAL(__VALUE__) ((__VALUE__) >= 0x1)
+#define IS_LL_SPI_CRC_POLYNOMIAL(__VALUE__) ((__VALUE__) >= 0x1U)
 
 /**
   * @}
@@ -150,11 +150,12 @@
   */
 ErrorStatus LL_SPI_DeInit(SPI_TypeDef *SPIx)
 {
-  ErrorStatus status = SUCCESS;
+  ErrorStatus status = ERROR;
 
   /* Check the parameters */
   assert_param(IS_SPI_ALL_INSTANCE(SPIx));
 
+#if defined(SPI1)
   if (SPIx == SPI1)
   {
     /* Force reset of SPI clock */
@@ -162,8 +163,12 @@ ErrorStatus LL_SPI_DeInit(SPI_TypeDef *SPIx)
 
     /* Release reset of SPI clock */
     LL_APB2_GRP1_ReleaseReset(LL_APB2_GRP1_PERIPH_SPI1);
+
+    status = SUCCESS;
   }
-  else if (SPIx == SPI2)
+#endif /* SPI1 */
+#if defined(SPI2)
+  if (SPIx == SPI2)
   {
     /* Force reset of SPI clock */
     LL_APB1_GRP1_ForceReset(LL_APB1_GRP1_PERIPH_SPI2);
@@ -171,19 +176,21 @@ ErrorStatus LL_SPI_DeInit(SPI_TypeDef *SPIx)
     /* Release reset of SPI clock */
     LL_APB1_GRP1_ReleaseReset(LL_APB1_GRP1_PERIPH_SPI2);
 
+    status = SUCCESS;
   }
-  else if (SPIx == SPI3)
+#endif /* SPI2 */
+#if defined(SPI3)
+  if (SPIx == SPI3)
   {
     /* Force reset of SPI clock */
     LL_APB1_GRP1_ForceReset(LL_APB1_GRP1_PERIPH_SPI3);
 
     /* Release reset of SPI clock */
     LL_APB1_GRP1_ReleaseReset(LL_APB1_GRP1_PERIPH_SPI3);
+
+    status = SUCCESS;
   }
-  else
-  {
-    status = ERROR;
-  }
+#endif /* SPI3 */
 
   return status;
 }
@@ -241,9 +248,9 @@ ErrorStatus LL_SPI_Init(SPI_TypeDef *SPIx, LL_SPI_InitTypeDef *SPI_InitStruct)
      */
     MODIFY_REG(SPIx->CR2,
                SPI_CR2_DS | SPI_CR2_SSOE,
-               SPI_InitStruct->DataWidth | (SPI_InitStruct->NSS >> 16));
+               SPI_InitStruct->DataWidth | (SPI_InitStruct->NSS >> 16U));
 
-    /*---------------------------- SPIx CRCPR Configuration -----------------------
+    /*---------------------------- SPIx CRCPR Configuration ----------------------
      * Configure SPIx CRCPR with parameters:
      * - CRCPoly:            CRCPOLY[15:0] bits
      */
@@ -276,7 +283,7 @@ void LL_SPI_StructInit(LL_SPI_InitTypeDef *SPI_InitStruct)
   SPI_InitStruct->BaudRate          = LL_SPI_BAUDRATEPRESCALER_DIV2;
   SPI_InitStruct->BitOrder          = LL_SPI_MSB_FIRST;
   SPI_InitStruct->CRCCalculation    = LL_SPI_CRCCALCULATION_DISABLE;
-  SPI_InitStruct->CRCPoly           = 7;
+  SPI_InitStruct->CRCPoly           = 7U;
 }
 
 /**

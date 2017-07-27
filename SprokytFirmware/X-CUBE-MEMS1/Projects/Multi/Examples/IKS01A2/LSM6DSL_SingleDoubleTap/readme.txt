@@ -2,10 +2,10 @@
   @page Single and Double Tap Demo Application based on sensor expansion board X-NUCLEO-IKS01A2 and STM32 Nucleo Boards
   
   @verbatim
-  ******************** (C) COPYRIGHT 2016 STMicroelectronics *******************
+  ******************** (C) COPYRIGHT 2017 STMicroelectronics *******************
   * @file    readme.txt  
-  * @version V1.0.0
-  * @date    12-August-2016
+  * @version V4.0.0
+  * @date    1-May-2017
   * @brief   This application contains an example which shows how to detect
   *          the single and double tap events with the LSM6DS3 component.
   *
@@ -62,7 +62,7 @@ program work, you must do the following:
 
 For IAR:
  - Open IAR toolchain (this firmware has been successfully tested with
-   Embedded Workbench V7.70.1).
+   Embedded Workbench V7.80.4).
  - Open the IAR project file EWARM\STM32F401RE-Nucleo\Project.eww or EWARM\STM32L053R8-Nucleo\Project.eww or EWARM\STM32L152RE-Nucleo\Project.eww
    or EWARM\STM32L476RG-Nucleo\Project.eww according the target board used.
  - Rebuild all files and load your image into target memory.
@@ -70,7 +70,7 @@ For IAR:
 
 For µVision:
  - Open µVision 5 toolchain (this firmware has been 
-   successfully tested with MDK-ARM Professional Version: 5.18a).
+   successfully tested with MDK-ARM Professional Version: 5.22).
  - Open the µVision project file MDK-ARM\STM32F401RE-Nucleo\Project.uvprojx or MDK-ARM\STM32L053R8-Nucleo\Project.uvprojx or MDK-ARM\STM32L152RE-Nucleo\Project.uvprojx
    or MDK-ARM\STM32L476RG-Nucleo\Project.uvprojx according the target board used.
  - Rebuild all files and load your image into target memory.
@@ -78,7 +78,7 @@ For µVision:
 
 For System Workbench:
  - Open System Workbench for STM32 (this firmware has been 
-   successfully tested with System Workbench for STM32 Version 1.10.0.20160725).
+   successfully tested with System Workbench for STM32 Version 1.14.0.20170306).
  - Set the default workspace proposed by the IDE (please be sure that there are not spaces in the workspace path).
  - Press "File" -> "Import" -> "Existing Projects into Workspace"; press "Browse" in the "Select root directory" and choose the path where the System
    Workbench project is located (it should be SW4STM32\STM32F401RE-Nucleo\STM32F4xx-Nucleo-LSM6DSL_SingleDoubleTap or

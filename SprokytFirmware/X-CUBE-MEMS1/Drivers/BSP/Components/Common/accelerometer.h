@@ -106,6 +106,20 @@ typedef struct
 } ACCELERO_Data_t;
 
 /**
+ * @brief  ACCELEROMETER hardware features status data structure definition
+ */
+typedef struct
+{
+  unsigned int FreeFallStatus : 1;
+  unsigned int TapStatus : 1;
+  unsigned int DoubleTapStatus : 1;
+  unsigned int WakeUpStatus : 1;
+  unsigned int StepStatus : 1;
+  unsigned int TiltStatus : 1;
+  unsigned int D6DOrientationStatus : 1;
+} ACCELERO_Event_Status_t;
+
+/**
  * @}
  */
 

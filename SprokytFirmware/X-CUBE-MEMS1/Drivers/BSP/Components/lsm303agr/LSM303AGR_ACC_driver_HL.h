@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    LSM303AGR_ACC_driver_HL.h
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file contains definitions for the LSM303AGR_ACC_driver_HL.c firmware driver
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -51,7 +51,7 @@ extern "C" {
 
 /* Include accelero sensor component drivers. */
 #include "LSM303AGR_ACC_driver.h"
-
+#include "LSM303AGR_Combo_driver_HL.h"
 
 
 /** @addtogroup BSP BSP
@@ -105,6 +105,7 @@ extern "C" {
 
 typedef struct
 {
+  LSM303AGR_Combo_Data_t *comboData;       /* Combo data to manage in software SPI 3-Wire initialization of the combo sensors */
   float Previous_ODR;
 } LSM303AGR_X_Data_t;
 

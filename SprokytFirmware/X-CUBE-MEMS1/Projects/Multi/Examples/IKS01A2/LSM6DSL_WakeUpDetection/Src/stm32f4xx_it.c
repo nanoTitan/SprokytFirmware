@@ -2,15 +2,15 @@
   ******************************************************************************
   * @file    Projects/Multi/Examples/IKS01A2/LSM6DSL_WakeUpDetection/Src/stm32f4xx_it.c
   * @author  CL
-  * @version V3.0.0
-  * @date    12-August-2016
+  * @version V4.0.0
+  * @date    1-May-2017
   * @brief   Main Interrupt Service Routines.
   *          This file provides template for all exceptions handler and
   *          peripherals interrupt service routine.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -110,13 +110,13 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief  This function handles External line 5-9 interrupt request
-  * @param  None
-  * @retval None
-  */
-void EXTI9_5_IRQHandler( void )
+ * @brief  This function handles External line 4 interrupt request
+ * @param  None
+ * @retval None
+ */
+void EXTI4_IRQHandler( void )
 {
-  HAL_GPIO_EXTI_IRQHandler(LSM6DSL_INT1_O_PIN);
+  HAL_GPIO_EXTI_IRQHandler( LSM6DSL_INT2_O_PIN );
 }
 
 /**

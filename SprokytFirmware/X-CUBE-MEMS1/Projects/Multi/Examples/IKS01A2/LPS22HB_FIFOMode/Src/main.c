@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    Projects/Multi/Examples/IKS01A2/LPS22HB_FIFOMode/Src/main.c
  * @author  CL
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   Main program body
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -37,7 +37,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h> /* strlen */
-#include <stdio.h>  /* sprintf */
+#include <stdio.h>  /* snprintf */
 #include <math.h>   /* trunc, pow */
 #include "main.h"
 
@@ -49,6 +49,12 @@
  * @{
  */
 /* Private typedef -----------------------------------------------------------*/
+/* Float to Integer type */
+typedef struct displayFloatToInt_s {
+  int8_t sign; /* 0 means positive, 1 means negative*/
+  uint32_t  out_int;
+  uint32_t  out_dec;
+} displayFloatToInt_t;
 
 /* FIFO Interrupt type */
 typedef enum
@@ -87,12 +93,13 @@ typedef enum
 #define UART_TRANSMIT_TIMEOUT   5000
 #define FIFO_INDICATION_DELAY   100
 
+#define MAX_BUF_SIZE 256
 
 /* Private variables ---------------------------------------------------------*/
 /* This variable MUST be volatile because it could change into a ISR */
 static volatile uint8_t memsIntDetected = 0;
 
-static char dataOut[256];
+static char dataOut[MAX_BUF_SIZE];
 static void *LPS22HB_P_0_handle = NULL;
 static void *LPS22HB_T_0_handle = NULL;
 
@@ -110,7 +117,7 @@ static DrvStatusTypeDef LPS22HB_FIFO_Set_FIFO_Mode(void);
 
 static DrvStatusTypeDef LPS22HB_Read_All_FIFO_Data(void);
 
-static void floatToInt(float in, int32_t *out_int, int32_t *out_dec, int32_t dec_prec);
+static void floatToInt(float in, displayFloatToInt_t *out_value, int32_t dec_prec);
 static DrvStatusTypeDef LPS22HB_FIFO_Demo_Config(void);
 static void printConfiguration(void);
 
@@ -139,11 +146,7 @@ int main(void)
   BSP_LED_Init(LED2);
 
   /* Initialize button */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_EXTI);
-#elif (defined (USE_STM32L1XX_NUCLEO))
-  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
-#endif
 
   /* Initialize UART */
   USARTConfig();
@@ -164,7 +167,7 @@ int main(void)
     Error_Handler(__func__);
   }
 
-  sprintf(dataOut, "\r\n------ LPS22HB FIFO Mode DEMO ------\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\n------ LPS22HB FIFO Mode DEMO ------\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   while (1)
@@ -195,7 +198,7 @@ int main(void)
         if (samplesInFIFO != oldSamplesInFIFO)
         {
           oldSamplesInFIFO = samplesInFIFO;
-          sprintf(dataOut, ".");
+          snprintf(dataOut, MAX_BUF_SIZE, ".");
           HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
         }
 
@@ -207,7 +210,7 @@ int main(void)
         /* This IF handles overrun event for the 33th sample */
         if ((samplesInFIFO == MAX_FIFO_SAMPLES) && (memsIntDetected) && (FIFO_INTERRUPT == FIFO_INTERRUPT_OVERRUN))
         {
-          sprintf(dataOut, ".(overrun)");
+          snprintf(dataOut, MAX_BUF_SIZE, ".(overrun)");
           HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
           demoFifoStatus = STATUS_FIFO_DOWNLOAD;
         }
@@ -272,13 +275,13 @@ static void printConfiguration(void)
   switch(FIFO_INTERRUPT)
   {
     case FIFO_INTERRUPT_FULL:
-      sprintf(dataOut, "FIFO_INTERRUPT_TYPE: FULL\r\n");
+      snprintf(dataOut, MAX_BUF_SIZE, "FIFO_INTERRUPT_TYPE: FULL\r\n");
       break;
     case FIFO_INTERRUPT_THRESHOLD:
-      sprintf(dataOut, "FIFO_INTERRUPT_TYPE: THRESHOLD\r\n");
+      snprintf(dataOut, MAX_BUF_SIZE, "FIFO_INTERRUPT_TYPE: THRESHOLD\r\n");
       break;
     case FIFO_INTERRUPT_OVERRUN:
-      sprintf(dataOut, "FIFO_INTERRUPT_TYPE: OVERRUN\r\n");
+      snprintf(dataOut, MAX_BUF_SIZE, "FIFO_INTERRUPT_TYPE: OVERRUN\r\n");
       break;
   }
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
@@ -390,7 +393,7 @@ static DrvStatusTypeDef LPS22HB_FIFO_Set_Bypass_Mode(void)
     return COMPONENT_ERROR;
   }
 
-  sprintf(dataOut, "Press USER button to start the DEMO...\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "Press USER button to start the DEMO...\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   return COMPONENT_OK;
@@ -406,7 +409,7 @@ static DrvStatusTypeDef LPS22HB_FIFO_Set_Bypass_Mode(void)
  */
 static DrvStatusTypeDef LPS22HB_FIFO_Set_FIFO_Mode(void)
 {
-  sprintf(dataOut, "\r\nLPS22HB starts to store the data into FIFO...\r\n\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nLPS22HB starts to store the data into FIFO...\r\n\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   HAL_Delay(1000);
@@ -439,7 +442,7 @@ static DrvStatusTypeDef LPS22HB_Read_All_FIFO_Data(void)
   uint8_t samplesToRead = 0;
   float pressure = 0;
   float temperature = 0;
-  int32_t d1, d2;
+  displayFloatToInt_t out_value;
   int i;
 
   /* Get num of unread FIFO samples before reading data */
@@ -448,11 +451,11 @@ static DrvStatusTypeDef LPS22HB_Read_All_FIFO_Data(void)
     return COMPONENT_ERROR;
   }
 
-  sprintf(dataOut, "\r\n%d samples in FIFO.\r\n\nStart to download data from FIFO...\r\n\n", samplesInFIFO);
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\n%d samples in FIFO.\r\n\nStart to download data from FIFO...\r\n\n", samplesInFIFO);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   HAL_Delay(1000);
-  sprintf(dataOut, "[DATA ##]  PRESS   TEMP\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "[DATA ##]  PRESS    TEMP\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   for (i = 0; i < samplesToRead; i++)
@@ -463,16 +466,16 @@ static DrvStatusTypeDef LPS22HB_Read_All_FIFO_Data(void)
       return COMPONENT_ERROR;
     }
 
-    floatToInt(pressure, &d1, &d2, 2);
-    sprintf(dataOut, "[DATA %2d]  %d.%02d", i + 1, (int)d1, (int)d2);
+    floatToInt(pressure, &out_value, 2);
+    snprintf(dataOut, MAX_BUF_SIZE, "[DATA %2d]  %d.%02d", i + 1, (int)out_value.out_int, (int)out_value.out_dec);
     HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
-    floatToInt(temperature, &d1, &d2, 2);
-    sprintf(dataOut, "  %d.%02d\r\n", (int)d1, (int)d2);
+    floatToInt(temperature, &out_value, 2);
+    snprintf(dataOut, MAX_BUF_SIZE, "  %c%d.%02d\r\n", ((out_value.sign) ? '-' : '+'), (int)out_value.out_int, (int)out_value.out_dec);
     HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
   }
 
-  sprintf(dataOut, "\r\nFIFO download completed.\r\n\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nFIFO download completed.\r\n\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   return COMPONENT_OK;
@@ -481,26 +484,26 @@ static DrvStatusTypeDef LPS22HB_Read_All_FIFO_Data(void)
 
 
 /**
- * @brief Splits a float into two integer values
- * @param in the float value as input
- * @param out_int the pointer to the integer part as output
- * @param out_dec the pointer to the decimal part as output
- * @param dec_prec the decimal precision to be used
+ * @brief  Splits a float into two integer values.
+ * @param  in the float value as input
+ * @param  out_value the pointer to the output integer structure
+ * @param  dec_prec the decimal precision to be used
  * @retval None
  */
-static void floatToInt(float in, int32_t *out_int, int32_t *out_dec, int32_t dec_prec)
+static void floatToInt(float in, displayFloatToInt_t *out_value, int32_t dec_prec)
 {
-
-  *out_int = (int32_t)in;
   if(in >= 0.0f)
   {
-    in = in - (float)(*out_int);
-  }
-  else
+    out_value->sign = 0;
+  }else
   {
-    in = (float)(*out_int) - in;
+    out_value->sign = 1;
+    in = -in;
   }
-  *out_dec = (int32_t)trunc(in * pow(10, dec_prec));
+  
+  out_value->out_int = (int32_t)in;
+  in = in - (float)(out_value->out_int);
+  out_value->out_dec = (int32_t)trunc(in * pow(10, dec_prec));
 }
 
 
@@ -513,19 +516,9 @@ static void floatToInt(float in, int32_t *out_int, int32_t *out_dec, int32_t dec
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   /* User button pressed */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   if(GPIO_Pin == KEY_BUTTON_PIN)
-#elif (defined (USE_STM32L1XX_NUCLEO))
-  if(GPIO_Pin == USER_BUTTON_PIN)
-#endif
   {
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
     if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_RESET)
-#elif (defined (USE_STM32L1XX_NUCLEO))
-    if (BSP_PB_GetState(BUTTON_USER) == GPIO_PIN_RESET)
-#elif (defined (USE_STM32L0XX_NUCLEO))
-    if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_SET)
-#endif
     {
       /* Change this variable only if demoFifoStatus is STATUS_IDLE */
       if(demoFifoStatus == STATUS_IDLE)
@@ -557,7 +550,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  */
 void Error_Handler(const char *function_name)
 {
-  sprintf(dataOut, "\r\nError in '%s' function.\r\n", function_name);
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nError in '%s' function.\r\n", function_name);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   while (1)

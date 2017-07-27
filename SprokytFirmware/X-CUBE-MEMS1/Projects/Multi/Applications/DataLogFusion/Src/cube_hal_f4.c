@@ -1,20 +1,14 @@
 /**
-  *******************************************************************************
-  * @file    Projects/Multi/Applications/DataLogFusion/Src/cube_hal_f4.c
-  * @author  CL
-  * @version V1.6.0
-  * @date    8-November-2016
-  * @brief   Specific Cube settings for STM32F4 Nucleo boards
-  *******************************************************************************
+  ******************************************************************************
+  * @file        cube_hal_f4.c
+  * @author      MEMS Application Team
+  * @version     V2.0.0
+  * @date        01-May-2017
+  * @brief       Specific Cube settings for STM32F4 Nucleo boards
+  ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -38,65 +32,51 @@
   * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
-  * ******************************************************************************
+  ******************************************************************************
   */
 
 /* Includes ------------------------------------------------------------------*/
 #include "cube_hal.h"
-#include "main.h"
 #include "com.h"
 
-/** @addtogroup OSX_MOTION_FX_Applications
+/** @addtogroup MOTION_FX_Applications
   * @{
   */
 
-/** @addtogroup DATALOGFUSION
+/** @addtogroup DATALOG_FUSION
   * @{
   */
 
 /**
- * @brief  System Clock Configuration
- * @param  None
- * @retval None
- */
+  * @brief  System Clock Configuration
+  * @param  None
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_OscInitTypeDef RCC_OscInitStruct;
-  
+
   /* Enable Power Control clock */
   __PWR_CLK_ENABLE();
-  
+
   /* The voltage scaling allows optimizing the power consumption when the device is
   clocked below the maximum system frequency, to update the voltage scaling value
   regarding system frequency refer to product datasheet.  */
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
-  
-  /* Enable HSE Oscillator and activate PLL with HSE as source */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+
+  /* Enable HSE Oscillator and activate PLL with HSI as source */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = 16;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 16;
   RCC_OscInitStruct.PLL.PLLN = 336;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
   RCC_OscInitStruct.PLL.PLLQ = 7;
-  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    /* HSE not available, we use HSI */
-    /* Enable HSE Oscillator and activate PLL with HSI as source */
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-    RCC_OscInitStruct.HSICalibrationValue = 16;
-    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-    RCC_OscInitStruct.PLL.PLLM = 16;
-    RCC_OscInitStruct.PLL.PLLN = 336;
-    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
-    RCC_OscInitStruct.PLL.PLLQ = 7;
-    HAL_RCC_OscConfig(&RCC_OscInitStruct);
-  }
-  
+  HAL_RCC_OscConfig(&RCC_OscInitStruct);
+
   /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
     clocks dividers */
   RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
@@ -107,35 +87,38 @@ void SystemClock_Config(void)
   HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
 }
 
+
 /**
- * @brief  Get the DMA Stream pending flags
- * @param  handle_dma DMA handle
- * @retval The state of FLAG (SET or RESET)
- */
+  * @brief  Get the DMA Stream pending flags
+  * @param  handle_dma DMA handle
+  * @retval The state of FLAG (SET or RESET)
+  */
 uint32_t Get_DMA_Flag_Status(DMA_HandleTypeDef *handle_dma)
 {
   return (__HAL_DMA_GET_FLAG(handle_dma, __HAL_DMA_GET_FE_FLAG_INDEX(handle_dma)));
 }
 
+
 /**
- * @brief  Returns the number of remaining data units in the current DMAy Streamx transfer
- * @param  handle_dma DMA handle
- * @retval The number of remaining data units in the current DMA Stream transfer
- */
+  * @brief  Returns the number of remaining data units in the current DMAy Streamx transfer
+  * @param  handle_dma DMA handle
+  * @retval The number of remaining data units in the current DMA Stream transfer
+  */
 uint32_t Get_DMA_Counter(DMA_HandleTypeDef *handle_dma)
 {
   return (__HAL_DMA_GET_COUNTER(handle_dma));
 }
 
+
 /**
- * @brief  Configure the DMA handler for transmission process
- * @param  handle_dma DMA handle
- * @retval None
- */
+  * @brief  Configure the DMA handler for transmission process
+  * @param  handle_dma DMA handle
+  * @retval None
+  */
 void Config_DMA_Handler(DMA_HandleTypeDef *handle_dma)
 {
   handle_dma->Instance                 = DMA1_Stream5;
-  
+
   handle_dma->Init.Channel             = DMA_CHANNEL_4;
   handle_dma->Init.Direction           = DMA_PERIPH_TO_MEMORY;
   handle_dma->Init.PeriphInc           = DMA_PINC_DISABLE;
@@ -150,12 +133,13 @@ void Config_DMA_Handler(DMA_HandleTypeDef *handle_dma)
   handle_dma->Init.PeriphBurst         = DMA_MBURST_INC4;
 }
 
-/**
-* @}
-*/
 
 /**
-* @}
-*/
+  * @}
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

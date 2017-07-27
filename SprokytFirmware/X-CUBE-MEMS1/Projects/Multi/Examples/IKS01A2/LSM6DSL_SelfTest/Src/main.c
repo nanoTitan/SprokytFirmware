@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    Projects/Multi/Examples/IKS01A2/LSM6DSL_SelfTest/Src/main.c
  * @author  CL
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   Main program body
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -37,7 +37,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h> /* strlen */
-#include <stdio.h>  /* sprintf */
+#include <stdio.h>  /* snprintf */
 #include <math.h>   /* fabs */
 #include "main.h"
 
@@ -77,10 +77,10 @@ typedef enum
 
 #define UART_TRANSMIT_TIMEOUT  5000
 
-
+#define MAX_BUF_SIZE 256
 
 /* Private variables ---------------------------------------------------------*/
-static char dataOut[256];
+static char dataOut[MAX_BUF_SIZE];
 static void *LSM6DSL_X_0_handle = NULL;
 static void *LSM6DSL_G_0_handle = NULL;
 
@@ -130,11 +130,7 @@ int main(void)
   BSP_LED_Init(LED2);
 
   /* Initialize button */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_EXTI);
-#elif (defined (USE_STM32L1XX_NUCLEO))
-  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
-#endif
 
   /* Initialize UART */
   USARTConfig();
@@ -149,7 +145,7 @@ int main(void)
     Error_Handler(__func__);
   }
 
-  sprintf(dataOut, "\r\n------ LSM6DSL self-test DEMO ------\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\n------ LSM6DSL self-test DEMO ------\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   while (1)
@@ -175,7 +171,7 @@ int main(void)
 
       case STATUS_SLEEP:
 
-        sprintf(dataOut, "\r\nPress USER button to start the DEMO ...\r\n");
+        snprintf(dataOut, MAX_BUF_SIZE, "\r\nPress USER button to start the DEMO ...\r\n");
         HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
         /* Enter sleep mode */
@@ -267,7 +263,7 @@ static DrvStatusTypeDef LSM6DSL_X_SelfTest(void)
   SensorAxes_t data;
   uint8_t prev_reg_values[ST_REG_COUNT];
 
-  sprintf(dataOut, "\r\nStarting LSM6DSL accelerometer self-test ...\r\nKeep the device still!!!\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nStarting LSM6DSL accelerometer self-test ...\r\nKeep the device still!!!\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   HAL_Delay(INDICATION_DELAY);
@@ -377,41 +373,41 @@ static DrvStatusTypeDef LSM6DSL_X_SelfTest(void)
   }
 
   /* Print measured data */
-  sprintf(dataOut, "\r\nMeasured acceleration [mg]:\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nMeasured acceleration [mg]:\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "\r\n     AXIS     | PRE-SELFTEST |   SELFTEST\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\n     AXIS     | PRE-SELFTEST |   SELFTEST\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "--------------|--------------|--------------\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "--------------|--------------|--------------\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "       X      | %8ld     | %8ld\r\n", data_nost.AXIS_X, data_st.AXIS_X);
+  snprintf(dataOut, MAX_BUF_SIZE, "       X      | %8ld     | %8ld\r\n", data_nost.AXIS_X, data_st.AXIS_X);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "       Y      | %8ld     | %8ld\r\n", data_nost.AXIS_Y, data_st.AXIS_Y);
+  snprintf(dataOut, MAX_BUF_SIZE, "       Y      | %8ld     | %8ld\r\n", data_nost.AXIS_Y, data_st.AXIS_Y);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "       Z      | %8ld     | %8ld\r\n", data_nost.AXIS_Z, data_st.AXIS_Z);
+  snprintf(dataOut, MAX_BUF_SIZE, "       Z      | %8ld     | %8ld\r\n", data_nost.AXIS_Z, data_st.AXIS_Z);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   /* Print test limits and data */
-  sprintf(dataOut, "\r\nTest limits and data [mg]:\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nTest limits and data [mg]:\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "\r\n  LOW LIMIT   |  DIFFERENCE  |  HIGH LIMIT\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\n  LOW LIMIT   |  DIFFERENCE  |  HIGH LIMIT\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "--------------|--------------|--------------\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "--------------|--------------|--------------\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "%8d      | %8d     | %8d\r\n", X_LO_LIM, (int)fabsf(data_st.AXIS_X - data_nost.AXIS_X), X_HI_LIM);
+  snprintf(dataOut, MAX_BUF_SIZE, "%8d      | %8d     | %8d\r\n", X_LO_LIM, (int)fabsf(data_st.AXIS_X - data_nost.AXIS_X), X_HI_LIM);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "%8d      | %8d     | %8d\r\n", X_LO_LIM, (int)fabsf(data_st.AXIS_Y - data_nost.AXIS_Y), X_HI_LIM);
+  snprintf(dataOut, MAX_BUF_SIZE, "%8d      | %8d     | %8d\r\n", X_LO_LIM, (int)fabsf(data_st.AXIS_Y - data_nost.AXIS_Y), X_HI_LIM);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "%8d      | %8d     | %8d\r\n", X_LO_LIM, (int)fabsf(data_st.AXIS_Z - data_nost.AXIS_Z), X_HI_LIM);
+  snprintf(dataOut, MAX_BUF_SIZE, "%8d      | %8d     | %8d\r\n", X_LO_LIM, (int)fabsf(data_st.AXIS_Z - data_nost.AXIS_Z), X_HI_LIM);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   /* Print the test result */
   if (test_result == COMPONENT_OK)
   {
-    sprintf(dataOut, "\r\nLSM6DSL accelerometer self-test PASSED!\r\n");
+    snprintf(dataOut, MAX_BUF_SIZE, "\r\nLSM6DSL accelerometer self-test PASSED!\r\n");
   }
   else
   {
-    sprintf(dataOut, "\r\nLSM6DSL accelerometer self-test FAILED!\r\n");
+    snprintf(dataOut, MAX_BUF_SIZE, "\r\nLSM6DSL accelerometer self-test FAILED!\r\n");
   }
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
@@ -437,7 +433,7 @@ static DrvStatusTypeDef LSM6DSL_G_SelfTest(void)
   SensorAxes_t data;
   uint8_t prev_reg_values[ST_REG_COUNT];
 
-  sprintf(dataOut, "\r\nStarting LSM6DSL gyroscope self-test ...\r\nKeep the device still!!!\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nStarting LSM6DSL gyroscope self-test ...\r\nKeep the device still!!!\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   HAL_Delay(INDICATION_DELAY);
@@ -547,41 +543,41 @@ static DrvStatusTypeDef LSM6DSL_G_SelfTest(void)
   }
 
   /* Print measured data */
-  sprintf(dataOut, "\r\nMeasured angular velocity [mdps]:\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nMeasured angular velocity [mdps]:\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "\r\n     AXIS     | PRE-SELFTEST |   SELFTEST\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\n     AXIS     | PRE-SELFTEST |   SELFTEST\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "--------------|--------------|--------------\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "--------------|--------------|--------------\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "       X      |  %8ld    |  %8ld\r\n", data_nost.AXIS_X, data_st.AXIS_X);
+  snprintf(dataOut, MAX_BUF_SIZE, "       X      |  %8ld    |  %8ld\r\n", data_nost.AXIS_X, data_st.AXIS_X);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "       Y      |  %8ld    |  %8ld\r\n", data_nost.AXIS_Y, data_st.AXIS_Y);
+  snprintf(dataOut, MAX_BUF_SIZE, "       Y      |  %8ld    |  %8ld\r\n", data_nost.AXIS_Y, data_st.AXIS_Y);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "       Z      |  %8ld    |  %8ld\r\n", data_nost.AXIS_Z, data_st.AXIS_Z);
+  snprintf(dataOut, MAX_BUF_SIZE, "       Z      |  %8ld    |  %8ld\r\n", data_nost.AXIS_Z, data_st.AXIS_Z);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   /* Print test limits and data */
-  sprintf(dataOut, "\r\nTest limits and data [mdps]:\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nTest limits and data [mdps]:\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "\r\n  LOW LIMIT   |  DIFFERENCE  |  HIGH LIMIT\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\n  LOW LIMIT   |  DIFFERENCE  |  HIGH LIMIT\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "--------------|--------------|--------------\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "--------------|--------------|--------------\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "  %8d    |  %8d    |  %8d\r\n", G_LO_LIM, (int)fabsf(data_st.AXIS_X - data_nost.AXIS_X), G_HI_LIM);
+  snprintf(dataOut, MAX_BUF_SIZE, "  %8d    |  %8d    |  %8d\r\n", G_LO_LIM, (int)fabsf(data_st.AXIS_X - data_nost.AXIS_X), G_HI_LIM);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "  %8d    |  %8d    |  %8d\r\n", G_LO_LIM, (int)fabsf(data_st.AXIS_Y - data_nost.AXIS_Y), G_HI_LIM);
+  snprintf(dataOut, MAX_BUF_SIZE, "  %8d    |  %8d    |  %8d\r\n", G_LO_LIM, (int)fabsf(data_st.AXIS_Y - data_nost.AXIS_Y), G_HI_LIM);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
-  sprintf(dataOut, "  %8d    |  %8d    |  %8d\r\n", G_LO_LIM, (int)fabsf(data_st.AXIS_Z - data_nost.AXIS_Z), G_HI_LIM);
+  snprintf(dataOut, MAX_BUF_SIZE, "  %8d    |  %8d    |  %8d\r\n", G_LO_LIM, (int)fabsf(data_st.AXIS_Z - data_nost.AXIS_Z), G_HI_LIM);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   /* Print the test result */
   if (test_result == COMPONENT_OK)
   {
-    sprintf(dataOut, "\r\nLSM6DSL gyroscope self-test PASSED!\r\n");
+    snprintf(dataOut, MAX_BUF_SIZE, "\r\nLSM6DSL gyroscope self-test PASSED!\r\n");
   }
   else
   {
-    sprintf(dataOut, "\r\nLSM6DSL gyroscope self-test FAILED!\r\n");
+    snprintf(dataOut, MAX_BUF_SIZE, "\r\nLSM6DSL gyroscope self-test FAILED!\r\n");
   }
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
@@ -662,19 +658,9 @@ static DrvStatusTypeDef LSM6DSL_G_Get_Data(SensorAxes_t *data)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   /* User button pressed */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   if(GPIO_Pin == KEY_BUTTON_PIN)
-#elif (defined (USE_STM32L1XX_NUCLEO))
-  if(GPIO_Pin == USER_BUTTON_PIN)
-#endif
   {
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
     if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_RESET)
-#elif (defined (USE_STM32L1XX_NUCLEO))
-    if (BSP_PB_GetState(BUTTON_USER) == GPIO_PIN_RESET)
-#elif (defined (USE_STM32L0XX_NUCLEO))
-    if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_SET)
-#endif
     {
       /* _NOTE_: Pushing button creates interrupt/event and wakes up MCU from sleep mode */
       demo_status = STATUS_SELFTEST;
@@ -697,7 +683,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  */
 void Error_Handler(const char *function_name)
 {
-  sprintf(dataOut, "\r\nError in '%s' function.\r\n", function_name);
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nError in '%s' function.\r\n", function_name);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   while (1)

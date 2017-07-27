@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    Projects/Multi/Examples/IKS01A1/DataLog/Src/main.c
   * @author  CL
-  * @version V3.0.0
-  * @date    12-August-2016
+  * @version V4.0.0
+  * @date    1-May-2017
   * @brief   Main program body
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -40,7 +40,7 @@
 #include "main.h"
 #include "com.h"
 #include <string.h> // strlen
-#include <stdio.h>  // sprintf
+#include <stdio.h>  // snprintf
 #include <math.h>   // trunc
 #include "DemoSerial.h"
 
@@ -52,6 +52,14 @@
   * @{
   */
 
+typedef struct displayFloatToInt_s {
+  int8_t sign; /* 0 means positive, 1 means negative*/
+  uint32_t  out_int;
+  uint32_t  out_dec;
+} displayFloatToInt_t;
+
+#define MAX_BUF_SIZE 256
+
 /* Extern variables ----------------------------------------------------------*/
 extern volatile uint8_t DataLoggerActive; /*!< DataLogger Flag */
 extern UART_HandleTypeDef UartHandle;     /*!< UART HANDLE */
@@ -59,7 +67,7 @@ extern int use_LSI;
 int RTC_SYNCH_PREDIV;
 
 /* Private variables ---------------------------------------------------------*/
-char dataOut[256];                       /*!< DataOut Frame */
+char dataOut[MAX_BUF_SIZE];              /*!< DataOut Frame */
 RTC_HandleTypeDef RtcHandle;             /*!< RTC HANDLE */
 volatile uint32_t Sensors_Enabled = 0;   /*!< Enable Sensor Flag */
 volatile uint32_t DataTxPeriod = 1000;   /*!< TX DATA Period */
@@ -86,7 +94,7 @@ static void RTC_TimeStampConfig(void);
 
 static void initializeAllSensors(void);
 static void enableAllSensors(void);
-static void floatToInt(float in, int32_t *out_int, int32_t *out_dec, int32_t dec_prec);
+static void floatToInt(float in, displayFloatToInt_t *out_value, int32_t dec_prec);
 static void RTC_Handler(TMsg *Msg);
 static void Accelero_Sensor_Handler(TMsg *Msg);
 static void Gyro_Sensor_Handler(TMsg *Msg);
@@ -129,13 +137,7 @@ int main(void)
   BSP_LED_Off(LED2);
 
   /* Initialize Button */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_EXTI);
-#endif
-
-#if (defined (USE_STM32L1XX_NUCLEO))
-  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
-#endif
 
   /* Initialize UART */
   USARTConfig();
@@ -239,23 +241,24 @@ static void enableAllSensors(void)
 /**
  * @brief  Splits a float into two integer values.
  * @param  in the float value as input
- * @param  out_int the pointer to the integer part as output
- * @param  out_dec the pointer to the decimal part as output
+ * @param  out_value the pointer to the output integer structure
  * @param  dec_prec the decimal precision to be used
  * @retval None
  */
-static void floatToInt(float in, int32_t *out_int, int32_t *out_dec, int32_t dec_prec)
+static void floatToInt(float in, displayFloatToInt_t *out_value, int32_t dec_prec)
 {
-  *out_int = (int32_t)in;
   if(in >= 0.0f)
   {
-    in = in - (float)(*out_int);
-  }
-  else
+    out_value->sign = 0;
+  }else
   {
-    in = (float)(*out_int) - in;
+    out_value->sign = 1;
+    in = -in;
   }
-  *out_dec = (int32_t)trunc(in * pow(10, dec_prec));
+  
+  out_value->out_int = (int32_t)in;
+  in = in - (float)(out_value->out_int);
+  out_value->out_dec = (int32_t)trunc(in * pow(10, dec_prec));
 }
 
 /**
@@ -286,7 +289,7 @@ static void RTC_Handler(TMsg *Msg)
 
   else if(AutoInit)
   {
-    sprintf(dataOut, "TimeStamp: %d:%d:%d.%d\r\n", stimestructure.Hours, stimestructure.Minutes, stimestructure.Seconds,
+    snprintf(dataOut, MAX_BUF_SIZE, "TimeStamp: %d:%d:%d.%d\r\n", stimestructure.Hours, stimestructure.Minutes, stimestructure.Seconds,
             subSec);
 
     HAL_UART_Transmit(&UartHandle, (uint8_t*)dataOut, strlen(dataOut), 5000);
@@ -312,9 +315,9 @@ static void Accelero_Sensor_Handler(TMsg *Msg)
     {
       if(Sensors_Enabled & ACCELEROMETER_SENSOR)
       {
-        Serialize_s32(&Msg->Data[15], ACC_Value.AXIS_X, 4);
-        Serialize_s32(&Msg->Data[19], ACC_Value.AXIS_Y, 4);
-        Serialize_s32(&Msg->Data[23], ACC_Value.AXIS_Z, 4);
+        Serialize_s32(&Msg->Data[19], ACC_Value.AXIS_X, 4);
+        Serialize_s32(&Msg->Data[23], ACC_Value.AXIS_Y, 4);
+        Serialize_s32(&Msg->Data[27], ACC_Value.AXIS_Z, 4);
       }
     }
 
@@ -324,7 +327,7 @@ static void Accelero_Sensor_Handler(TMsg *Msg)
       data[1] = ACC_Value.AXIS_Y;
       data[2] = ACC_Value.AXIS_Z;
 
-      sprintf(dataOut, "ACC_X: %d, ACC_Y: %d, ACC_Z: %d\r\n", (int)data[0], (int)data[1], (int)data[2]);
+      snprintf(dataOut, MAX_BUF_SIZE, "ACC_X: %d, ACC_Y: %d, ACC_Z: %d\r\n", (int)data[0], (int)data[1], (int)data[2]);
       HAL_UART_Transmit(&UartHandle, (uint8_t*)dataOut, strlen(dataOut), 5000);
     }
   }
@@ -349,9 +352,9 @@ static void Gyro_Sensor_Handler(TMsg *Msg)
     {
       if(Sensors_Enabled & GYROSCOPE_SENSOR)
       {
-        Serialize_s32(&Msg->Data[27], GYR_Value.AXIS_X, 4);
-        Serialize_s32(&Msg->Data[31], GYR_Value.AXIS_Y, 4);
-        Serialize_s32(&Msg->Data[35], GYR_Value.AXIS_Z, 4);
+        Serialize_s32(&Msg->Data[31], GYR_Value.AXIS_X, 4);
+        Serialize_s32(&Msg->Data[35], GYR_Value.AXIS_Y, 4);
+        Serialize_s32(&Msg->Data[39], GYR_Value.AXIS_Z, 4);
       }
     }
 
@@ -361,7 +364,7 @@ static void Gyro_Sensor_Handler(TMsg *Msg)
       data[4] = GYR_Value.AXIS_Y;
       data[5] = GYR_Value.AXIS_Z;
 
-      sprintf(dataOut, "GYR_X: %d, GYR_Y: %d, GYR_Z: %d\r\n", (int)data[3], (int)data[4], (int)data[5]);
+      snprintf(dataOut, MAX_BUF_SIZE, "GYR_X: %d, GYR_Y: %d, GYR_Z: %d\r\n", (int)data[3], (int)data[4], (int)data[5]);
       HAL_UART_Transmit(&UartHandle, (uint8_t*)dataOut, strlen(dataOut), 5000);
     }
   }
@@ -386,9 +389,9 @@ static void Magneto_Sensor_Handler(TMsg *Msg)
     {
       if(Sensors_Enabled & MAGNETIC_SENSOR)
       {
-        Serialize_s32(&Msg->Data[39], (int32_t)MAG_Value.AXIS_X, 4);
-        Serialize_s32(&Msg->Data[43], (int32_t)MAG_Value.AXIS_Y, 4);
-        Serialize_s32(&Msg->Data[47], (int32_t)MAG_Value.AXIS_Z, 4);
+        Serialize_s32(&Msg->Data[43], (int32_t)MAG_Value.AXIS_X, 4);
+        Serialize_s32(&Msg->Data[47], (int32_t)MAG_Value.AXIS_Y, 4);
+        Serialize_s32(&Msg->Data[51], (int32_t)MAG_Value.AXIS_Z, 4);
       }
     }
 
@@ -398,7 +401,7 @@ static void Magneto_Sensor_Handler(TMsg *Msg)
       data[1] = MAG_Value.AXIS_Y;
       data[2] = MAG_Value.AXIS_Z;
 
-      sprintf(dataOut, "MAG_X: %d, MAG_Y: %d, MAG_Z: %d\r\n", (int)data[0], (int)data[1], (int)data[2]);
+      snprintf(dataOut, MAX_BUF_SIZE, "MAG_X: %d, MAG_Y: %d, MAG_Z: %d\r\n", (int)data[0], (int)data[1], (int)data[2]);
       HAL_UART_Transmit(&UartHandle, (uint8_t*)dataOut, strlen(dataOut), 5000);
     }
   }
@@ -412,26 +415,25 @@ static void Magneto_Sensor_Handler(TMsg *Msg)
  */
 static void Pressure_Sensor_Handler(TMsg *Msg)
 {
-  int32_t d1, d2;
   uint8_t status = 0;
 
   if(BSP_PRESSURE_IsInitialized(PRESSURE_handle, &status) == COMPONENT_OK && status == 1)
   {
     BSP_PRESSURE_Get_Press(PRESSURE_handle, &PRESSURE_Value);
-    floatToInt(PRESSURE_Value, &d1, &d2, 2);
 
     if ( DataLoggerActive )
     {
       if(Sensors_Enabled & PRESSURE_SENSOR)
       {
-        Serialize(&Msg->Data[7], d1, 2);
-        Serialize(&Msg->Data[9], d2, 2);
+        memcpy(&Msg->Data[7], (void *)&PRESSURE_Value, sizeof(float));
       }
     }
 
     else if ( AutoInit )
     {
-      sprintf(dataOut, "PRESS: %d.%02d\r\n", (int)d1, (int)d2);
+      displayFloatToInt_t out_value;
+      floatToInt(PRESSURE_Value, &out_value, 2);
+      snprintf(dataOut, MAX_BUF_SIZE, "PRESS: %d.%02d\r\n", (int)out_value.out_int, (int)out_value.out_dec);
       HAL_UART_Transmit(&UartHandle, (uint8_t*)dataOut, strlen(dataOut), 5000);
     }
   }
@@ -445,26 +447,25 @@ static void Pressure_Sensor_Handler(TMsg *Msg)
  */
 static void Humidity_Sensor_Handler(TMsg *Msg)
 {
-  int32_t d1, d2;
   uint8_t status = 0;
 
   if(BSP_HUMIDITY_IsInitialized(HUMIDITY_handle, &status) == COMPONENT_OK && status == 1)
   {
     BSP_HUMIDITY_Get_Hum(HUMIDITY_handle, &HUMIDITY_Value);
-    floatToInt(HUMIDITY_Value, &d1, &d2, 2);
 
     if ( DataLoggerActive )
     {
       if(Sensors_Enabled & HUMIDITY_SENSOR)
       {
-        Serialize(&Msg->Data[13], d1, 1);
-        Serialize(&Msg->Data[14], d2, 1);
+        memcpy(&Msg->Data[15], (void *)&HUMIDITY_Value, sizeof(float));
       }
     }
 
     else if ( AutoInit )
     {
-      sprintf(dataOut, "HUM: %d.%02d\r\n", (int)d1, (int)d2);
+      displayFloatToInt_t out_value;
+      floatToInt(HUMIDITY_Value, &out_value, 2);
+      snprintf(dataOut, MAX_BUF_SIZE, "HUM: %d.%02d\r\n", (int)out_value.out_int, (int)out_value.out_dec);
       HAL_UART_Transmit(&UartHandle, (uint8_t*)dataOut, strlen(dataOut), 5000);
     }
   }
@@ -478,26 +479,25 @@ static void Humidity_Sensor_Handler(TMsg *Msg)
  */
 static void Temperature_Sensor_Handler(TMsg *Msg)
 {
-  int32_t d3, d4;
   uint8_t status = 0;
 
   if(BSP_TEMPERATURE_IsInitialized(TEMPERATURE_handle, &status) == COMPONENT_OK && status == 1)
   {
     BSP_TEMPERATURE_Get_Temp(TEMPERATURE_handle, &TEMPERATURE_Value);
-    floatToInt(TEMPERATURE_Value, &d3, &d4, 2);
 
     if ( DataLoggerActive )
     {
       if(Sensors_Enabled & TEMPERATURE_SENSOR)
       {
-        Serialize(&Msg->Data[11], d3, 1);
-        Serialize(&Msg->Data[12], d4, 1);
+        memcpy(&Msg->Data[11], (void *)&TEMPERATURE_Value, sizeof(float));
       }
     }
 
     else if ( AutoInit )
     {
-      sprintf(dataOut, "TEMP: %d.%02d\r\n", (int)d3, (int)d4);
+      displayFloatToInt_t out_value;
+      floatToInt(TEMPERATURE_Value, &out_value, 2);
+      snprintf(dataOut, MAX_BUF_SIZE, "TEMP: %c%d.%02d\r\n", ((out_value.sign) ? '-' : '+'), (int)out_value.out_int, (int)out_value.out_dec);
       HAL_UART_Transmit(&UartHandle, (uint8_t*)dataOut, strlen(dataOut), 5000);
     }
   }
@@ -605,11 +605,7 @@ static void RTC_TimeStampConfig(void)
  */
 void HAL_GPIO_EXTI_Callback( uint16_t GPIO_Pin )
 {
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   if(GPIO_Pin == KEY_BUTTON_PIN)
-#elif (defined (USE_STM32L1XX_NUCLEO))
-  if(GPIO_Pin == USER_BUTTON_PIN)
-#endif
   {
     /* Manage software debouncing*/
     int doOperation = 0;

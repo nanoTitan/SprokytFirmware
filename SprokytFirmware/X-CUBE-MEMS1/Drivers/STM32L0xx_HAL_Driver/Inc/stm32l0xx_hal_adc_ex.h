@@ -2,10 +2,9 @@
   ******************************************************************************
   * @file    stm32l0xx_hal_adc_ex.h
   * @author  MCD Application Team
-  * @version V1.5.0
-  * @date    8-January-2016
-  * @brief  This file contains all the functions prototypes for the ADC firmware 
-  *          library.
+  * @version V1.8.0
+  * @date    25-November-2016
+  * @brief   Header file of ADC HAL extended module.
   ******************************************************************************
   * @attention
   *
@@ -37,8 +36,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32L0xx_ADC_EX_H
-#define __STM32L0xx_ADC_EX_H
+#ifndef __STM32L0xx_HAL_ADC_EX_H
+#define __STM32L0xx_HAL_ADC_EX_H
 
 #ifdef __cplusplus
  extern "C" {
@@ -46,34 +45,34 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32l0xx_hal_def.h"
-  
+
 /** @addtogroup STM32L0xx_HAL_Driver
   * @{
   */
 
-/** @defgroup ADCEx ADCEx
-  * @brief ADC driver modules
+/** @addtogroup ADCEx
   * @{
   */ 
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-/** @defgroup ADCEx_Exported_Constants ADCEx Exported Constants
+
+/** @defgroup ADCEx_Exported_Constants ADC Extended Exported Constants
   * @{
   */
 
 /** @defgroup ADCEx_Channel_Mode ADC Single Ended
   * @{
   */
-#define ADC_SINGLE_ENDED                        (uint32_t)0x00000000   /* dummy value */
+#define ADC_SINGLE_ENDED                        (uint32_t)0x00000000U   /* dummy value */
 /**
   * @}
   */
 
-/** @defgroup ADC_External_trigger_Source ADC External Trigger Source
+/** @defgroup ADC_regular_external_trigger_source ADC External Trigger Source
   * @{
   */
-#define ADC_EXTERNALTRIGCONV_T6_TRGO            ((uint32_t)0x00000000)
+#define ADC_EXTERNALTRIGCONV_T6_TRGO            ((uint32_t)0x00000000U)
 #define ADC_EXTERNALTRIGCONV_T21_CC2            (ADC_CFGR1_EXTSEL_0)
 #define ADC_EXTERNALTRIGCONV_T2_TRGO            (ADC_CFGR1_EXTSEL_1)
 #define ADC_EXTERNALTRIGCONV_T2_CC4             (ADC_CFGR1_EXTSEL_1 | ADC_CFGR1_EXTSEL_0)
@@ -108,7 +107,7 @@
 /** @defgroup ADC_SYSCFG_internal_paths_flags_definition ADC SYSCFG internal paths Flags Definition
   * @{
   */
-#define ADC_FLAG_SENSOR         SYSCFG_CFGR3_SENSOR_ADC_RDYF
+#define ADC_FLAG_SENSOR         SYSCFG_CFGR3_VREFINT_RDYF
 #define ADC_FLAG_VREFINT        SYSCFG_VREFINT_ADC_RDYF
 /**
   * @}
@@ -130,11 +129,11 @@
   * @{
   */ 
 /**
-  * @brief Calibration factor lenght verification (7 bits maximum)
+  * @brief Calibration factor length verification (7 bits maximum)
   * @param _Calibration_Factor_: Calibration factor value
   * @retval None
   */
-#define IS_ADC_CALFACT(_Calibration_Factor_) ((_Calibration_Factor_) <= ((uint32_t)0x7F))
+#define IS_ADC_CALFACT(_Calibration_Factor_) ((_Calibration_Factor_) <= ((uint32_t)0x7FU))
 /**
   * @}
   */ 
@@ -185,18 +184,22 @@
   * @}
   */
 
-/** @defgroup ADCEx_Exported_Functions ADCEx Exported Functions
+/* Exported functions --------------------------------------------------------*/
+/** @addtogroup ADCEx_Exported_Functions
   * @{
   */
 
-/** @defgroup ADCEx_Exported_Functions_Group3  Peripheral Control functions
+/** @addtogroup ADCEx_Exported_Functions_Group1
   * @{
   */
-/* Exported functions --------------------------------------------------------*/  
-/* Peripheral Control functions ***********************************************/
+/* IO operation functions *****************************************************/
+
+/* ADC calibration */
 HAL_StatusTypeDef   HAL_ADCEx_Calibration_Start(ADC_HandleTypeDef* hadc, uint32_t SingleDiff);
 uint32_t            HAL_ADCEx_Calibration_GetValue(ADC_HandleTypeDef* hadc, uint32_t SingleDiff);
 HAL_StatusTypeDef   HAL_ADCEx_Calibration_SetValue(ADC_HandleTypeDef* hadc, uint32_t SingleDiff, uint32_t CalibrationFactor);
+
+/* ADC VrefInt and Temperature sensor functions specific to this STM32 serie */
 HAL_StatusTypeDef   HAL_ADCEx_EnableVREFINT(void);
 void                HAL_ADCEx_DisableVREFINT(void);
 HAL_StatusTypeDef   HAL_ADCEx_EnableVREFINTTempSensor(void);
@@ -208,6 +211,7 @@ void                HAL_ADCEx_DisableVREFINTTempSensor(void);
 /**
   * @}
   */
+
 
 /**
   * @}
@@ -221,8 +225,7 @@ void                HAL_ADCEx_DisableVREFINTTempSensor(void);
 }
 #endif
 
-#endif /*__STM32L0xx_ADC_H */
+#endif /*__STM32L0xx_HAL_ADC_EX_H */
 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-

@@ -1,20 +1,14 @@
 /**
-  *******************************************************************************
-  * @file    Projects/Multi/Applications/DataLogFusion/Inc/serial_protocol.h
-  * @author  CL
-  * @version V1.6.0
-  * @date    8-November-2016
-  * @brief   header for serial_protocol.c.
+  ******************************************************************************
+  * @file        serial_protocol.h
+  * @author      MEMS Application Team
+  * @version     V2.0.0
+  * @date        01-May-2017
+  * @brief   	 Header for serial_protocol.c
   *******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -38,7 +32,7 @@
   * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
-  ********************************************************************************
+  ******************************************************************************
   */
 
 /* Define to prevent recursive inclusion ------------------------------------ */
@@ -47,13 +41,23 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
+/** @addtogroup MOTION_FX_Applications
+  * @{
+  */
+
+/** @defgroup DATALOG_FUSION
+  * @{
+  */
+
+/** @defgroup Serial_Protocol Serial_Protocol
+  * @{
+  */
 
 /* Exported defines --------------------------------------------------------*/
 
-#define TMsg_EOF                            0xF0
-#define TMsg_BS                             0xF1
-#define TMsg_BS_EOF                         0xF2
-
+#define TMsg_EOF                0xF0
+#define TMsg_BS                 0xF1
+#define TMsg_BS_EOF             0xF2
 
 #ifdef USE_USB_OTG_HS
 #define TMsg_MaxLen             512
@@ -64,18 +68,17 @@
 /* Exported types ------------------------------------------------------------*/
 
 /**
- * @brief  Serial message structure definition
- */
+  * @brief  Serial message structure definition
+  */
 typedef struct
 {
   uint32_t Len;
   uint8_t Data[TMsg_MaxLen];
 } TMsg;
 
+
 /* Exported macro ------------------------------------------------------------*/
-
 /* Private functions ---------------------------------------------------------*/
-
 /* Exported functions ------------------------------------------------------- */
 
 int ByteStuffCopyByte(uint8_t *Dest, uint8_t Source);
@@ -89,7 +92,20 @@ uint32_t Deserialize(uint8_t *Source, uint32_t Len);
 int32_t Deserialize_s32(uint8_t *Source, uint32_t Len);
 void Serialize(uint8_t *Dest, uint32_t Source, uint32_t Len);
 void Serialize_s32(uint8_t *Dest, int32_t Source, uint32_t Len);
+void FloatToArray(uint8_t *Dest, float data);
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
 
 #endif /* __SERIAL_PROTOCOL__ */
 
-/******************* (C) COPYRIGHT 2007 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

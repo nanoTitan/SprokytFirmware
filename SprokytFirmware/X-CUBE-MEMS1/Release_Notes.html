@@ -495,7 +495,7 @@ ul
 <tr style="">
 <td style="padding: 1.5pt;">
 <h1 style="margin-bottom: 0.25in; text-align: center;" align="center"><span style="font-size: 20pt; font-family: Verdana; color: rgb(51, 102, 255);">Release Note for X-CUBE-MEMS1 Software for STM32, Expansion for STM32Cube</span><span style="font-size: 20pt; font-family: Verdana;"><o:p></o:p></span></h1>
-<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-size: 10pt; font-family: Arial; color: black;">Copyright&nbsp;2016
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-size: 10pt; font-family: Arial; color: black;">Copyright&nbsp;2017
 STMicroelectronics</span><span style="color: black;"><u1:p></u1:p><o:p></o:p></span></p>
 <p class="MsoNormal" style="text-align: center;" align="center"><span style="font-size: 10pt; font-family: Arial; color: black;"><img style="border: 0px solid ; width: 104px; height: 77px;" alt="" id="_x0000_i1025" src="_htmresc/st_logo.png"></span><span style="font-size: 10pt;"><o:p></o:p></span></p>
 </td>
@@ -514,17 +514,21 @@ X-CUBE-MEMS1 software features:</span></div>
 <ul style="margin-top: 0cm;" type="square">
 <ul>
 <li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">
-Complete software to build applications using Temperature and Humidity sensors (HTS221), Pressure sensors (LPS25H, LPS25HB and LPS22HB) and Motion sensors (LIS3MDL, LSM6DS0, LSM6DS3, LSM6DSL and LSM303AGR)</span></li>
+Complete software to build applications using temperature and humidity sensors (HTS221 for both X-NUCLEO-IKS01A1 and X-NUCLEO-IKS01A2), pressure sensor (LPS25HB for X-NUCLEO-IKS01A1 and LPS22HB for X-NUCLEO-IKS01A2) and motion sensors (LIS3MDL and LSM6DS0 for X-NUCLEO-IKS01A1 and LSM303AGR and LSM6DSL for X-NUCLEO-IKS01A2)</span></li>
 <li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">
-Easy portability across different MCU families thanks to STM32Cube</span></li>
+Several examples to show the innovative hardware features of the inertial and environmental sensors</span></li>
 <li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">
 Sample application to transmit real time sensors data to a PC</span></li>
 <li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">
-PC-based application (Windows) to log sensors data</span></li>
+Compatible with the Unicleo-GUI graphical user interface to display sensors data and configure outputs</span></li>
 <li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">
-Free user-friendly license terms</span></li>
+Sample implementation available on X-NUCLEO-IKS01A1 or X-NUCLEO-IKS01A2 boards connected to a NUCLEO-F401RE, NUCLEO-L152RE, NUCLEO-L476RG or NUCLEO-L053R8 development board</span></li>
 <li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">
-Examples implementation available on board X-NUCLEO-IKS01A1 or X-NUCLEO-IKS01A2 plugged on top of one NUCLEO-F401 or NUCLEO-L053 or NUCLEO-L152 or NUCLEO-L476</span></li>
+Advanced motion libraries with sample applications available only for NUCLEO-F401RE and NUCLEO-L476RG</span></li>
+<li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">
+Easy portability across different MCU families, thanks to STM32Cube</span></li>
+<li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">
+Free, user-friendly license terms</span></li>
 </ul>
 </ul>
 <div style="margin-left: 40px;"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;"></span></div>
@@ -550,6 +554,248 @@ STM32 Nucleo expansion boards: <a href="http://www.st.com/x-nucleo">www.st.com/x
 
 <h2 style="background: rgb(51, 102, 255) none repeat scroll 0% 50%; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial;"><span style="font-size: 12pt; color: white;"><a name="History"></a>Update
 History</span></h2>
+
+
+<h3 style="background: rgb(51, 102, 255) none repeat scroll 0% 50%; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; margin-right: 500pt; width: 200px;"><span style="font-size: 10pt; font-family: Arial; color: white;">V4.0.0
+/ 1-May-2017</span></h3><b style=""><u><span style="font-size: 10pt; font-family: Verdana; color: black;">Main Changes</span></u></b><span style="font-size: 10pt; font-family: Verdana;">
+</span>
+<ul style="margin-top: 0cm;" type="square">
+<li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="color: rgb(0, 0, 0); font-family: Verdana,sans-serif; font-size: 13px; font-style: normal; font-variant: normal; font-weight: bold; letter-spacing: normal; line-height: normal; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px; display: inline ! important; float: none;">Add motion libraries and relative sample applications</span></li>
+<li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="color: rgb(0, 0, 0); font-family: Verdana,sans-serif; font-size: 13px; font-style: normal; font-variant: normal; font-weight: bold; letter-spacing: normal; line-height: normal; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px; display: inline ! important; float: none;">Add support to hardware multiple events for LSM6DS3 and LSM6DSL</span></li>
+<li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="color: rgb(0, 0, 0); font-family: Verdana,sans-serif; font-size: 13px; font-style: normal; font-variant: normal; font-weight: bold; letter-spacing: normal; line-height: normal; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px; display: inline ! important; float: none;">Update Cube HAL drivers for all platforms</span></li>
+</ul>
+
+<b style=""><u><span style="font-size: 10pt; font-family: Verdana; color: black;"><br>Contents<o:p></o:p></span></u></b>
+<span style="font-size: 10pt; font-family: Verdana;">
+</span>
+<ul style="margin-top: 0cm;" type="square">
+<li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: Verdana;">STM32Cube HAL and Middlewares drivers</span></li>
+<ul>
+<li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: Verdana;">STM32F4xx drivers aligned to STM32CubeF4 V1.15.0</span><span style="font-size: 10pt; font-family: Verdana;"></span></li>
+<li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: Verdana;">STM32L0xx drivers aligned to STM32CubeL0 V1.8.0</span><span style="font-size: 10pt; font-family: Verdana;"></span></li>				
+<li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: Verdana;">STM32L1xx drivers aligned to STM32CubeL1 V1.7.0</span><span style="font-size: 10pt; font-family: Verdana;"></span></li>	  
+<li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;"><span style="font-size: 10pt; font-family: Verdana;">STM32L4xx drivers aligned to STM32CubeL4 V1.7.0</span><span style="font-size: 10pt; font-family: Verdana;"></span></li></ul>
+</ul>
+</ul>
+<ul style="margin-top: 0cm;" type="square">
+<li class="MsoNormal" style="color: black; margin-top: 4.5pt; margin-bottom: 4.5pt;">
+<span style="font-size: 10pt; font-family: Verdana;">Drivers</span>
+</li>
+<ul>
+<li class="MsoNormal" style="margin-top: 4.5pt; margin-bottom: 4.5pt; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;"></span>
+<span style="font-size: 10pt; font-family: Verdana;">BSP X-NUCLEO-IKS01A1 V4.0.0 (<a href="Drivers/BSP/X_NUCLEO_IKS01A1/Release_Notes.html">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin-top: 4.5pt; margin-bottom: 4.5pt; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;"></span>
+<span style="font-size: 10pt; font-family: Verdana;">BSP X-NUCLEO-IKS01A2 V4.0.0 (<a href="Drivers/BSP/X_NUCLEO_IKS01A2/Release_Notes.html">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">BSP Common V4.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Drivers/BSP/Components/Common/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">BSP Component HTS221 V4.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Drivers/BSP/Components/hts221/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">BSP Component LIS3MDL V4.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Drivers/BSP/Components/lis3mdl/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">BSP Component LPS22HB V4.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Drivers/BSP/Components/lps22hb/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">BSP Component LPS25HB V4.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Drivers/BSP/Components/lps25hb/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">BSP Component LSM6DS0 V4.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Drivers/BSP/Components/lsm6ds0/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">BSP Component LSM6DS3 V4.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Drivers/BSP/Components/lsm6ds3/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">BSP Component LSM6DSL V4.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Drivers/BSP/Components/lsm6dsl/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">BSP Component LSM303AGR V4.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Drivers/BSP/Components/lsm303agr/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+</ul>
+</ul>
+<span style="font-size: 10pt; font-family: Verdana;"><span style="text-decoration: underline;"><span style="font-weight: bold;"></span></span></span>
+<ul style="margin-bottom: 0in; color: rgb(0, 0, 0); font-family: 'Times New Roman'; font-size: medium; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px; margin-top: 0cm;" type="square">
+
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">Middlewares</span>
+</li>
+<ul style="margin-bottom: 0in;">
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionAC V2.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionAC_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionAR V2.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionAR_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionAW V2.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionAW_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionCP V2.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionCP_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionEC V1.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionEC_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionFA V1.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionFA_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionFX V2.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionFX_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionGC V2.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionGC_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionGR V2.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionGR_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionID V2.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionID_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionMC V2.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionMC_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionPE V2.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionPE_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">MotionPM V2.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Middlewares/ST/STM32_MotionPM_Library/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+</ul>
+
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">Projects</span>
+</li>
+<ul style="margin-bottom: 0in;">
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">X-CUBE-MEMS1 Applications for X-NUCLEO-IKS01A1 and X-NUCLEO-IKS01A2 V2.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Projects/Multi/Applications/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">X-CUBE-MEMS1 Examples for X-NUCLEO-IKS01A1 V4.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Projects/Multi/Examples/IKS01A1/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">X-CUBE-MEMS1 Examples for X-NUCLEO-IKS01A2 V4.0.0</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Projects/Multi/Examples/IKS01A2/Release_Notes.html" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+</ul>
+
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">Utilities</span>
+</li>
+<ul style="margin-bottom: 0in;">
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;">
+<span style="font-size: 10pt; font-family: Verdana;">Unicleo-GUI</span>
+<span style="font-size: 10pt; font-family: Verdana;">
+<span class="Apple-converted-space">&nbsp;</span>(<a href="Utilities/PC_software/Unicleo-GUI.htm" style="color: blue; text-decoration: underline;">release notes</a>)
+</span>
+</li>
+</ul>
+</ul>
+<p class="MsoNormal" style="margin: 4.5pt 0cm 4.5pt 23px; width: 868px;"></p>
+<b style=""><u><span style="font-size: 10pt; font-family: Verdana; color: black;">Development
+Toolchains and Compilers<o:p></o:p></span></u></b>
+
+<ul style="margin-top: 0cm;" type="square"><li class="MsoNormal" style="margin-top: 4.5pt; margin-bottom: 4.5pt; color: black;"><span style="font-size: 10pt; font-family: Verdana;">IAR Embedded
+Workbench for ARM (EWARM) toolchain V7.80.4 + ST-LINK</span></li><li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;"><span style="font-size: 10pt; font-family: Verdana;">RealView Microcontroller Development Kit (MDK-ARM) toolchain V5.22</span><span style="font-size: 10pt; font-family: Verdana;"><span class="Apple-converted-space"> </span>+&nbsp;</span><span style="font-size: 10pt; font-family: Verdana;">ST-LINK</span></li>
+<li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;"><span style="font-size: 10pt; font-family: Verdana;">System Workbench for STM32 V1.14.0.20170306</span><span style="font-size: 10pt; font-family: Verdana;"><span class="Apple-converted-space"> </span>+&nbsp;</span><span style="font-size: 10pt; font-family: Verdana;">ST-LINK</span></li></ul>
+<br>
+<b><u><span style="font-size: 10pt; color: black; font-family: Verdana;">Supported
+Devices and EVAL boards<o:p></o:p></span></u></b>
+<ul style="margin-top: 0cm;" type="square">
+<li class="MsoNormal" style="margin-top: 4.5pt; margin-bottom: 4.5pt; color: black;"><span style="font-size: 10pt; font-family: Verdana;">STM32F401RE, STM32L053R8, STM32L152RE and STM32L476RG devices</span></li>
+<li class="MsoNormal" style="margin-top: 4.5pt; margin-bottom: 4.5pt; color: black;"><span style="font-size: 10pt; font-family: Verdana;">NUCLEO-F401RE Board RevC</span></li>
+<li class="MsoNormal" style="margin-top: 4.5pt; margin-bottom: 4.5pt; color: black;"><span style="font-size: 10pt; font-family: Verdana;">NUCLEO-L053R8 Board RevC</span></li>
+<li class="MsoNormal" style="margin-top: 4.5pt; margin-bottom: 4.5pt; color: black;"><span style="font-size: 10pt; font-family: Verdana;">NUCLEO-L152RE Board RevC</span></li>
+<li class="MsoNormal" style="margin-top: 4.5pt; margin-bottom: 4.5pt; color: black;"><span style="font-size: 10pt; font-family: Verdana;">NUCLEO-L476RG Board RevC</span></li>
+<li class="MsoNormal" style="margin-top: 4.5pt; margin-bottom: 4.5pt; color: black;"><span style="font-size: 10pt; font-family: Verdana;">X-NUCLEO-IKS01A1 Board</span></li>
+<li class="MsoNormal" style="margin-top: 4.5pt; margin-bottom: 4.5pt; color: black;"><span style="font-size: 10pt; font-family: Verdana;">X-NUCLEO-IKS01A2 Board</span></li>
+</ul>
+
+<br>
+<b><u><span style="font-size: 10pt; color: black; font-family: Verdana;">Known
+Limitations <br>
+</span></u></b>
+<ul style="margin-top: 0cm;" type="square"><li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;"><span style="font-size: 10pt; font-family: Verdana,sans-serif;">NA</span></li></ul><span style="font-size: 10pt; font-family: Verdana;"></span>
 
 
 <h3 style="background: rgb(51, 102, 255) none repeat scroll 0% 50%; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; margin-right: 500pt; width: 200px;"><span style="font-size: 10pt; font-family: Arial; color: white;">V3.0.0
@@ -1672,29 +1918,24 @@ Limitations <br>
 
 <ul style="margin-top: 0cm;" type="square"><li class="MsoNormal" style="margin: 4.5pt 0in; font-size: 12pt; font-family: 'Times New Roman'; color: black;"><span style="font-size: 10pt; font-family: Verdana,sans-serif;">Data logging application (Sensors_DataLog) not supported on NUCLEO-L053</span></li></ul><span style="font-size: 10pt; font-family: Verdana;"></span>
 <h2 style="background: rgb(51, 102, 255) none repeat scroll 0% 50%; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial;"><span style="font-size: 12pt; color: white;"><a name="License"></a>License<o:p></o:p></span></h2>
-<p class="MsoNormal"><font size="-1"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">Licensed
-under MCD-ST Liberty SW License Agreement V2, (the "License"); You may
+<p class="MsoNormal"><font size="-1"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">Licensed under Software License Agreement SLA0077, (the "License"). You may
 not use this&nbsp;</span><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">package</span><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">
 except in compliance with the License. You may obtain a copy of the
 License at:<br>
 <br>
 </span></font></p>
-<div style="text-align: center;"><font size="-1"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a target="_blank" href="http://www.st.com/software_license_agreement_liberty_v2">http://www.st.com/software_license_agreement_liberty_v2</a></span><br>
-<span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;"></span></font></div>
-<font size="-1"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;"><br>
-Unless
-required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS, <br>
-WITHOUT
-WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See
-the License for the specific language governing permissions and
-limitations under the License.</span></font>
-<div class="MsoNormal" style="text-align: center;" align="center"><span style="color: black;">
-<hr align="center" size="2" width="100%"></span></div>
-<p class="MsoNormal" style="margin: 4.5pt 0in 4.5pt 0.25in; text-align: center;" align="center"><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">For
-complete documentation on </span><span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;;">STM32<span style="color: black;"> Microcontrollers visit </span><u><span style="color: blue;"><a href="http://www.st.com/internet/mcu/family/141.jsp" target="_blank">www.st.com/STM32</a></span></u></span><u><span style="font-size: 10pt; font-family: Verdana; color: black;"><br>
-</span></u><u><span style="font-size: 10pt; font-family: Verdana; color: blue;"></span></u><span style="color: black;"><o:p></o:p></span></p>
+<div style="text-align: center;"><font size="-1">
+<span style="font-size: 10pt; font-family: &quot;Verdana&quot;,&quot;sans-serif&quot;; color: black;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a target="_blank" href="http://www.st.com/content/st_com/en/search.html#q=SLA0077-t=keywords-page=1">SLA0077: SOFTWARE LICENSE AGREEMENT</a>
+</span>
+<br>
+<br>
+</font></div>
+
+<h2 style="background: rgb(51, 102, 255) none repeat scroll 0% 50%; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; text-align:center;">
+<span style="font-size: 10pt; color: white;">
+For complete documentation on STM32 ODE visit <a href="http://www.st.com/stm32ode" target="_blank"; style="font-size: 10pt; color: white;">www.st.com/stm32ode</a><o:p></o:p></span>
+</h2>
 </td>
 </tr>
 </tbody>

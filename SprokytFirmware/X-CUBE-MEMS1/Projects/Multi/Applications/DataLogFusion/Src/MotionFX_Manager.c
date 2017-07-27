@@ -1,20 +1,14 @@
 /**
-  *******************************************************************************
-  * @file    Projects/Multi/Applications/DataLogFusion/Src/MotionFX_Manager.c
-  * @author  CL
-  * @version V1.6.0
-  * @date    8-November-2016
-  * @brief   This file includes sensor fusion interface functions
-  *******************************************************************************
+  ******************************************************************************
+  * @file        MotionFX_Manager.c
+  * @author      MEMS Application Team
+  * @version     V2.0.0
+  * @date        01-May-2017
+  * @brief       This file includes sensor fusion interface functions
+  ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -38,78 +32,146 @@
   * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
-  * ******************************************************************************
+  ******************************************************************************
   */
 
 /* Includes ------------------------------------------------------------------*/
 #include "MotionFX_Manager.h"
-#include "osx_license.h"
 
-/** @addtogroup OSX_MOTION_FX_Applications
+/** @addtogroup MOTION_FX_Applications
   * @{
   */
 
-/** @addtogroup DATALOGFUSION
+/** @addtogroup DATALOG_FUSION
   * @{
   */
+
+/** @addtogroup FX_Driver FX_Driver
+  * @{
+  */
+
+/* Extern variables ----------------------------------------------------------*/
 
 /* Private defines -----------------------------------------------------------*/
-#define FROM_MG_TO_G    0.001f
-#define FROM_G_TO_MG    1000.0f
-#define FROM_MDPS_TO_DPS    0.001f
-#define FROM_DPS_TO_MDPS    1000.0f
-#define FROM_MGAUSS_TO_UT50 (0.1f/50.0f)
-#define SAMPLETODISCARD 15
-#define MOTIONFX_ENGINE_DELTATIME 0.01f
-#define GBIAS_ACC_TH_SC_6X (2.0f*0.000765f)
-#define GBIAS_GYRO_TH_SC_6X (2.0f*0.002f)
-#define GBIAS_MAG_TH_SC_6X (2.0f*0.001500f)
-#define GBIAS_ACC_TH_SC_9X (2.0f*0.000765f)
-#define GBIAS_GYRO_TH_SC_9X (2.0f*0.002f)
-#define GBIAS_MAG_TH_SC_9X (2.0f*0.001500f)
-
-/* Private types -------------------------------------------------------------*/
-/* Extern variables ----------------------------------------------------------*/
-extern SensorAxes_t ACC_Value;
-extern SensorAxes_t GYR_Value;
-extern SensorAxes_t MAG_Value;
-extern void *GYRO_handle;
-extern osxMFX_calibFactor magOffset;
+#define SAMPLETODISCARD                 15
+#define GBIAS_ACC_TH_SC_6X              (2.0f*0.000765f)
+#define GBIAS_GYRO_TH_SC_6X             (2.0f*0.002f)
+#define GBIAS_MAG_TH_SC_6X              (2.0f*0.001500f)
+#define GBIAS_ACC_TH_SC_9X              (2.0f*0.000765f)
+#define GBIAS_GYRO_TH_SC_9X             (2.0f*0.002f)
+#define GBIAS_MAG_TH_SC_9X              (2.0f*0.001500f)
 
 /* Private variables ---------------------------------------------------------*/
-osxMFX_knobs iKnobs;
-osxMFX_knobs* ipKnobs;
-volatile osxMFX_output iDataOUT;
-volatile osxMFX_input iDataIN;
-float go[3];
+MFX_knobs_t iKnobs;
+MFX_knobs_t *ipKnobs = &iKnobs;
+
 volatile int sampleToDiscard = SAMPLETODISCARD;
-float MotionFX_engine_deltatime = MOTIONFX_ENGINE_DELTATIME;
 int discardedCount = 0;
+
+/* Public Functions ----------------------------------------------------------*/
+
+/**
+  * @brief  Initialises MotionFX algorithm
+  * @param  handle handle to gyroscope sensor
+  * @retval none
+  */
+void MotionFX_manager_init(void *handle)
+{
+  uint8_t instance;
+
+  MotionFX_initialize();
+
+  MotionFX_getKnobs(ipKnobs);
+
+  ipKnobs->gbias_acc_th_sc_6X = GBIAS_ACC_TH_SC_6X;
+  ipKnobs->gbias_gyro_th_sc_6X = GBIAS_GYRO_TH_SC_6X;
+  ipKnobs->gbias_mag_th_sc_6X = GBIAS_MAG_TH_SC_6X;
+
+  ipKnobs->gbias_acc_th_sc_9X = GBIAS_ACC_TH_SC_9X;
+  ipKnobs->gbias_gyro_th_sc_9X = GBIAS_GYRO_TH_SC_9X;
+  ipKnobs->gbias_mag_th_sc_9X = GBIAS_MAG_TH_SC_9X;
+
+  BSP_GYRO_Get_Instance(handle, &instance);
+
+  switch (instance)
+  {
+#if (defined (USE_IKS01A1))
+    case LSM6DS0_G_0:
+      ipKnobs->acc_orientation[0] = 'e';
+      ipKnobs->acc_orientation[1] = 'n';
+      ipKnobs->acc_orientation[2] = 'u';
+
+      ipKnobs->gyro_orientation[0] = 'e';
+      ipKnobs->gyro_orientation[1] = 'n';
+      ipKnobs->gyro_orientation[2] = 'u';
+      break;
+
+    case LSM6DS3_G_0:
+      ipKnobs->acc_orientation[0] = 'n';
+      ipKnobs->acc_orientation[1] = 'w';
+      ipKnobs->acc_orientation[2] = 'u';
+
+      ipKnobs->gyro_orientation[0] = 'n';
+      ipKnobs->gyro_orientation[1] = 'w';
+      ipKnobs->gyro_orientation[2] = 'u';
+      break;
+
+    default:
+      return;
+
+#elif (defined (USE_IKS01A2))
+    case LSM6DSL_G_0:
+      ipKnobs->acc_orientation[0] = 'n';
+      ipKnobs->acc_orientation[1] = 'w';
+      ipKnobs->acc_orientation[2] = 'u';
+
+      ipKnobs->gyro_orientation[0] = 'n';
+      ipKnobs->gyro_orientation[1] = 'w';
+      ipKnobs->gyro_orientation[2] = 'u';
+      break;
+
+    default:
+      return;
+
+#else
+#error Not supported platform
+#endif
+  }
+
+#if (defined (USE_IKS01A1))
+  ipKnobs->mag_orientation[0] = 's';
+  ipKnobs->mag_orientation[1] = 'e';
+  ipKnobs->mag_orientation[2] = 'u';
+#elif (defined (USE_IKS01A2))
+  ipKnobs->mag_orientation[0] = 'n';
+  ipKnobs->mag_orientation[1] = 'e';
+  ipKnobs->mag_orientation[2] = 'u';
+#else
+#error Not supported platform
+#endif
+
+  ipKnobs->output_type = MFX_ENGINE_OUTPUT_ENU;
+  ipKnobs->LMode = 1;
+  ipKnobs->modx = 1;
+
+  MotionFX_setKnobs(ipKnobs);
+
+  MotionFX_enable_6X(MFX_ENGINE_DISABLE);
+  MotionFX_enable_9X(MFX_ENGINE_DISABLE);
+}
+
 
 /**
   * @brief  Run sensor fusion algorithm
   * @param  None
   * @retval None
   */
-void MotionFX_manager_run(void)
+void MotionFX_manager_run(MFX_input_t *data_in, MFX_output_t *data_out, float delta_time)
 {
-  iDataIN.gyro[0] = GYR_Value.AXIS_X  * FROM_MDPS_TO_DPS;
-  iDataIN.gyro[1] = GYR_Value.AXIS_Y  * FROM_MDPS_TO_DPS;
-  iDataIN.gyro[2] = GYR_Value.AXIS_Z  * FROM_MDPS_TO_DPS;
-  
-  iDataIN.acc[0] = ACC_Value.AXIS_X * FROM_MG_TO_G;
-  iDataIN.acc[1] = ACC_Value.AXIS_Y * FROM_MG_TO_G;
-  iDataIN.acc[2] = ACC_Value.AXIS_Z * FROM_MG_TO_G;
-  
-  iDataIN.mag[0] = (MAG_Value.AXIS_X - magOffset.magOffX) * FROM_MGAUSS_TO_UT50;
-  iDataIN.mag[1] = (MAG_Value.AXIS_Y - magOffset.magOffY) * FROM_MGAUSS_TO_UT50;
-  iDataIN.mag[2] = (MAG_Value.AXIS_Z - magOffset.magOffZ) * FROM_MGAUSS_TO_UT50;
-  
   if(discardedCount == sampleToDiscard)
   {
-    osx_MotionFX_propagate((osxMFX_output*)&iDataOUT, (osxMFX_input*)&iDataIN, MotionFX_engine_deltatime);
-    
-    osx_MotionFX_update((osxMFX_output*)&iDataOUT, (osxMFX_input*)&iDataIN, MotionFX_engine_deltatime, NULL);
+    MotionFX_propagate(data_out, data_in, delta_time);
+    MotionFX_update(data_out, data_in, delta_time, NULL);
   }
   else
   {
@@ -119,109 +181,13 @@ void MotionFX_manager_run(void)
 
 
 /**
-  * @brief  Initialize MotionFX engine
-  * @param  None
-  * @retval None
-  */
-void MotionFX_manager_init(void)
-{
-  uint8_t instance;
-  
-  magOffset.magOffX = 0;
-  magOffset.magOffY = 0;
-  magOffset.magOffZ = 0;
-  
-  //  ST MotionFX Engine Initializations
-  ipKnobs = &iKnobs;
-  
-  osx_MotionFX_initialize();
-  
-  osx_MotionFX_compass_init();
-  
-  osx_MotionFX_getKnobs(ipKnobs);
-  
-  ipKnobs->gbias_acc_th_sc_6X = GBIAS_ACC_TH_SC_6X;
-  ipKnobs->gbias_gyro_th_sc_6X = GBIAS_GYRO_TH_SC_6X;
-  ipKnobs->gbias_mag_th_sc_6X = GBIAS_MAG_TH_SC_6X;
-  
-  ipKnobs->gbias_acc_th_sc_9X = GBIAS_ACC_TH_SC_9X;
-  ipKnobs->gbias_gyro_th_sc_9X = GBIAS_GYRO_TH_SC_9X;
-  ipKnobs->gbias_mag_th_sc_9X = GBIAS_MAG_TH_SC_9X;
-  
-  BSP_GYRO_Get_Instance( GYRO_handle, &instance );
-  
-  switch(instance)
-  {
-#ifdef USE_IKS01A2
-    case LSM6DSL_G_0:
-    default:
-      ipKnobs->acc_orientation[0] = 'n';
-      ipKnobs->acc_orientation[1] = 'w';
-      ipKnobs->acc_orientation[2] = 'u';
-      
-      ipKnobs->gyro_orientation[0] = 'n';
-      ipKnobs->gyro_orientation[1] = 'w';
-      ipKnobs->gyro_orientation[2] = 'u';
-      break;
-#elif USE_IKS01A1
-    case LSM6DS3_G_0: /*Instance LSM6DS3*/
-      ipKnobs->acc_orientation[0] = 'n';
-      ipKnobs->acc_orientation[1] = 'w';
-      ipKnobs->acc_orientation[2] = 'u';
-      
-      ipKnobs->gyro_orientation[0] = 'n';
-      ipKnobs->gyro_orientation[1] = 'w';
-      ipKnobs->gyro_orientation[2] = 'u';
-      break;
-    case LSM6DS0_G_0: /*Instance LSM6DS0*/
-    default:
-      ipKnobs->acc_orientation[0] = 'e';
-      ipKnobs->acc_orientation[1] = 'n';
-      ipKnobs->acc_orientation[2] = 'u';
-      
-      ipKnobs->gyro_orientation[0] = 'e';
-      ipKnobs->gyro_orientation[1] = 'n';
-      ipKnobs->gyro_orientation[2] = 'u';
-      break;
-#endif
-  }
-
-#ifdef USE_IKS01A2
-  ipKnobs->mag_orientation[0] = 'n';
-  ipKnobs->mag_orientation[1] = 'e';
-  ipKnobs->mag_orientation[2] = 'u';
-#elif USE_IKS01A1
-  ipKnobs->mag_orientation[0] = 's';
-  ipKnobs->mag_orientation[1] = 'e';
-  ipKnobs->mag_orientation[2] = 'u';
-#endif
-  
-  ipKnobs->output_type = OSXMFX_ENGINE_OUTPUT_ENU;
-  
-  ipKnobs->LMode = 1;
-  
-  ipKnobs->modx = 1;
-  
-  osx_MotionFX_setKnobs(ipKnobs);
-  
-  osx_MotionFX_enable_6X(OSXMFX_ENGINE_DISABLE);
-  
-  osx_MotionFX_enable_9X(OSXMFX_ENGINE_DISABLE);
-  
-  /* Number of Sample to Discard */
-  sampleToDiscard = SAMPLETODISCARD;
-  discardedCount = 0;
-}
-
-/**
  * @brief  Start 6 axes MotionFX engine
  * @param  None
  * @retval None
  */
 void MotionFX_manager_start_6X(void)
 {
-  sampleToDiscard = SAMPLETODISCARD;
-  osx_MotionFX_enable_6X(OSXMFX_ENGINE_ENABLE);
+  MotionFX_enable_6X(MFX_ENGINE_ENABLE);
 }
 
 
@@ -232,7 +198,7 @@ void MotionFX_manager_start_6X(void)
  */
 void MotionFX_manager_stop_6X(void)
 {
-  osx_MotionFX_enable_6X(OSXMFX_ENGINE_DISABLE);
+  MotionFX_enable_6X(MFX_ENGINE_DISABLE);
 }
 
 
@@ -243,9 +209,7 @@ void MotionFX_manager_stop_6X(void)
  */
 void MotionFX_manager_start_9X(void)
 {
-  sampleToDiscard = SAMPLETODISCARD;
-  osx_MotionFX_enable_9X(OSXMFX_ENGINE_ENABLE);
-  osx_MotionFX_setGbias(go);
+  MotionFX_enable_9X(MFX_ENGINE_ENABLE);
 }
 
 
@@ -256,39 +220,100 @@ void MotionFX_manager_start_9X(void)
  */
 void MotionFX_manager_stop_9X(void)
 {
-  osx_MotionFX_getGbias(go);
-  osx_MotionFX_enable_9X(OSXMFX_ENGINE_DISABLE);
+  MotionFX_enable_9X(MFX_ENGINE_DISABLE);
 }
 
 
 /**
- * @brief  Get MotionFX engine data OUT
- * @param  None
- * @retval osxMFX_output pointer to data output
- */
-osxMFX_output* MotionFX_manager_getDataOUT(void)
+  * @brief  Get the library version
+  * @param  version  library version string (must be array of 35 char)
+  * @param  lengh  Library version string length
+  * @retval none
+  */
+void MotionFX_manager_get_version(char *version, int *length)
 {
-  return (osxMFX_output*)&iDataOUT;
+  *length = MotionFX_GetLibVersion(version);
 }
 
 
 /**
- * @brief  Get MotionFX Engine data IN
- * @param  None
- * @retval osxMFX_input pointer to data input
- */
-osxMFX_input* MotionFX_manager_getDataIN(void)
+  * @brief  Run magnetometer calibration algorithm
+  * @param  None
+  * @retval None
+  */
+void MotionFX_manager_MagCal_run(MFX_MagCal_input_t *data_in, MFX_MagCal_output_t *data_out)
 {
-  return (osxMFX_input*)&iDataIN;
+   MotionFX_MagCal_run(data_in);
+   MotionFX_MagCal_getParams(data_out);
 }
 
-/**
-* @}
-*/
 
 /**
-* @}
-*/
+ * @brief  Start magnetometer calibration
+ * @param  None
+ * @retval None
+ */
+void MotionFX_manager_MagCal_start(int sampletime)
+{
+  MotionFX_MagCal_init(sampletime, 1);
+}
 
-/******************* (C) COPYRIGHT 2014 STMicroelectronics *****END OF FILE****/
 
+/**
+ * @brief  Stop magnetometer calibration
+ * @param  None
+ * @retval None
+ */
+void MotionFX_manager_MagCal_stop(int sampletime)
+{
+  MotionFX_MagCal_init(sampletime, 0);
+}
+
+
+/**
+ * @brief  Load calibration parameter from memory
+ * @param  dataSize length ot the data
+ * @param  data pointer to the data
+ * @retval (1) fail, (0) success
+ */
+char MotionFX_LoadMagCalFromNVM(unsigned short int dataSize, unsigned int *data)
+{
+#if (defined (MOTION_FX_STORE_CALIB_FLASH))
+  RecallCalibrationFromMemory(dataSize / 4, (uint32_t*) data);
+  return 0;
+#else
+  return 1;
+#endif
+}
+
+
+/**
+ * @brief  Save calibration parameter to memory
+ * @param  dataSize length ot the data
+ * @param  data pointer to the data
+ * @retval (1) fail, (0) success
+ */
+char MotionFX_SaveMagCalInNVM(unsigned short int dataSize, unsigned int *data)
+{
+#if (defined (MOTION_FX_STORE_CALIB_FLASH))
+  SaveCalibrationToMemory(dataSize / 4, (uint32_t*) data);
+  return 0;
+#else
+  return 1;
+#endif
+}
+
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

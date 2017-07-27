@@ -2,14 +2,14 @@
  *******************************************************************************
  * @file    LPS22HB_Driver_HL.c
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file provides a set of high-level functions needed to manage
             the LPS22HB sensor
  *******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -913,10 +913,23 @@ static DrvStatusTypeDef LPS22HB_Initialize( DrvContextTypeDef *handle, LPS22HB_C
     return COMPONENT_ERROR;
   }
 
-  /* Disable automatic increment for multi-byte read/write */
-  if( LPS22HB_Set_AutomaticIncrementRegAddress( (void *)handle, LPS22HB_DISABLE) == LPS22HB_ERROR )
+  if(handle->ifType == 0) // I2C mode
   {
-    return COMPONENT_ERROR;
+    /* Disable automatic increment for multi-byte read/write */
+    if( LPS22HB_Set_AutomaticIncrementRegAddress( (void *)handle, LPS22HB_DISABLE) == LPS22HB_ERROR )
+    {
+      return COMPONENT_ERROR;
+    }
+  }else
+  {
+    if(handle->ifType == 1) // SPI mode
+    {
+      /* Set automatic increment for multi-byte read/write */
+      if( LPS22HB_Set_AutomaticIncrementRegAddress( (void *)handle, LPS22HB_ENABLE) == LPS22HB_ERROR )
+      {
+        return COMPONENT_ERROR;
+      }
+    }	
   }
 
   return COMPONENT_OK;

@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32l4xx_hal_flash_ex.c
   * @author  MCD Application Team
-  * @version V1.3.0 
-  * @date    29-January-2016
+  * @version V1.7.0 
+  * @date    17-February-2017
   * @brief   Extended FLASH HAL module driver.
   *          This file provides firmware functions to manage the following 
   *          functionalities of the FLASH extended peripheral:
@@ -50,7 +50,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -171,6 +171,34 @@ HAL_StatusTypeDef HAL_FLASHEx_Erase(FLASH_EraseInitTypeDef *pEraseInit, uint32_t
   {
     pFlash.ErrorCode = HAL_FLASH_ERROR_NONE;
 
+    /* Deactivate the cache if they are activated to avoid data misbehavior */
+    if(READ_BIT(FLASH->ACR, FLASH_ACR_ICEN) != RESET)
+    {
+      /* Disable instruction cache  */
+      __HAL_FLASH_INSTRUCTION_CACHE_DISABLE();
+
+      if(READ_BIT(FLASH->ACR, FLASH_ACR_DCEN) != RESET)
+      {
+        /* Disable data cache  */
+        __HAL_FLASH_DATA_CACHE_DISABLE();
+        pFlash.CacheToReactivate = FLASH_CACHE_ICACHE_DCACHE_ENABLED;
+      }
+      else
+      {
+        pFlash.CacheToReactivate = FLASH_CACHE_ICACHE_ENABLED;
+      }
+    }
+    else if(READ_BIT(FLASH->ACR, FLASH_ACR_DCEN) != RESET)
+    {
+      /* Disable data cache  */
+      __HAL_FLASH_DATA_CACHE_DISABLE();
+      pFlash.CacheToReactivate = FLASH_CACHE_DCACHE_ENABLED;
+    }
+    else
+    {
+      pFlash.CacheToReactivate = FLASH_CACHE_DISABLED;
+    }
+
     if (pEraseInit->TypeErase == FLASH_TYPEERASE_MASSERASE)
     {
       /* Mass erase to be done */
@@ -179,8 +207,14 @@ HAL_StatusTypeDef HAL_FLASHEx_Erase(FLASH_EraseInitTypeDef *pEraseInit, uint32_t
       /* Wait for last operation to be completed */
       status = FLASH_WaitForLastOperation((uint32_t)FLASH_TIMEOUT_VALUE);
 
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
       /* If the erase operation is completed, disable the MER1 and MER2 Bits */
       CLEAR_BIT(FLASH->CR, (FLASH_CR_MER1 | FLASH_CR_MER2));
+#else
+      /* If the erase operation is completed, disable the MER1 Bit */
+      CLEAR_BIT(FLASH->CR, (FLASH_CR_MER1));
+#endif      
     }
     else
     {
@@ -235,6 +269,34 @@ HAL_StatusTypeDef HAL_FLASHEx_Erase_IT(FLASH_EraseInitTypeDef *pEraseInit)
 
   pFlash.ErrorCode = HAL_FLASH_ERROR_NONE;
 
+  /* Deactivate the cache if they are activated to avoid data misbehavior */
+  if(READ_BIT(FLASH->ACR, FLASH_ACR_ICEN) != RESET)
+  {
+    /* Disable instruction cache  */
+    __HAL_FLASH_INSTRUCTION_CACHE_DISABLE();
+    
+    if(READ_BIT(FLASH->ACR, FLASH_ACR_DCEN) != RESET)
+    {
+      /* Disable data cache  */
+      __HAL_FLASH_DATA_CACHE_DISABLE();
+      pFlash.CacheToReactivate = FLASH_CACHE_ICACHE_DCACHE_ENABLED;
+    }
+    else
+    {
+      pFlash.CacheToReactivate = FLASH_CACHE_ICACHE_ENABLED;
+    }
+  }
+  else if(READ_BIT(FLASH->ACR, FLASH_ACR_DCEN) != RESET)
+  {
+    /* Disable data cache  */
+    __HAL_FLASH_DATA_CACHE_DISABLE();
+    pFlash.CacheToReactivate = FLASH_CACHE_DCACHE_ENABLED;
+  }
+  else
+  {
+    pFlash.CacheToReactivate = FLASH_CACHE_DISABLED;
+  }
+
   /* Enable End of Operation and Error interrupts */
   __HAL_FLASH_ENABLE_IT(FLASH_IT_EOP | FLASH_IT_OPERR);
 
@@ -269,7 +331,7 @@ HAL_StatusTypeDef HAL_FLASHEx_Erase_IT(FLASH_EraseInitTypeDef *pEraseInit)
   */
 HAL_StatusTypeDef HAL_FLASHEx_OBProgram(FLASH_OBProgramInitTypeDef *pOBInit)
 {
-  HAL_StatusTypeDef status = HAL_ERROR;
+  HAL_StatusTypeDef status = HAL_OK;
   
   /* Process Locked */
   __HAL_LOCK(&pFlash);
@@ -283,28 +345,44 @@ HAL_StatusTypeDef HAL_FLASHEx_OBProgram(FLASH_OBProgramInitTypeDef *pOBInit)
   if((pOBInit->OptionType & OPTIONBYTE_WRP) != RESET)
   {
     /* Configure of Write protection on the selected area */
-    status = FLASH_OB_WRPConfig(pOBInit->WRPArea, pOBInit->WRPStartOffset, pOBInit->WRPEndOffset);
+    if(FLASH_OB_WRPConfig(pOBInit->WRPArea, pOBInit->WRPStartOffset, pOBInit->WRPEndOffset) != HAL_OK)
+    {
+      status = HAL_ERROR;
+    }
+    
   }
   
   /* Read protection configuration */
   if((pOBInit->OptionType & OPTIONBYTE_RDP) != RESET)
   {
     /* Configure the Read protection level */
-    status = FLASH_OB_RDPConfig(pOBInit->RDPLevel);
+    if(FLASH_OB_RDPConfig(pOBInit->RDPLevel) != HAL_OK)
+    {
+      status = HAL_ERROR;
+    }
   }
   
   /* User Configuration */
   if((pOBInit->OptionType & OPTIONBYTE_USER) != RESET)
   {
     /* Configure the user option bytes */
-    status = FLASH_OB_UserConfig(pOBInit->USERType, pOBInit->USERConfig);
+    if(FLASH_OB_UserConfig(pOBInit->USERType, pOBInit->USERConfig) != HAL_OK)
+    {
+      status = HAL_ERROR;
+    }
   }
   
   /* PCROP Configuration */
   if((pOBInit->OptionType & OPTIONBYTE_PCROP) != RESET)
   {
-    /* Configure the Proprietary code readout protection */
-    status = FLASH_OB_PCROPConfig(pOBInit->PCROPConfig, pOBInit->PCROPStartAddr, pOBInit->PCROPEndAddr);
+    if (pOBInit->PCROPStartAddr != pOBInit->PCROPEndAddr)
+    {
+      /* Configure the Proprietary code readout protection */
+      if(FLASH_OB_PCROPConfig(pOBInit->PCROPConfig, pOBInit->PCROPStartAddr, pOBInit->PCROPEndAddr) != HAL_OK)
+      {
+        status = HAL_ERROR;
+      }
+    }
   }
 
   /* Process Unlocked */
@@ -316,18 +394,28 @@ HAL_StatusTypeDef HAL_FLASHEx_OBProgram(FLASH_OBProgramInitTypeDef *pOBInit)
 /**
   * @brief  Get the Option bytes configuration.
   * @param  pOBInit: pointer to an FLASH_OBInitStruct structure that contains the 
-  *                  configuration information. The fields pOBInit->WRPArea and 
-  *                  pOBInit->PCROPConfig should indicate which area is requested
-  *                  for the WRP and PCROP 
+  *                  configuration information.
+  * @note   The fields pOBInit->WRPArea and pOBInit->PCROPConfig should indicate 
+  *         which area is requested for the WRP and PCROP, else no information will be returned
   * 
   * @retval None
   */
 void HAL_FLASHEx_OBGetConfig(FLASH_OBProgramInitTypeDef *pOBInit)
 {
-  pOBInit->OptionType = (OPTIONBYTE_WRP | OPTIONBYTE_RDP | OPTIONBYTE_USER | OPTIONBYTE_PCROP);
+  pOBInit->OptionType = (OPTIONBYTE_RDP | OPTIONBYTE_USER);
 
-  /* Get write protection on the selected area */
-  FLASH_OB_GetWRP(pOBInit->WRPArea, &(pOBInit->WRPStartOffset), &(pOBInit->WRPEndOffset));
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
+  if((pOBInit->WRPArea == OB_WRPAREA_BANK1_AREAA) || (pOBInit->WRPArea == OB_WRPAREA_BANK1_AREAB) ||
+     (pOBInit->WRPArea == OB_WRPAREA_BANK2_AREAA) || (pOBInit->WRPArea == OB_WRPAREA_BANK2_AREAB))
+#else
+  if((pOBInit->WRPArea == OB_WRPAREA_BANK1_AREAA) || (pOBInit->WRPArea == OB_WRPAREA_BANK1_AREAB))
+#endif
+  {
+    pOBInit->OptionType |= OPTIONBYTE_WRP;
+    /* Get write protection on the selected area */
+    FLASH_OB_GetWRP(pOBInit->WRPArea, &(pOBInit->WRPStartOffset), &(pOBInit->WRPEndOffset));
+  }
   
   /* Get Read protection level */
   pOBInit->RDPLevel = FLASH_OB_GetRDP();
@@ -335,9 +423,17 @@ void HAL_FLASHEx_OBGetConfig(FLASH_OBProgramInitTypeDef *pOBInit)
   /* Get the user option bytes */
   pOBInit->USERConfig = FLASH_OB_GetUser();
   
-  /* Get the Proprietary code readout protection */
-  FLASH_OB_GetPCROP(&(pOBInit->PCROPConfig), &(pOBInit->PCROPStartAddr), &(pOBInit->PCROPEndAddr));
-  
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
+  if((pOBInit->PCROPConfig == FLASH_BANK_1) || (pOBInit->PCROPConfig == FLASH_BANK_2))
+#else
+  if(pOBInit->PCROPConfig == FLASH_BANK_1)
+#endif    
+  {
+    pOBInit->OptionType |= OPTIONBYTE_PCROP;
+    /* Get the Proprietary code readout protection */
+    FLASH_OB_GetPCROP(&(pOBInit->PCROPConfig), &(pOBInit->PCROPStartAddr), &(pOBInit->PCROPEndAddr));
+  }
 }
 
 /**
@@ -364,19 +460,24 @@ void HAL_FLASHEx_OBGetConfig(FLASH_OBProgramInitTypeDef *pOBInit)
   */
 static void FLASH_MassErase(uint32_t Banks)
 {
-  /* Check the parameters */
-  assert_param(IS_FLASH_BANK(Banks));
+  {
+    /* Check the parameters */
+    assert_param(IS_FLASH_BANK(Banks));
 
-  /* Set the Mass Erase Bit for the bank 1 if requested */
-  if((Banks & FLASH_BANK_1) != RESET)
-  {
-    SET_BIT(FLASH->CR, FLASH_CR_MER1);
-  }
-  
-  /* Set the Mass Erase Bit for the bank 2 if requested */
-  if((Banks & FLASH_BANK_2) != RESET)
-  {
-    SET_BIT(FLASH->CR, FLASH_CR_MER2);
+    /* Set the Mass Erase Bit for the bank 1 if requested */
+    if((Banks & FLASH_BANK_1) != RESET)
+    {
+      SET_BIT(FLASH->CR, FLASH_CR_MER1);
+    }
+    
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
+    /* Set the Mass Erase Bit for the bank 2 if requested */
+    if((Banks & FLASH_BANK_2) != RESET)
+    {
+      SET_BIT(FLASH->CR, FLASH_CR_MER2);
+    }
+#endif
   }
 
   /* Proceed to erase all sectors */
@@ -388,7 +489,7 @@ static void FLASH_MassErase(uint32_t Banks)
   * @param  Page: FLASH page to erase
   *         This parameter must be a value between 0 and (max number of pages in the bank - 1)      
   * @param  Banks: Bank(s) where the page will be erased
-  *          This parameter can be one or a combination of the following values:
+  *          This parameter can be one of the following values:
   *            @arg FLASH_BANK_1: Page in bank 1 to be erased
   *            @arg FLASH_BANK_2: Page in bank 2 to be erased
   * @retval None
@@ -397,19 +498,25 @@ void FLASH_PageErase(uint32_t Page, uint32_t Banks)
 {
   /* Check the parameters */
   assert_param(IS_FLASH_PAGE(Page));
-  assert_param(IS_FLASH_BANK_EXCLUSIVE(Banks));
 
-  if((Banks & FLASH_BANK_1) != RESET)
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
   {
-    CLEAR_BIT(FLASH->CR, FLASH_CR_BKER);
+    assert_param(IS_FLASH_BANK_EXCLUSIVE(Banks));
+
+    if((Banks & FLASH_BANK_1) != RESET)
+    {
+      CLEAR_BIT(FLASH->CR, FLASH_CR_BKER);
+    }
+    else
+    {
+      SET_BIT(FLASH->CR, FLASH_CR_BKER);
+    }
   }
-  else
-  {
-    SET_BIT(FLASH->CR, FLASH_CR_BKER);
-  }
+#endif
 
   /* Proceed to erase the page */
-  MODIFY_REG(FLASH->CR, FLASH_CR_PNB, (Page << 3));
+  MODIFY_REG(FLASH->CR, FLASH_CR_PNB, (Page << POSITION_VAL(FLASH_CR_PNB)));
   SET_BIT(FLASH->CR, FLASH_CR_PER);
   SET_BIT(FLASH->CR, FLASH_CR_STRT);
 }
@@ -421,10 +528,9 @@ void FLASH_PageErase(uint32_t Page, uint32_t Banks)
 void FLASH_FlushCaches(void)
 {
   /* Flush instruction cache  */
-  if(READ_BIT(FLASH->ACR, FLASH_ACR_ICEN) != RESET)
+  if((pFlash.CacheToReactivate == FLASH_CACHE_ICACHE_ENABLED) || 
+     (pFlash.CacheToReactivate == FLASH_CACHE_ICACHE_DCACHE_ENABLED))
   {
-    /* Disable instruction cache  */
-    __HAL_FLASH_INSTRUCTION_CACHE_DISABLE();
     /* Reset instruction cache */
     __HAL_FLASH_INSTRUCTION_CACHE_RESET();
     /* Enable instruction cache */
@@ -432,15 +538,17 @@ void FLASH_FlushCaches(void)
   }
   
   /* Flush data cache */
-  if(READ_BIT(FLASH->ACR, FLASH_ACR_DCEN) != RESET)
+  if((pFlash.CacheToReactivate == FLASH_CACHE_DCACHE_ENABLED) || 
+     (pFlash.CacheToReactivate == FLASH_CACHE_ICACHE_DCACHE_ENABLED))
   {
-    /* Disable data cache  */
-    __HAL_FLASH_DATA_CACHE_DISABLE();
     /* Reset data cache */
     __HAL_FLASH_DATA_CACHE_RESET();
     /* Enable data cache */
     __HAL_FLASH_DATA_CACHE_ENABLE();
   }
+  
+  /* Reset internal variable */
+  pFlash.CacheToReactivate = FLASH_CACHE_DISABLED;
 }
 
 /**
@@ -459,8 +567,8 @@ void FLASH_FlushCaches(void)
   *          This parameter can be one of the following values:
   *            @arg OB_WRPAREA_BANK1_AREAA: Flash Bank 1 Area A                      
   *            @arg OB_WRPAREA_BANK1_AREAB: Flash Bank 1 Area B                      
-  *            @arg OB_WRPAREA_BANK2_AREAA: Flash Bank 2 Area A                      
-  *            @arg OB_WRPAREA_BANK2_AREAB: Flash Bank 2 Area B                      
+  *            @arg OB_WRPAREA_BANK2_AREAA: Flash Bank 2 Area A  (don't apply for STM32L43x/STM32L44x devices)                    
+  *            @arg OB_WRPAREA_BANK2_AREAB: Flash Bank 2 Area B  (don't apply for STM32L43x/STM32L44x devices)                    
   *
   * @param  WRPStartOffset: specifies the start page of the write protected area
   *          This parameter can be page number between 0 and (max number of pages in the bank - 1) 
@@ -495,6 +603,8 @@ static HAL_StatusTypeDef FLASH_OB_WRPConfig(uint32_t WRPArea, uint32_t WRPStartO
       MODIFY_REG(FLASH->WRP1BR, (FLASH_WRP1BR_WRP1B_STRT | FLASH_WRP1BR_WRP1B_END), 
                  (WRPStartOffset | (WRDPEndOffset << 16)));
     }
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
     else if(WRPArea == OB_WRPAREA_BANK2_AREAA)
     {
       MODIFY_REG(FLASH->WRP2AR, (FLASH_WRP2AR_WRP2A_STRT | FLASH_WRP2AR_WRP2A_END), 
@@ -505,6 +615,7 @@ static HAL_StatusTypeDef FLASH_OB_WRPConfig(uint32_t WRPArea, uint32_t WRPStartO
       MODIFY_REG(FLASH->WRP2BR, (FLASH_WRP2BR_WRP2B_STRT | FLASH_WRP2BR_WRP2B_END), 
                  (WRPStartOffset | (WRDPEndOffset << 16)));
     }
+#endif
     
     /* Set OPTSTRT Bit */
     SET_BIT(FLASH->CR, FLASH_CR_OPTSTRT);
@@ -675,6 +786,8 @@ static HAL_StatusTypeDef FLASH_OB_UserConfig(uint32_t UserType, uint32_t UserCon
       optr_reg_mask |= FLASH_OPTR_WWDG_SW;
     }
 
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
     if((UserType & OB_USER_BFB2) != RESET)
     {
       /* BFB2 option byte should be modified */
@@ -694,7 +807,8 @@ static HAL_StatusTypeDef FLASH_OB_UserConfig(uint32_t UserType, uint32_t UserCon
       optr_reg_val |= (UserConfig & FLASH_OPTR_DUALBANK);
       optr_reg_mask |= FLASH_OPTR_DUALBANK;
     }
-
+#endif
+    
     if((UserType & OB_USER_nBOOT1) != RESET)
     {
       /* nBOOT1 option byte should be modified */
@@ -725,6 +839,30 @@ static HAL_StatusTypeDef FLASH_OB_UserConfig(uint32_t UserType, uint32_t UserCon
       optr_reg_mask |= FLASH_OPTR_SRAM2_RST;
     }
 
+#if defined (STM32L431xx) || defined (STM32L432xx) || defined (STM32L433xx) || defined (STM32L442xx) || \
+    defined (STM32L443xx) || defined (STM32L451xx) || defined (STM32L452xx) || defined (STM32L462xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
+    if((UserType & OB_USER_nSWBOOT0) != RESET)
+    {
+      /* nSWBOOT0 option byte should be modified */
+      assert_param(IS_OB_USER_SWBOOT0(UserConfig & FLASH_OPTR_nSWBOOT0));
+    
+      /* Set value and mask for nSWBOOT0 option byte */
+      optr_reg_val |= (UserConfig & FLASH_OPTR_nSWBOOT0);
+      optr_reg_mask |= FLASH_OPTR_nSWBOOT0;
+    }
+
+    if((UserType & OB_USER_nBOOT0) != RESET)
+    {
+      /* nBOOT0 option byte should be modified */
+      assert_param(IS_OB_USER_BOOT0(UserConfig & FLASH_OPTR_nBOOT0));
+    
+      /* Set value and mask for nBOOT0 option byte */
+      optr_reg_val |= (UserConfig & FLASH_OPTR_nBOOT0);
+      optr_reg_mask |= FLASH_OPTR_nBOOT0;
+    }
+#endif
+    
     /* Configure the option bytes register */
     MODIFY_REG(FLASH->OPTR, optr_reg_mask, optr_reg_val);
     
@@ -765,7 +903,11 @@ static HAL_StatusTypeDef FLASH_OB_PCROPConfig(uint32_t PCROPConfig, uint32_t PCR
 {
   HAL_StatusTypeDef status = HAL_OK;
   uint32_t reg_value = 0;
-  uint32_t bank1_addr, bank2_addr;
+  uint32_t bank1_addr;
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
+  uint32_t bank2_addr;
+#endif
 
   /* Check the parameters */
   assert_param(IS_FLASH_BANK_EXCLUSIVE(PCROPConfig & FLASH_BANK_BOTH));
@@ -778,6 +920,8 @@ static HAL_StatusTypeDef FLASH_OB_PCROPConfig(uint32_t PCROPConfig, uint32_t PCR
 
   if(status == HAL_OK)
   {
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
     /* Get the information about the bank swapping */
     if (READ_BIT(SYSCFG->MEMRMP, SYSCFG_MEMRMP_FB_MODE) == 0)
     {
@@ -789,25 +933,33 @@ static HAL_StatusTypeDef FLASH_OB_PCROPConfig(uint32_t PCROPConfig, uint32_t PCR
       bank1_addr = FLASH_BASE + FLASH_BANK_SIZE;
       bank2_addr = FLASH_BASE;
     }
-  
-    /* Configure the Proprietary code readout protection */
-    if((PCROPConfig & FLASH_BANK_BOTH) == FLASH_BANK_1)
+#else
+    bank1_addr = FLASH_BASE;
+#endif
+    
     {
-      reg_value = ((PCROPStartAddr - bank1_addr) >> 3);
-      MODIFY_REG(FLASH->PCROP1SR, FLASH_PCROP1SR_PCROP1_STRT, reg_value);
-
-      reg_value = ((PCROPEndAddr - bank1_addr) >> 3);
-      MODIFY_REG(FLASH->PCROP1ER, FLASH_PCROP1ER_PCROP1_END, reg_value);
+      /* Configure the Proprietary code readout protection */
+      if((PCROPConfig & FLASH_BANK_BOTH) == FLASH_BANK_1)
+      {
+        reg_value = ((PCROPStartAddr - bank1_addr) >> 3);
+        MODIFY_REG(FLASH->PCROP1SR, FLASH_PCROP1SR_PCROP1_STRT, reg_value);
+        
+        reg_value = ((PCROPEndAddr - bank1_addr) >> 3);
+        MODIFY_REG(FLASH->PCROP1ER, FLASH_PCROP1ER_PCROP1_END, reg_value);
+      }
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
+      else if((PCROPConfig & FLASH_BANK_BOTH) == FLASH_BANK_2)
+      {
+        reg_value = ((PCROPStartAddr - bank2_addr) >> 3);
+        MODIFY_REG(FLASH->PCROP2SR, FLASH_PCROP2SR_PCROP2_STRT, reg_value);
+        
+        reg_value = ((PCROPEndAddr - bank2_addr) >> 3);
+        MODIFY_REG(FLASH->PCROP2ER, FLASH_PCROP2ER_PCROP2_END, reg_value);
+      }
+#endif
     }
-    else if((PCROPConfig & FLASH_BANK_BOTH) == FLASH_BANK_2)
-    {
-      reg_value = ((PCROPStartAddr - bank2_addr) >> 3);
-      MODIFY_REG(FLASH->PCROP2SR, FLASH_PCROP2SR_PCROP2_STRT, reg_value);
-
-      reg_value = ((PCROPEndAddr - bank2_addr) >> 3);
-      MODIFY_REG(FLASH->PCROP2ER, FLASH_PCROP2ER_PCROP2_END, reg_value);
-    }
-
+    
     MODIFY_REG(FLASH->PCROP1ER, FLASH_PCROP1ER_PCROP_RDP, (PCROPConfig & FLASH_PCROP1ER_PCROP_RDP));
     
     /* Set OPTSTRT Bit */
@@ -830,8 +982,8 @@ static HAL_StatusTypeDef FLASH_OB_PCROPConfig(uint32_t PCROPConfig, uint32_t PCR
   *          This parameter can be one of the following values:
   *            @arg OB_WRPAREA_BANK1_AREAA: Flash Bank 1 Area A                      
   *            @arg OB_WRPAREA_BANK1_AREAB: Flash Bank 1 Area B                      
-  *            @arg OB_WRPAREA_BANK2_AREAA: Flash Bank 2 Area A                      
-  *            @arg OB_WRPAREA_BANK2_AREAB: Flash Bank 2 Area B                      
+  *            @arg OB_WRPAREA_BANK2_AREAA: Flash Bank 2 Area A (don't apply to STM32L43x/STM32L44x devices)                     
+  *            @arg OB_WRPAREA_BANK2_AREAB: Flash Bank 2 Area B (don't apply to STM32L43x/STM32L44x devices)                     
   *
   * @param[out]  WRPStartOffset: specifies the address where to copied the start page 
   *                         of the write protected area
@@ -843,9 +995,6 @@ static HAL_StatusTypeDef FLASH_OB_PCROPConfig(uint32_t PCROPConfig, uint32_t PCR
   */
 static void FLASH_OB_GetWRP(uint32_t WRPArea, uint32_t * WRPStartOffset, uint32_t * WRDPEndOffset)
 {
-  /* Check the parameters */
-  assert_param(IS_OB_WRPAREA(WRPArea));
-
   /* Get the configuration of the write protected area */
   if(WRPArea == OB_WRPAREA_BANK1_AREAA)
   {
@@ -857,6 +1006,8 @@ static void FLASH_OB_GetWRP(uint32_t WRPArea, uint32_t * WRPStartOffset, uint32_
     *WRPStartOffset = READ_BIT(FLASH->WRP1BR, FLASH_WRP1BR_WRP1B_STRT);
     *WRDPEndOffset = (READ_BIT(FLASH->WRP1BR, FLASH_WRP1BR_WRP1B_END) >> 16);
   }
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
   else if(WRPArea == OB_WRPAREA_BANK2_AREAA)
   {
     *WRPStartOffset = READ_BIT(FLASH->WRP2AR, FLASH_WRP2AR_WRP2A_STRT);
@@ -867,6 +1018,7 @@ static void FLASH_OB_GetWRP(uint32_t WRPArea, uint32_t * WRPStartOffset, uint32_
     *WRPStartOffset = READ_BIT(FLASH->WRP2BR, FLASH_WRP2BR_WRP2B_STRT);
     *WRDPEndOffset = (READ_BIT(FLASH->WRP2BR, FLASH_WRP2BR_WRP2B_END) >> 16);
   }
+#endif
 }
 
 /**
@@ -893,9 +1045,14 @@ static uint32_t FLASH_OB_GetRDP(void)
 /**
   * @brief  Return the FLASH User Option Byte value.
   * @retval The FLASH User Option Bytes values: 
+  *      For STM32L47x/STM32L48x devices :
   *         BOR_LEV(Bit8-10), nRST_STOP(Bit12), nRST_STDBY(Bit13), nRST_SHDW(Bit14), 
   *         IWDG_SW(Bit16), IWDG_STOP(Bit17), IWDG_STDBY(Bit18), WWDG_SW(Bit19),  
   *         BFB2(Bit20), DUALBANK(Bit21), nBOOT1(Bit23), SRAM2_PE(Bit24) and SRAM2_RST(Bit25). 
+  *      For STM32L43x/STM32L44x devices :
+  *         BOR_LEV(Bit8-10), nRST_STOP(Bit12), nRST_STDBY(Bit13), nRST_SHDW(Bit14),
+  *         IWDG_SW(Bit16), IWDG_STOP(Bit17), IWDG_STDBY(Bit18), WWDG_SW(Bit19),  
+  *         nBOOT1(Bit23), SRAM2_PE(Bit24), SRAM2_RST(Bit25), nSWBOOT0(Bit26) and nBOOT0(Bit27). 
   */
 static uint32_t FLASH_OB_GetUser(void)
 {
@@ -923,11 +1080,14 @@ static uint32_t FLASH_OB_GetUser(void)
 static void FLASH_OB_GetPCROP(uint32_t * PCROPConfig, uint32_t * PCROPStartAddr, uint32_t * PCROPEndAddr)
 {
   uint32_t reg_value = 0;
-  uint32_t bank1_addr, bank2_addr;
+  uint32_t bank1_addr;
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
+  uint32_t bank2_addr;
+#endif
   
-  /* Check the parameters */
-  assert_param(IS_FLASH_BANK_EXCLUSIVE((*PCROPConfig) & FLASH_BANK_BOTH));
-
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
   /* Get the information about the bank swapping */
   if (READ_BIT(SYSCFG->MEMRMP, SYSCFG_MEMRMP_FB_MODE) == 0)
   {
@@ -939,24 +1099,32 @@ static void FLASH_OB_GetPCROP(uint32_t * PCROPConfig, uint32_t * PCROPStartAddr,
     bank1_addr = FLASH_BASE + FLASH_BANK_SIZE;
     bank2_addr = FLASH_BASE;
   }
-
-  if(((*PCROPConfig) & FLASH_BANK_BOTH) == FLASH_BANK_1)
+#else
+  bank1_addr = FLASH_BASE;
+#endif
+  
   {
-    reg_value       = (READ_REG(FLASH->PCROP1SR) & FLASH_PCROP1SR_PCROP1_STRT);
-    *PCROPStartAddr = (reg_value << 3) + bank1_addr;
-    
-    reg_value     = (READ_REG(FLASH->PCROP1ER) & FLASH_PCROP1ER_PCROP1_END);
-    *PCROPEndAddr = (reg_value << 3) + bank1_addr;
+    if(((*PCROPConfig) & FLASH_BANK_BOTH) == FLASH_BANK_1)
+    {
+      reg_value       = (READ_REG(FLASH->PCROP1SR) & FLASH_PCROP1SR_PCROP1_STRT);
+      *PCROPStartAddr = (reg_value << 3) + bank1_addr;
+      
+      reg_value     = (READ_REG(FLASH->PCROP1ER) & FLASH_PCROP1ER_PCROP1_END);
+      *PCROPEndAddr = (reg_value << 3) + bank1_addr;
+    }
+#if defined (STM32L471xx) || defined (STM32L475xx) || defined (STM32L476xx) || defined (STM32L485xx) || defined (STM32L486xx) || \
+    defined (STM32L496xx) || defined (STM32L4A6xx)
+    else if(((*PCROPConfig) & FLASH_BANK_BOTH) == FLASH_BANK_2)
+    {
+      reg_value       = (READ_REG(FLASH->PCROP2SR) & FLASH_PCROP2SR_PCROP2_STRT);
+      *PCROPStartAddr = (reg_value << 3) + bank2_addr;
+      
+      reg_value     = (READ_REG(FLASH->PCROP2ER) & FLASH_PCROP2ER_PCROP2_END);
+      *PCROPEndAddr = (reg_value << 3) + bank2_addr;
+    }
+#endif
   }
-  else if(((*PCROPConfig) & FLASH_BANK_BOTH) == FLASH_BANK_2)
-  {
-    reg_value       = (READ_REG(FLASH->PCROP2SR) & FLASH_PCROP2SR_PCROP2_STRT);
-    *PCROPStartAddr = (reg_value << 3) + bank2_addr;
-
-    reg_value     = (READ_REG(FLASH->PCROP2ER) & FLASH_PCROP2ER_PCROP2_END);
-    *PCROPEndAddr = (reg_value << 3) + bank2_addr;
-  }
-
+  
   *PCROPConfig |= (READ_REG(FLASH->PCROP1ER) & FLASH_PCROP1ER_PCROP_RDP);
 }
 /**

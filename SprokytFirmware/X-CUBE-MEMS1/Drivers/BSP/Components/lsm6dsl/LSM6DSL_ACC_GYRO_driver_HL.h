@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    LSM6DSL_ACC_GYRO_driver_HL.h
  * @author  MEMS Application Team
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   This file contains definitions for the LSM6DSL_ACC_GYRO_driver_HL.c firmware driver
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -195,7 +195,7 @@ extern "C" {
  */
 typedef struct
 {
-  DrvStatusTypeDef ( *Enable_Free_Fall_Detection      ) ( DrvContextTypeDef* );
+  DrvStatusTypeDef ( *Enable_Free_Fall_Detection      ) ( DrvContextTypeDef*, SensorIntPin_t );
   DrvStatusTypeDef ( *Disable_Free_Fall_Detection     ) ( DrvContextTypeDef* );
   DrvStatusTypeDef ( *Get_Free_Fall_Detection_Status  ) ( DrvContextTypeDef*, uint8_t* );
   DrvStatusTypeDef ( *Set_Free_Fall_Threshold         ) ( DrvContextTypeDef*, uint8_t );
@@ -206,24 +206,24 @@ typedef struct
   DrvStatusTypeDef ( *Enable_Step_Counter_Reset       ) ( DrvContextTypeDef* );
   DrvStatusTypeDef ( *Disable_Step_Counter_Reset      ) ( DrvContextTypeDef* );
   DrvStatusTypeDef ( *Set_Pedometer_Threshold         ) ( DrvContextTypeDef*, uint8_t );
-  DrvStatusTypeDef ( *Enable_Tilt_Detection           ) ( DrvContextTypeDef* );
+  DrvStatusTypeDef ( *Enable_Tilt_Detection           ) ( DrvContextTypeDef*, SensorIntPin_t );
   DrvStatusTypeDef ( *Disable_Tilt_Detection          ) ( DrvContextTypeDef* );
   DrvStatusTypeDef ( *Get_Tilt_Detection_Status       ) ( DrvContextTypeDef*, uint8_t* );
-  DrvStatusTypeDef ( *Enable_Wake_Up_Detection        ) ( DrvContextTypeDef* );
+  DrvStatusTypeDef ( *Enable_Wake_Up_Detection        ) ( DrvContextTypeDef*, SensorIntPin_t );
   DrvStatusTypeDef ( *Disable_Wake_Up_Detection       ) ( DrvContextTypeDef* );
   DrvStatusTypeDef ( *Get_Wake_Up_Detection_Status    ) ( DrvContextTypeDef*, uint8_t* );
   DrvStatusTypeDef ( *Set_Wake_Up_Threshold           ) ( DrvContextTypeDef*, uint8_t );
-  DrvStatusTypeDef ( *Enable_Single_Tap_Detection     ) ( DrvContextTypeDef* );
+  DrvStatusTypeDef ( *Enable_Single_Tap_Detection     ) ( DrvContextTypeDef*, SensorIntPin_t );
   DrvStatusTypeDef ( *Disable_Single_Tap_Detection    ) ( DrvContextTypeDef* );
   DrvStatusTypeDef ( *Get_Single_Tap_Detection_Status ) ( DrvContextTypeDef*, uint8_t* );
-  DrvStatusTypeDef ( *Enable_Double_Tap_Detection     ) ( DrvContextTypeDef* );
+  DrvStatusTypeDef ( *Enable_Double_Tap_Detection     ) ( DrvContextTypeDef*, SensorIntPin_t );
   DrvStatusTypeDef ( *Disable_Double_Tap_Detection    ) ( DrvContextTypeDef* );
   DrvStatusTypeDef ( *Get_Double_Tap_Detection_Status ) ( DrvContextTypeDef*, uint8_t* );
   DrvStatusTypeDef ( *Set_Tap_Threshold               ) ( DrvContextTypeDef*, uint8_t );
   DrvStatusTypeDef ( *Set_Tap_Shock_Time              ) ( DrvContextTypeDef*, uint8_t );
   DrvStatusTypeDef ( *Set_Tap_Quiet_Time              ) ( DrvContextTypeDef*, uint8_t );
   DrvStatusTypeDef ( *Set_Tap_Duration_Time           ) ( DrvContextTypeDef*, uint8_t );
-  DrvStatusTypeDef ( *Enable_6D_Orientation           ) ( DrvContextTypeDef* );
+  DrvStatusTypeDef ( *Enable_6D_Orientation           ) ( DrvContextTypeDef*, SensorIntPin_t );
   DrvStatusTypeDef ( *Disable_6D_Orientation          ) ( DrvContextTypeDef* );
   DrvStatusTypeDef ( *Get_6D_Orientation_Status       ) ( DrvContextTypeDef*, uint8_t* );
   DrvStatusTypeDef ( *Get_6D_Orientation_XL           ) ( DrvContextTypeDef*, uint8_t* );
@@ -232,6 +232,7 @@ typedef struct
   DrvStatusTypeDef ( *Get_6D_Orientation_YH           ) ( DrvContextTypeDef*, uint8_t* );
   DrvStatusTypeDef ( *Get_6D_Orientation_ZL           ) ( DrvContextTypeDef*, uint8_t* );
   DrvStatusTypeDef ( *Get_6D_Orientation_ZH           ) ( DrvContextTypeDef*, uint8_t* );
+  DrvStatusTypeDef ( *Get_Event_Status             ) ( DrvContextTypeDef*, ACCELERO_Event_Status_t* );
   DrvStatusTypeDef ( *FIFO_Set_ODR_Value              ) ( DrvContextTypeDef*, float );
   DrvStatusTypeDef ( *FIFO_Get_Full_Status            ) ( DrvContextTypeDef*, uint8_t* );
   DrvStatusTypeDef ( *FIFO_Get_Empty_Status           ) ( DrvContextTypeDef*, uint8_t* );

@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32l4xx_hal_cryp.c
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    29-January-2016
+  * @version V1.7.0
+  * @date    17-February-2017
   * @brief   CRYP HAL module driver.
   *          This file provides firmware functions to manage the following 
   *          functionalities of the Cryptography (CRYP) peripheral:
@@ -42,7 +42,7 @@
       (#)Initialize the CRYP HAL using HAL_CRYP_Init(). This function configures:
          (++) The data type: 1-bit, 8-bit, 16-bit and 32-bit
          (++) The AES operating mode (encryption, key derivation and/or decryption)
-         (++) The AES chaining mode (ECB, CBC, CTR, GCM, GMAC, CMAC)         
+         (++) The AES chaining mode (ECB, CBC, CTR, GCM, GMAC, CMAC when applicable, CCM when applicable)         
          (++) The encryption/decryption key if so required
          (++) The initialization vector or nonce if applicable (not used in ECB mode).
     
@@ -60,7 +60,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -92,7 +92,7 @@
 
 #ifdef HAL_CRYP_MODULE_ENABLED
 
-#if defined(STM32L485xx) || defined(STM32L486xx)
+#if defined (STM32L442xx) || defined (STM32L443xx) || defined (STM32L462xx) || defined(STM32L485xx) || defined(STM32L486xx) || defined(STM32L4A6xx)
 
 /** @addtogroup STM32L4xx_HAL_Driver
   * @{
@@ -141,7 +141,56 @@ static HAL_StatusTypeDef CRYP_AES_IT(CRYP_HandleTypeDef *hcryp);
           in the CRYP_InitTypeDef and creates the associated handle
       (+) DeInitialize the CRYP peripheral
       (+) Initialize the CRYP MSP (MCU Specific Package)
-      (+) DeInitialize the CRC MSP
+      (+) De-Initialize the CRYP MSP
+      
+    [..]
+    (@) Specific care must be taken to format the key and the Initialization Vector IV!
+    
+   [..] If the key is defined as a 128-bit long array key[127..0] = {b127 ... b0} where 
+        b127 is the MSB and b0 the LSB, the key must be stored in MCU memory 
+        (+) as a sequence of words where the MSB word comes first (occupies the
+          lowest memory address) 
+        (+) where each word is byte-swapped:
+         (++)   address n+0 : 0b b103 .. b96 b111 .. b104 b119 .. b112 b127 .. b120
+         (++)   address n+4 : 0b b71 .. b64 b79 .. b72 b87 .. b80 b95 .. b88
+         (++)   address n+8 : 0b b39 .. b32 b47 .. b40 b55 .. b48 b63 .. b56
+         (++)   address n+C : 0b b7 .. b0 b15 .. b8 b23 .. b16 b31 .. b24                 
+    [..] Hereafter, another illustration when considering a 128-bit long key made of 16 bytes {B15..B0}.
+        The 4 32-bit words that make the key must be stored as follows in MCU memory:  
+         (+)    address n+0 : 0x B12 B13 B14 B15
+         (+)    address n+4 : 0x B8 B9 B10 B11
+         (+)    address n+8 : 0x B4 B5 B6 B7
+         (+)    address n+C : 0x B0 B1 B2 B3  
+    [..]  which leads to the expected setting  
+      (+)       AES_KEYR3 = 0x B15 B14 B13 B12   
+      (+)       AES_KEYR2 = 0x B11 B10 B9 B8      
+      (+)       AES_KEYR1 = 0x B7 B6 B5 B4        
+      (+)       AES_KEYR0 = 0x B3 B2 B1 B0      
+   
+   [..]  Same format must be applied for a 256-bit long key made of 32 bytes {B31..B0}. 
+         The 8 32-bit words that make the key must be stored as follows in MCU memory:
+         (+)    address n+00 : 0x B28 B29 B30 B31
+         (+)    address n+04 : 0x B24 B25 B26 B27
+         (+)    address n+08 : 0x B20 B21 B22 B23
+         (+)    address n+0C : 0x B16 B17 B18 B19            
+         (+)    address n+10 : 0x B12 B13 B14 B15
+         (+)    address n+14 : 0x B8 B9 B10 B11
+         (+)    address n+18 : 0x B4 B5 B6 B7
+         (+)    address n+1C : 0x B0 B1 B2 B3 
+    [..]  which leads to the expected setting 
+      (+)       AES_KEYR7 = 0x B31 B30 B29 B28   
+      (+)       AES_KEYR6 = 0x B27 B26 B25 B24      
+      (+)       AES_KEYR5 = 0x B23 B22 B21 B20        
+      (+)       AES_KEYR4 = 0x B19 B18 B17 B16       
+      (+)       AES_KEYR3 = 0x B15 B14 B13 B12   
+      (+)       AES_KEYR2 = 0x B11 B10 B9 B8      
+      (+)       AES_KEYR1 = 0x B7 B6 B5 B4        
+      (+)       AES_KEYR0 = 0x B3 B2 B1 B0           
+   
+   [..] Initialization Vector IV (4 32-bit words) format must follow the same as 
+        that of a 128-bit long key.   
+  
+  [..]                 
  
 @endverbatim
   * @{
@@ -149,9 +198,10 @@ static HAL_StatusTypeDef CRYP_AES_IT(CRYP_HandleTypeDef *hcryp);
 
 /**
   * @brief  Initialize the CRYP according to the specified
-  *         parameters in the CRYP_InitTypeDef and initialize the associated handle.
-  * @param  hcryp: pointer to a CRYP_HandleTypeDef structure that contains
-  *         the configuration information for CRYP module
+  *         parameters in the CRYP_InitTypeDef and initialize the associated handle.                   
+  * @note Specific care must be taken to format the key and the Initialization Vector IV 
+  *       stored in the MCU memory before calling HAL_CRYP_Init(). Refer to explanations 
+  *       hereabove.              
   * @retval HAL status
   */
 HAL_StatusTypeDef HAL_CRYP_Init(CRYP_HandleTypeDef *hcryp)
@@ -180,16 +230,28 @@ HAL_StatusTypeDef HAL_CRYP_Init(CRYP_HandleTypeDef *hcryp)
   /* Check the proper operating/chaining modes combinations */
   /*========================================================*/  
   /* Check the proper chaining when the operating mode is key derivation and decryption */
+#if defined(AES_CR_NPBLB)
   if ((hcryp->Init.OperatingMode == CRYP_ALGOMODE_KEYDERIVATION_DECRYPT) &&\
          ((hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CTR)           \
        || (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_GCM_GMAC)      \
-       || (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CMAC)))        
+       || (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CCM)))
+#else  
+  if ((hcryp->Init.OperatingMode == CRYP_ALGOMODE_KEYDERIVATION_DECRYPT) &&\
+         ((hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CTR)           \
+       || (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_GCM_GMAC)      \
+       || (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CMAC)))
+#endif               
   {
     return HAL_ERROR;
   }  
-  /* Check that key derivation is not set in CMAC mode */  
+  /* Check that key derivation is not set in CMAC mode or CCM mode when applicable */  
+#if defined(AES_CR_NPBLB)
   if ((hcryp->Init.OperatingMode == CRYP_ALGOMODE_KEYDERIVATION) 
-   && (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CMAC))        
+   && (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CCM))
+#else  
+  if ((hcryp->Init.OperatingMode == CRYP_ALGOMODE_KEYDERIVATION) 
+   && (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CMAC))
+#endif           
   {
     return HAL_ERROR;
   }
@@ -212,7 +274,7 @@ HAL_StatusTypeDef HAL_CRYP_Init(CRYP_HandleTypeDef *hcryp)
   hcryp->State = HAL_CRYP_STATE_BUSY;  
   
   /* Disable the Peripheral */
-  __HAL_CRYP_DISABLE();
+  __HAL_CRYP_DISABLE(hcryp);
   
   /*=============================================================*/
   /* AES initialization common to all operating modes            */ 
@@ -221,7 +283,7 @@ HAL_StatusTypeDef HAL_CRYP_Init(CRYP_HandleTypeDef *hcryp)
   MODIFY_REG(hcryp->Instance->CR, AES_CR_KEYSIZE, hcryp->Init.KeySize);
   
   /* Set the default CRYP phase when this parameter is not used.
-     Phase is updated below in case of GCM/GMAC/CMAC setting. */
+     Phase is updated below in case of GCM/GMAC(/CMAC)(/CCM) setting. */
   hcryp->Phase = HAL_CRYP_PHASE_NOT_USED;
   
   
@@ -242,23 +304,31 @@ HAL_StatusTypeDef HAL_CRYP_Init(CRYP_HandleTypeDef *hcryp)
   }
   else
   /* Encryption / Decryption (with or without key derivation) / authentication */
-  {    
+  {  
+#if !defined(AES_CR_NPBLB)    
     /* Set data type, operating and chaining modes.
        In case of GCM or GMAC, data type is forced to 0b00 */
     if (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_GCM_GMAC)
     {
-      MODIFY_REG(hcryp->Instance->CR, AES_CR_DATATYPE|AES_CR_MODE|AES_CR_CHMOD, hcryp->Init.OperatingMode|hcryp->Init.ChainingMode);
+      MODIFY_REG(hcryp->Instance->CR, AES_CR_DATATYPE|AES_CR_MODE|AES_CR_CHMOD, hcryp->Init.OperatingMode|hcryp->Init.ChainingMode);    
     }
     else
+#endif    
     {
       MODIFY_REG(hcryp->Instance->CR, AES_CR_DATATYPE|AES_CR_MODE|AES_CR_CHMOD, hcryp->Init.DataType|hcryp->Init.OperatingMode|hcryp->Init.ChainingMode);
     }
 
     
    /* Specify the encryption/decryption phase in case of Galois counter mode (GCM), 
-      Galois message authentication code (GMAC) or cipher message authentication code (CMAC) */
+      Galois message authentication code (GMAC), cipher message authentication code (CMAC) when applicable
+      or Counter with Cipher Mode (CCM) when applicable */
+#if defined(AES_CR_NPBLB)      
+   if ((hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_GCM_GMAC)
+    || (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CCM))
+#else
    if ((hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_GCM_GMAC)
     || (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CMAC))
+#endif    
     {
       MODIFY_REG(hcryp->Instance->CR, AES_CR_GCMPH, hcryp->Init.GCMCMACPhase);
       hcryp->Phase = HAL_CRYP_PHASE_START;
@@ -283,6 +353,11 @@ HAL_StatusTypeDef HAL_CRYP_Init(CRYP_HandleTypeDef *hcryp)
       }
     }
   }
+  
+#if defined(AES_CR_NPBLB)   
+  /* Clear NPBLB field */
+  CLEAR_BIT(hcryp->Instance->CR, AES_CR_NPBLB);
+#endif  
 
   /* Reset CrypInCount and CrypOutCount */
   hcryp->CrypInCount = 0;
@@ -298,7 +373,7 @@ HAL_StatusTypeDef HAL_CRYP_Init(CRYP_HandleTypeDef *hcryp)
   hcryp->State = HAL_CRYP_STATE_READY;
   
   /* Enable the Peripheral */
-  __HAL_CRYP_ENABLE();
+  __HAL_CRYP_ENABLE(hcryp);
   
   /* Return function status */
   return HAL_OK;
@@ -329,7 +404,7 @@ HAL_StatusTypeDef HAL_CRYP_DeInit(CRYP_HandleTypeDef *hcryp)
   hcryp->CrypOutCount = 0;
   
   /* Disable the CRYP Peripheral Clock */
-  __HAL_CRYP_DISABLE();
+  __HAL_CRYP_DISABLE(hcryp);
   
   /* DeInit the low level hardware: CLOCK, NVIC.*/
   HAL_CRYP_MspDeInit(hcryp);
@@ -1049,16 +1124,16 @@ __weak void HAL_CRYP_OutCpltCallback(CRYP_HandleTypeDef *hcryp)
 void HAL_CRYP_IRQHandler(CRYP_HandleTypeDef *hcryp)
 {
   /* Check if error occurred */
-  if (__HAL_CRYP_GET_IT_SOURCE(CRYP_IT_ERRIE) != RESET)
+  if (__HAL_CRYP_GET_IT_SOURCE(hcryp, CRYP_IT_ERRIE) != RESET)
   {
     /* If Write Error occurred */
-    if (__HAL_CRYP_GET_FLAG(CRYP_IT_WRERR) != RESET)
+    if (__HAL_CRYP_GET_FLAG(hcryp, CRYP_IT_WRERR) != RESET)
     {
       hcryp->ErrorCode |= HAL_CRYP_WRITE_ERROR;
       hcryp->State = HAL_CRYP_STATE_ERROR;
     }
     /* If Read Error occurred */
-    if (__HAL_CRYP_GET_FLAG(CRYP_IT_RDERR) != RESET)
+    if (__HAL_CRYP_GET_FLAG(hcryp, CRYP_IT_RDERR) != RESET)
     {
       hcryp->ErrorCode |= HAL_CRYP_READ_ERROR;
       hcryp->State = HAL_CRYP_STATE_ERROR;
@@ -1068,9 +1143,9 @@ void HAL_CRYP_IRQHandler(CRYP_HandleTypeDef *hcryp)
     if (hcryp->State == HAL_CRYP_STATE_ERROR)
     {  
       /* Disable Error and Computation Complete Interrupts */
-      __HAL_CRYP_DISABLE_IT(CRYP_IT_CCFIE|CRYP_IT_ERRIE);
+      __HAL_CRYP_DISABLE_IT(hcryp, CRYP_IT_CCFIE|CRYP_IT_ERRIE);
       /* Clear all Interrupt flags */
-      __HAL_CRYP_CLEAR_FLAG(CRYP_ERR_CLEAR|CRYP_CCF_CLEAR);
+      __HAL_CRYP_CLEAR_FLAG(hcryp, CRYP_ERR_CLEAR|CRYP_CCF_CLEAR);
     
       /* Process Unlocked */
       __HAL_UNLOCK(hcryp);  
@@ -1079,14 +1154,20 @@ void HAL_CRYP_IRQHandler(CRYP_HandleTypeDef *hcryp)
   
       return; 
     }
+
   }
   
   /* Check if computation complete interrupt is enabled 
      and if the computation complete flag is raised */
-  if((__HAL_CRYP_GET_FLAG(CRYP_IT_CCF) != RESET) && (__HAL_CRYP_GET_IT_SOURCE(CRYP_IT_CCFIE) != RESET))
-  {    
+  if((__HAL_CRYP_GET_FLAG(hcryp, CRYP_IT_CCF) != RESET) && (__HAL_CRYP_GET_IT_SOURCE(hcryp, CRYP_IT_CCFIE) != RESET))
+  { 
+#if defined(AES_CR_NPBLB)
+    if ((hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_GCM_GMAC)
+     || (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CCM))
+#else     
     if ((hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_GCM_GMAC)
      || (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CMAC))
+#endif     
     {
      /* To ensure proper suspension requests management, CCF flag 
         is reset in CRYP_AES_Auth_IT() according to the current 
@@ -1096,7 +1177,7 @@ void HAL_CRYP_IRQHandler(CRYP_HandleTypeDef *hcryp)
     else
     {
       /* Clear Computation Complete Flag */
-      __HAL_CRYP_CLEAR_FLAG(CRYP_CCF_CLEAR);
+      __HAL_CRYP_CLEAR_FLAG(hcryp, CRYP_CCF_CLEAR);
       CRYP_AES_IT(hcryp);
     }
   }
@@ -1161,7 +1242,7 @@ uint32_t HAL_CRYP_GetError(CRYP_HandleTypeDef *hcryp)
   * @brief  Write the Key in KeyRx registers. 
   * @param  hcryp: pointer to a CRYP_HandleTypeDef structure that contains
   *         the configuration information for CRYP module
-  * @retval HAL status
+  * @retval None
   */
 static HAL_StatusTypeDef  CRYP_SetKey(CRYP_HandleTypeDef *hcryp)
 {  
@@ -1202,12 +1283,13 @@ static HAL_StatusTypeDef  CRYP_SetKey(CRYP_HandleTypeDef *hcryp)
   * @brief  Write the InitVector/InitCounter in IVRx registers. 
   * @param  hcryp: pointer to a CRYP_HandleTypeDef structure that contains
   *         the configuration information for CRYP module
-  * @retval HAL status
+  * @retval None
   */
 static HAL_StatusTypeDef CRYP_SetInitVector(CRYP_HandleTypeDef *hcryp)
 {
   uint32_t ivaddr = 0x0;
- 
+  
+#if !defined(AES_CR_NPBLB)
   if (hcryp->Init.ChainingMode == CRYP_CHAINMODE_AES_CMAC)
   {
     hcryp->Instance->IVR3 = 0;
@@ -1216,6 +1298,7 @@ static HAL_StatusTypeDef CRYP_SetInitVector(CRYP_HandleTypeDef *hcryp)
     hcryp->Instance->IVR0 = 0;
   }
   else
+#endif
   {
     if (hcryp->Init.pInitVect == NULL)
     {
@@ -1248,15 +1331,12 @@ static HAL_StatusTypeDef CRYP_SetInitVector(CRYP_HandleTypeDef *hcryp)
 static HAL_StatusTypeDef CRYP_AES_IT(CRYP_HandleTypeDef *hcryp)
 {
   uint32_t inputaddr = 0;
-  uint32_t outputaddr = 0;  
+  uint32_t outputaddr = (uint32_t)hcryp->pCrypOutBuffPtr; 
 
   if(hcryp->State == HAL_CRYP_STATE_BUSY)
   {
     if (hcryp->Init.OperatingMode != CRYP_ALGOMODE_KEYDERIVATION)
-    {
-      /* Get the output data address */
-      outputaddr = (uint32_t)hcryp->pCrypOutBuffPtr;
-      
+    {      
       /* Read the last available output block from the Data Output Register */
       *(uint32_t*)(outputaddr) = hcryp->Instance->DOUTR;
       outputaddr+=4;
@@ -1298,7 +1378,7 @@ static HAL_StatusTypeDef CRYP_AES_IT(CRYP_HandleTypeDef *hcryp)
     if ((hcryp->CrypOutCount == 0) || (hcryp->Init.OperatingMode == CRYP_ALGOMODE_KEYDERIVATION))
     {
       /* Disable Computation Complete Flag and Errors Interrupts */
-      __HAL_CRYP_DISABLE_IT(CRYP_IT_CCFIE|CRYP_IT_ERRIE);
+      __HAL_CRYP_DISABLE_IT(hcryp, CRYP_IT_CCFIE|CRYP_IT_ERRIE);
       /* Change the CRYP state */
       hcryp->State = HAL_CRYP_STATE_READY;
       
@@ -1317,7 +1397,7 @@ static HAL_StatusTypeDef CRYP_AES_IT(CRYP_HandleTypeDef *hcryp)
       hcryp->SuspendRequest = HAL_CRYP_SUSPEND_NONE;
       
       /* Disable Computation Complete Flag and Errors Interrupts */
-      __HAL_CRYP_DISABLE_IT(CRYP_IT_CCFIE|CRYP_IT_ERRIE);
+      __HAL_CRYP_DISABLE_IT(hcryp, CRYP_IT_CCFIE|CRYP_IT_ERRIE);
       /* Change the CRYP state */
       hcryp->State = HAL_CRYP_STATE_SUSPENDED;
       
@@ -1370,7 +1450,7 @@ static HAL_StatusTypeDef CRYP_AES_IT(CRYP_HandleTypeDef *hcryp)
   * @}
   */
   
-#endif /* defined(STM32L485xx) || defined(STM32L486xx) */  
+#endif /* defined (STM32L442xx) || defined (STM32L443xx) || defined (STM32L462xx) || defined(STM32L485xx) || defined(STM32L486xx) || defined(STM32L4A6xx) */  
 
 #endif /* HAL_CRYP_MODULE_ENABLED */
 

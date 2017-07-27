@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32l4xx_hal_qspi.h
   * @author  MCD Application Team
-  * @version V1.3.0
-  * @date    29-January-2016
+  * @version V1.7.0
+  * @date    17-February-2017
   * @brief   Header file of QSPI HAL module.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -81,6 +81,14 @@ typedef struct
                                   This parameter can be a value of @ref QSPI_ChipSelectHighTime */   
   uint32_t ClockMode;          /* Specifies the Clock Mode. It indicates the level that clock takes between commands.
                                   This parameter can be a value of @ref QSPI_ClockMode */
+#if defined(STM32L431xx) || defined(STM32L432xx) || defined(STM32L433xx) || defined(STM32L442xx) || \
+    defined(STM32L443xx) || defined(STM32L451xx) || defined(STM32L452xx) || defined(STM32L462xx) || \
+    defined(STM32L496xx) || defined(STM32L4A6xx) 
+  uint32_t FlashID;            /* Specifies the Flash which will be used,
+                                  This parameter can be a value of @ref QSPI_Flash_Select */
+  uint32_t DualFlash;          /* Specifies the Dual Flash Mode State
+                                  This parameter can be a value of @ref QSPI_DualFlash_Mode */                                               
+#endif
 }QSPI_InitTypeDef;
 
 /** 
@@ -95,6 +103,7 @@ typedef enum
   HAL_QSPI_STATE_BUSY_INDIRECT_RX  = 0x22,    /*!< Peripheral in indirect mode with reception ongoing    */
   HAL_QSPI_STATE_BUSY_AUTO_POLLING = 0x42,    /*!< Peripheral in auto polling mode ongoing               */
   HAL_QSPI_STATE_BUSY_MEM_MAPPED   = 0x82,    /*!< Peripheral in memory mapped mode ongoing              */
+  HAL_QSPI_STATE_ABORT             = 0x08,    /*!< Peripheral with abort request ongoing                 */
   HAL_QSPI_STATE_ERROR             = 0x04     /*!< Peripheral in error                                   */
 }HAL_QSPI_StateTypeDef;
 
@@ -106,11 +115,11 @@ typedef struct
   QUADSPI_TypeDef            *Instance;        /* QSPI registers base address        */
   QSPI_InitTypeDef           Init;             /* QSPI communication parameters      */
   uint8_t                    *pTxBuffPtr;      /* Pointer to QSPI Tx transfer Buffer */
-  __IO uint16_t              TxXferSize;       /* QSPI Tx Transfer size              */
-  __IO uint16_t              TxXferCount;      /* QSPI Tx Transfer Counter           */
+  __IO uint32_t              TxXferSize;       /* QSPI Tx Transfer size              */
+  __IO uint32_t              TxXferCount;      /* QSPI Tx Transfer Counter           */
   uint8_t                    *pRxBuffPtr;      /* Pointer to QSPI Rx transfer Buffer */
-  __IO uint16_t              RxXferSize;       /* QSPI Rx Transfer size              */
-  __IO uint16_t              RxXferCount;      /* QSPI Rx Transfer Counter           */
+  __IO uint32_t              RxXferSize;       /* QSPI Rx Transfer size              */
+  __IO uint32_t              RxXferCount;      /* QSPI Rx Transfer Counter           */
   DMA_HandleTypeDef          *hdma;            /* QSPI Rx/Tx DMA Handle parameters   */
   __IO HAL_LockTypeDef       Lock;             /* Locking object                     */
   __IO HAL_QSPI_StateTypeDef State;            /* QSPI communication state           */
@@ -143,7 +152,7 @@ typedef struct
                                   This parameter can be a value of @ref QSPI_AlternateBytesMode */
   uint32_t DataMode;           /* Specifies the Data Mode (used for dummy cycles and data phases)
                                   This parameter can be a value of @ref QSPI_DataMode */
-  uint32_t NbData;             /* Specifies the number of data to transfer. 
+  uint32_t NbData;             /* Specifies the number of data to transfer. (This is the number of bytes)
                                   This parameter can be any value between 0 and 0xFFFFFFFF (0 means undefined length 
                                   until end of memory)*/
   uint32_t DdrMode;            /* Specifies the double data rate mode for address, alternate byte and data phase
@@ -197,10 +206,11 @@ typedef struct
 /** @defgroup QSPI_ErrorCode QSPI Error Code
   * @{
   */ 
-#define HAL_QSPI_ERROR_NONE            ((uint32_t)0x00000000) /*!< No error           */
-#define HAL_QSPI_ERROR_TIMEOUT         ((uint32_t)0x00000001) /*!< Timeout error      */
-#define HAL_QSPI_ERROR_TRANSFER        ((uint32_t)0x00000002) /*!< Transfer error     */
-#define HAL_QSPI_ERROR_DMA             ((uint32_t)0x00000004) /*!< DMA transfer error */
+#define HAL_QSPI_ERROR_NONE            ((uint32_t)0x00000000) /*!< No error                 */
+#define HAL_QSPI_ERROR_TIMEOUT         ((uint32_t)0x00000001) /*!< Timeout error            */
+#define HAL_QSPI_ERROR_TRANSFER        ((uint32_t)0x00000002) /*!< Transfer error           */
+#define HAL_QSPI_ERROR_DMA             ((uint32_t)0x00000004) /*!< DMA transfer error       */
+#define HAL_QSPI_ERROR_INVALID_PARAM   ((uint32_t)0x00000008) /*!< Invalid parameters error */
 /**
   * @}
   */ 
@@ -237,6 +247,28 @@ typedef struct
 /**
   * @}
   */
+
+#if defined(STM32L431xx) || defined(STM32L432xx) || defined(STM32L433xx) || defined(STM32L442xx) || \
+    defined(STM32L443xx) || defined(STM32L451xx) || defined(STM32L452xx) || defined(STM32L462xx) || \
+    defined(STM32L496xx) || defined(STM32L4A6xx) 
+/** @defgroup QSPI_Flash_Select QSPI Flash Select
+  * @{
+  */
+#define QSPI_FLASH_ID_1                ((uint32_t)0x00000000)      /*!<FLASH 1 selected*/
+#define QSPI_FLASH_ID_2                ((uint32_t)QUADSPI_CR_FSEL) /*!<FLASH 2 selected*/
+/**
+  * @}
+  */  
+
+  /** @defgroup QSPI_DualFlash_Mode QSPI Dual Flash Mode
+  * @{
+  */
+#define QSPI_DUALFLASH_ENABLE          ((uint32_t)QUADSPI_CR_DFM) /*!<Dual-flash mode enabled*/
+#define QSPI_DUALFLASH_DISABLE         ((uint32_t)0x00000000)     /*!<Dual-flash mode disabled*/
+/**
+  * @}
+  */ 
+#endif
 
 /** @defgroup QSPI_AddressSize QSPI Address Size
   * @{
@@ -317,6 +349,11 @@ typedef struct
   * @{
   */
 #define QSPI_DDR_HHC_ANALOG_DELAY      ((uint32_t)0x00000000)       /*!<Delay the data output using analog delay in DDR mode*/
+#if defined(STM32L431xx) || defined(STM32L432xx) || defined(STM32L433xx) || defined(STM32L442xx) || \
+    defined(STM32L443xx) || defined(STM32L451xx) || defined(STM32L452xx) || defined(STM32L462xx) || \
+    defined(STM32L496xx) || defined(STM32L4A6xx) 
+#define QSPI_DDR_HHC_HALF_CLK_DELAY    ((uint32_t)QUADSPI_CCR_DHHC) /*!<Delay the data output by 1/2 clock cycle in DDR mode*/
+#endif
 /**
   * @}
   */
@@ -520,6 +557,7 @@ HAL_StatusTypeDef     HAL_QSPI_MemoryMapped(QSPI_HandleTypeDef *hqspi, QSPI_Comm
 
 /* Callback functions in non-blocking modes ***********************************/
 void                  HAL_QSPI_ErrorCallback        (QSPI_HandleTypeDef *hqspi);
+void                  HAL_QSPI_AbortCpltCallback    (QSPI_HandleTypeDef *hqspi);
 void                  HAL_QSPI_FifoThresholdCallback(QSPI_HandleTypeDef *hqspi);
 
 /* QSPI indirect mode */
@@ -536,10 +574,13 @@ void                  HAL_QSPI_StatusMatchCallback  (QSPI_HandleTypeDef *hqspi);
 void                  HAL_QSPI_TimeOutCallback      (QSPI_HandleTypeDef *hqspi);
 
 /* Peripheral Control and State functions  ************************************/
-HAL_QSPI_StateTypeDef HAL_QSPI_GetState  (QSPI_HandleTypeDef *hqspi);
-uint32_t              HAL_QSPI_GetError  (QSPI_HandleTypeDef *hqspi);
-HAL_StatusTypeDef     HAL_QSPI_Abort     (QSPI_HandleTypeDef *hqspi);
-void                  HAL_QSPI_SetTimeout(QSPI_HandleTypeDef *hqspi, uint32_t Timeout);
+HAL_QSPI_StateTypeDef HAL_QSPI_GetState        (QSPI_HandleTypeDef *hqspi);
+uint32_t              HAL_QSPI_GetError        (QSPI_HandleTypeDef *hqspi);
+HAL_StatusTypeDef     HAL_QSPI_Abort           (QSPI_HandleTypeDef *hqspi);
+HAL_StatusTypeDef     HAL_QSPI_Abort_IT        (QSPI_HandleTypeDef *hqspi);
+void                  HAL_QSPI_SetTimeout      (QSPI_HandleTypeDef *hqspi, uint32_t Timeout);
+HAL_StatusTypeDef     HAL_QSPI_SetFifoThreshold(QSPI_HandleTypeDef *hqspi, uint32_t Threshold);
+uint32_t              HAL_QSPI_GetFifoThreshold(QSPI_HandleTypeDef *hqspi);
 /**
   * @}
   */
@@ -569,6 +610,16 @@ void                  HAL_QSPI_SetTimeout(QSPI_HandleTypeDef *hqspi, uint32_t Ti
 
 #define IS_QSPI_CLOCK_MODE(CLKMODE)        (((CLKMODE) == QSPI_CLOCK_MODE_0) || \
                                             ((CLKMODE) == QSPI_CLOCK_MODE_3))
+
+#if defined(STM32L431xx) || defined(STM32L432xx) || defined(STM32L433xx) || defined(STM32L442xx) || \
+    defined(STM32L443xx) || defined(STM32L451xx) || defined(STM32L452xx) || defined(STM32L462xx) || \
+    defined(STM32L496xx) || defined(STM32L4A6xx) 
+#define IS_QSPI_FLASH_ID(FLASH)            (((FLASH) == QSPI_FLASH_ID_1) || \
+                                            ((FLASH) == QSPI_FLASH_ID_2)) 
+                                  
+#define IS_QSPI_DUAL_FLASH_MODE(MODE)      (((MODE) == QSPI_DUALFLASH_ENABLE) || \
+                                            ((MODE) == QSPI_DUALFLASH_DISABLE))
+#endif
 
 #define IS_QSPI_INSTRUCTION(INSTRUCTION)   ((INSTRUCTION) <= 0xFF) 
 
@@ -607,7 +658,14 @@ void                  HAL_QSPI_SetTimeout(QSPI_HandleTypeDef *hqspi, uint32_t Ti
 #define IS_QSPI_DDR_MODE(DDR_MODE)         (((DDR_MODE) == QSPI_DDR_MODE_DISABLE) || \
                                             ((DDR_MODE) == QSPI_DDR_MODE_ENABLE))
 
+#if defined(STM32L431xx) || defined(STM32L432xx) || defined(STM32L433xx) || defined(STM32L442xx) || \
+    defined(STM32L443xx) || defined(STM32L451xx) || defined(STM32L452xx) || defined(STM32L462xx) || \
+    defined(STM32L496xx) || defined(STM32L4A6xx) 
+#define IS_QSPI_DDR_HHC(DDR_HHC)           (((DDR_HHC) == QSPI_DDR_HHC_ANALOG_DELAY) || \
+                                            ((DDR_HHC) == QSPI_DDR_HHC_HALF_CLK_DELAY))
+#else
 #define IS_QSPI_DDR_HHC(DDR_HHC)           (((DDR_HHC) == QSPI_DDR_HHC_ANALOG_DELAY))
+#endif
 
 #define IS_QSPI_SIOO_MODE(SIOO_MODE)       (((SIOO_MODE) == QSPI_SIOO_INST_EVERY_CMD) || \
                                             ((SIOO_MODE) == QSPI_SIOO_INST_ONLY_FIRST_CMD))

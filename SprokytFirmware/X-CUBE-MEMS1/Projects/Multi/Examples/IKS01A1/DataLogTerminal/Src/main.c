@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    Projects/Multi/Examples/IKS01A1/DataLogTerminal/Src/main.c
  * @author  CL
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   Main program body
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -38,7 +38,7 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include <string.h> /* strlen */
-#include <stdio.h>  /* sprintf */
+#include <stdio.h>  /* snprintf */
 #include <math.h>   /* trunc */
 #include "main.h"
 
@@ -54,7 +54,15 @@ extern int use_LSI;
 int RTC_SYNCH_PREDIV;
 
 /* Private typedef -----------------------------------------------------------*/
+typedef struct displayFloatToInt_s {
+  int8_t sign; /* 0 means positive, 1 means negative*/
+  uint32_t  out_int;
+  uint32_t  out_dec;
+} displayFloatToInt_t;
+
 /* Private define ------------------------------------------------------------*/
+#define MAX_BUF_SIZE 256
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 static volatile uint8_t acquire_data_enable_request  = 1;
@@ -69,7 +77,7 @@ static volatile uint8_t no_T_LPS22HB_DIL24 = 0;
 static uint8_t acquire_data_enabled = 0;
 static uint8_t verbose              = 1;  /* Verbose output to UART terminal ON/OFF. */
 static RTC_HandleTypeDef RtcHandle;
-static char dataOut[256];
+static char dataOut[MAX_BUF_SIZE];
 
 static void *LSM6DS0_X_0_handle = NULL;
 static void *LSM6DS3_X_0_handle = NULL;
@@ -94,7 +102,7 @@ static void RTC_TimeStampConfig( void );
 static void initializeAllSensors( void );
 static void enableAllSensors( void );
 static void disableAllSensors( void );
-static void floatToInt( float in, int32_t *out_int, int32_t *out_dec, int32_t dec_prec );
+static void floatToInt(float in, displayFloatToInt_t *out_value, int32_t dec_prec);
 static void RTC_Handler( void );
 
 static void Accelero_Sensor_Handler( void *handle );
@@ -135,13 +143,7 @@ int main( void )
   BSP_LED_Init( LED2 );
 
   /* Initialize button */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_EXTI);
-#endif
-
-#if (defined (USE_STM32L1XX_NUCLEO))
-  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
-#endif
 
   /* Initialize UART */
   USARTConfig();
@@ -215,24 +217,24 @@ int main( void )
 /**
  * @brief  Splits a float into two integer values.
  * @param  in the float value as input
- * @param  out_int the pointer to the integer part as output
- * @param  out_dec the pointer to the decimal part as output
+ * @param  out_value the pointer to the output integer structure
  * @param  dec_prec the decimal precision to be used
  * @retval None
  */
-static void floatToInt( float in, int32_t *out_int, int32_t *out_dec, int32_t dec_prec )
+static void floatToInt(float in, displayFloatToInt_t *out_value, int32_t dec_prec)
 {
-
-  *out_int = (int32_t)in;
   if(in >= 0.0f)
   {
-    in = in - (float)(*out_int);
-  }
-  else
+    out_value->sign = 0;
+  }else
   {
-    in = (float)(*out_int) - in;
+    out_value->sign = 1;
+    in = -in;
   }
-  *out_dec = (int32_t)trunc(in * pow(10, dec_prec));
+  
+  out_value->out_int = (int32_t)in;
+  in = in - (float)(out_value->out_int);
+  out_value->out_dec = (int32_t)trunc(in * pow(10, dec_prec));
 }
 
 
@@ -254,7 +256,7 @@ static void RTC_Handler( void )
   subSec = (((((( int )RTC_SYNCH_PREDIV) - (( int )stimestructure.SubSeconds)) * 100) /
              ( RTC_SYNCH_PREDIV + 1 )) & 0xff );
 
-  sprintf( dataOut, "\r\n\r\n\r\nTimeStamp: %02d:%02d:%02d.%02d\r\n", stimestructure.Hours, stimestructure.Minutes,
+  snprintf( dataOut, MAX_BUF_SIZE, "\r\n\r\n\r\nTimeStamp: %02d:%02d:%02d.%02d\r\n", stimestructure.Hours, stimestructure.Minutes,
            stimestructure.Seconds, subSec );
   HAL_UART_Transmit( &UartHandle, ( uint8_t *)dataOut, strlen( dataOut ), 5000 );
 }
@@ -275,7 +277,7 @@ static void Accelero_Sensor_Handler( void *handle )
   uint8_t id;
   SensorAxes_t acceleration;
   uint8_t status;
-  int32_t d1, d2;
+  displayFloatToInt_t out_value;
 
   BSP_ACCELERO_Get_Instance( handle, &id );
 
@@ -290,7 +292,7 @@ static void Accelero_Sensor_Handler( void *handle )
       acceleration.AXIS_Z = 0;
     }
 
-    sprintf( dataOut, "\r\nACC_X[%d]: %d, ACC_Y[%d]: %d, ACC_Z[%d]: %d\r\n", (int)id, (int)acceleration.AXIS_X, (int)id,
+    snprintf( dataOut, MAX_BUF_SIZE, "\r\nACC_X[%d]: %d, ACC_Y[%d]: %d, ACC_Z[%d]: %d\r\n", (int)id, (int)acceleration.AXIS_X, (int)id,
              (int)acceleration.AXIS_Y, (int)id, (int)acceleration.AXIS_Z );
 
     HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
@@ -299,35 +301,35 @@ static void Accelero_Sensor_Handler( void *handle )
     {
       if ( BSP_ACCELERO_Get_WhoAmI( handle, &who_am_i ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "WHO AM I address[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "WHO AM I address[%d]: ERROR\r\n", id );
       }
       else
       {
-        sprintf( dataOut, "WHO AM I address[%d]: 0x%02X\r\n", id, who_am_i );
+        snprintf( dataOut, MAX_BUF_SIZE, "WHO AM I address[%d]: 0x%02X\r\n", id, who_am_i );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
 
       if ( BSP_ACCELERO_Get_ODR( handle, &odr ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "ODR[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "ODR[%d]: ERROR\r\n", id );
       }
       else
       {
-        floatToInt( odr, &d1, &d2, 3 );
-        sprintf( dataOut, "ODR[%d]: %d.%03d Hz\r\n", (int)id, (int)d1, (int)d2 );
+        floatToInt( odr, &out_value, 3 );
+        snprintf( dataOut, MAX_BUF_SIZE, "ODR[%d]: %d.%03d Hz\r\n", (int)id, (int)out_value.out_int, (int)out_value.out_dec );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
 
       if ( BSP_ACCELERO_Get_FS( handle, &fullScale ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "FS[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "FS[%d]: ERROR\r\n", id );
       }
       else
       {
-        floatToInt( fullScale, &d1, &d2, 3 );
-        sprintf( dataOut, "FS[%d]: %d.%03d g\r\n", (int)id, (int)d1, (int)d2 );
+        floatToInt( fullScale, &out_value, 3 );
+        snprintf( dataOut, MAX_BUF_SIZE, "FS[%d]: %d.%03d g\r\n", (int)id, (int)out_value.out_int, (int)out_value.out_dec );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
@@ -351,7 +353,7 @@ static void Gyro_Sensor_Handler( void *handle )
   uint8_t id;
   SensorAxes_t angular_velocity;
   uint8_t status;
-  int32_t d1, d2;
+  displayFloatToInt_t out_value;
 
   BSP_GYRO_Get_Instance( handle, &id );
 
@@ -366,7 +368,7 @@ static void Gyro_Sensor_Handler( void *handle )
       angular_velocity.AXIS_Z = 0;
     }
 
-    sprintf( dataOut, "\r\nGYR_X[%d]: %d, GYR_Y[%d]: %d, GYR_Z[%d]: %d\r\n", (int)id, (int)angular_velocity.AXIS_X, (int)id,
+    snprintf( dataOut, MAX_BUF_SIZE, "\r\nGYR_X[%d]: %d, GYR_Y[%d]: %d, GYR_Z[%d]: %d\r\n", (int)id, (int)angular_velocity.AXIS_X, (int)id,
              (int)angular_velocity.AXIS_Y, (int)id, (int)angular_velocity.AXIS_Z );
 
     HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
@@ -375,35 +377,35 @@ static void Gyro_Sensor_Handler( void *handle )
     {
       if ( BSP_GYRO_Get_WhoAmI( handle, &who_am_i ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "WHO AM I address[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "WHO AM I address[%d]: ERROR\r\n", id );
       }
       else
       {
-        sprintf( dataOut, "WHO AM I address[%d]: 0x%02X\r\n", id, who_am_i );
+        snprintf( dataOut, MAX_BUF_SIZE, "WHO AM I address[%d]: 0x%02X\r\n", id, who_am_i );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
 
       if ( BSP_GYRO_Get_ODR( handle, &odr ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "ODR[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "ODR[%d]: ERROR\r\n", id );
       }
       else
       {
-        floatToInt( odr, &d1, &d2, 3 );
-        sprintf( dataOut, "ODR[%d]: %d.%03d Hz\r\n", (int)id, (int)d1, (int)d2 );
+        floatToInt( odr, &out_value, 3 );
+        snprintf( dataOut, MAX_BUF_SIZE, "ODR[%d]: %d.%03d Hz\r\n", (int)id, (int)out_value.out_int, (int)out_value.out_dec );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
 
       if ( BSP_GYRO_Get_FS( handle, &fullScale ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "FS[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "FS[%d]: ERROR\r\n", id );
       }
       else
       {
-        floatToInt( fullScale, &d1, &d2, 3 );
-        sprintf( dataOut, "FS[%d]: %d.%03d dps\r\n", (int)id, (int)d1, (int)d2 );
+        floatToInt( fullScale, &out_value, 3 );
+        snprintf( dataOut, MAX_BUF_SIZE, "FS[%d]: %d.%03d dps\r\n", (int)id, (int)out_value.out_int, (int)out_value.out_dec );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
@@ -427,7 +429,7 @@ static void Magneto_Sensor_Handler( void *handle )
   uint8_t id;
   SensorAxes_t magnetic_field;
   uint8_t status;
-  int32_t d1, d2;
+  displayFloatToInt_t out_value;
 
   BSP_MAGNETO_Get_Instance( handle, &id );
 
@@ -442,7 +444,7 @@ static void Magneto_Sensor_Handler( void *handle )
       magnetic_field.AXIS_Z = 0;
     }
 
-    sprintf( dataOut, "\r\nMAG_X[%d]: %d, MAG_Y[%d]: %d, MAG_Z[%d]: %d\r\n", (int)id, (int)magnetic_field.AXIS_X, (int)id,
+    snprintf( dataOut, MAX_BUF_SIZE, "\r\nMAG_X[%d]: %d, MAG_Y[%d]: %d, MAG_Z[%d]: %d\r\n", (int)id, (int)magnetic_field.AXIS_X, (int)id,
              (int)magnetic_field.AXIS_Y, (int)id, (int)magnetic_field.AXIS_Z );
 
     HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
@@ -451,35 +453,35 @@ static void Magneto_Sensor_Handler( void *handle )
     {
       if ( BSP_MAGNETO_Get_WhoAmI( handle, &who_am_i ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "WHO AM I address[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "WHO AM I address[%d]: ERROR\r\n", id );
       }
       else
       {
-        sprintf( dataOut, "WHO AM I address[%d]: 0x%02X\r\n", id, who_am_i );
+        snprintf( dataOut, MAX_BUF_SIZE, "WHO AM I address[%d]: 0x%02X\r\n", id, who_am_i );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
 
       if ( BSP_MAGNETO_Get_ODR( handle, &odr ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "ODR[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "ODR[%d]: ERROR\r\n", id );
       }
       else
       {
-        floatToInt( odr, &d1, &d2, 3 );
-        sprintf( dataOut, "ODR[%d]: %d.%03d Hz\r\n", (int)id, (int)d1, (int)d2 );
+        floatToInt( odr, &out_value, 3 );
+        snprintf( dataOut, MAX_BUF_SIZE, "ODR[%d]: %d.%03d Hz\r\n", (int)id, (int)out_value.out_int, (int)out_value.out_dec );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
 
       if ( BSP_MAGNETO_Get_FS( handle, &fullScale ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "FS[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "FS[%d]: ERROR\r\n", id );
       }
       else
       {
-        floatToInt( fullScale, &d1, &d2, 3 );
-        sprintf( dataOut, "FS[%d]: %d.%03d Gauss\r\n", (int)id, (int)d1, (int)d2 );
+        floatToInt( fullScale, &out_value, 3 );
+        snprintf( dataOut, MAX_BUF_SIZE, "FS[%d]: %d.%03d Gauss\r\n", (int)id, (int)out_value.out_int, (int)out_value.out_dec );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
@@ -497,12 +499,12 @@ static void Magneto_Sensor_Handler( void *handle )
 static void Humidity_Sensor_Handler( void *handle )
 {
 
-  int32_t d1, d2;
   uint8_t who_am_i;
   float odr;
   uint8_t id;
   float humidity;
   uint8_t status;
+  displayFloatToInt_t out_value;
 
   BSP_HUMIDITY_Get_Instance( handle, &id );
 
@@ -515,31 +517,31 @@ static void Humidity_Sensor_Handler( void *handle )
       humidity = 0.0f;
     }
 
-    floatToInt( humidity, &d1, &d2, 2 );
-    sprintf( dataOut, "\r\nHUM[%d]: %d.%02d\r\n", (int)id, (int)d1, (int)d2 );
+    floatToInt( humidity, &out_value, 2 );
+    snprintf( dataOut, MAX_BUF_SIZE, "\r\nHUM[%d]: %d.%02d\r\n", (int)id, (int)out_value.out_int, (int)out_value.out_dec );
     HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
 
     if ( verbose == 1 )
     {
       if ( BSP_HUMIDITY_Get_WhoAmI( handle, &who_am_i ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "WHO AM I address[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "WHO AM I address[%d]: ERROR\r\n", id );
       }
       else
       {
-        sprintf( dataOut, "WHO AM I address[%d]: 0x%02X\r\n", id, who_am_i );
+        snprintf( dataOut, MAX_BUF_SIZE, "WHO AM I address[%d]: 0x%02X\r\n", id, who_am_i );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
 
       if ( BSP_HUMIDITY_Get_ODR( handle, &odr ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "ODR[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "ODR[%d]: ERROR\r\n", id );
       }
       else
       {
-        floatToInt( odr, &d1, &d2, 3 );
-        sprintf( dataOut, "ODR[%d]: %d.%03d Hz\r\n", (int)id, (int)d1, (int)d2 );
+        floatToInt( odr, &out_value, 3 );
+        snprintf( dataOut, MAX_BUF_SIZE, "ODR[%d]: %d.%03d Hz\r\n", (int)id, (int)out_value.out_int, (int)out_value.out_dec );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
@@ -557,12 +559,12 @@ static void Humidity_Sensor_Handler( void *handle )
 static void Temperature_Sensor_Handler( void *handle )
 {
 
-  int32_t d1, d2;
   uint8_t who_am_i;
   float odr;
   uint8_t id;
   float temperature;
   uint8_t status;
+  displayFloatToInt_t out_value;
 
   BSP_TEMPERATURE_Get_Instance( handle, &id );
 
@@ -575,31 +577,31 @@ static void Temperature_Sensor_Handler( void *handle )
       temperature = 0.0f;
     }
 
-    floatToInt( temperature, &d1, &d2, 2 );
-    sprintf( dataOut, "\r\nTEMP[%d]: %d.%02d\r\n", (int)id, (int)d1, (int)d2 );
+    floatToInt( temperature, &out_value, 2 );
+    snprintf( dataOut, MAX_BUF_SIZE, "\r\nTEMP[%d]: %c%d.%02d\r\n", (int)id, ((out_value.sign) ? '-' : '+'), (int)out_value.out_int, (int)out_value.out_dec );
     HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
 
     if ( verbose == 1 )
     {
       if ( BSP_TEMPERATURE_Get_WhoAmI( handle, &who_am_i ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "WHO AM I address[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "WHO AM I address[%d]: ERROR\r\n", id );
       }
       else
       {
-        sprintf( dataOut, "WHO AM I address[%d]: 0x%02X\r\n", id, who_am_i );
+        snprintf( dataOut, MAX_BUF_SIZE, "WHO AM I address[%d]: 0x%02X\r\n", id, who_am_i );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
 
       if ( BSP_TEMPERATURE_Get_ODR( handle, &odr ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "ODR[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "ODR[%d]: ERROR\r\n", id );
       }
       else
       {
-        floatToInt( odr, &d1, &d2, 3 );
-        sprintf( dataOut, "ODR[%d]: %d.%03d Hz\r\n", (int)id, (int)d1, (int)d2 );
+        floatToInt( odr, &out_value, 3 );
+        snprintf( dataOut, MAX_BUF_SIZE, "ODR[%d]: %d.%03d Hz\r\n", (int)id, (int)out_value.out_int, (int)out_value.out_dec );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
@@ -617,12 +619,12 @@ static void Temperature_Sensor_Handler( void *handle )
 static void Pressure_Sensor_Handler( void *handle )
 {
 
-  int32_t d1, d2;
   uint8_t who_am_i;
   float odr;
   uint8_t id;
   float pressure;
   uint8_t status;
+  displayFloatToInt_t out_value;
 
   BSP_PRESSURE_Get_Instance( handle, &id );
 
@@ -635,31 +637,31 @@ static void Pressure_Sensor_Handler( void *handle )
       pressure = 0.0f;
     }
 
-    floatToInt( pressure, &d1, &d2, 2 );
-    sprintf(dataOut, "\r\nPRESS[%d]: %d.%02d\r\n", (int)id, (int)d1, (int)d2);
+    floatToInt( pressure, &out_value, 2 );
+    snprintf(dataOut, MAX_BUF_SIZE, "\r\nPRESS[%d]: %d.%02d\r\n", (int)id, (int)out_value.out_int, (int)out_value.out_dec);
     HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
 
     if ( verbose == 1 )
     {
       if ( BSP_PRESSURE_Get_WhoAmI( handle, &who_am_i ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "WHO AM I address[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "WHO AM I address[%d]: ERROR\r\n", id );
       }
       else
       {
-        sprintf( dataOut, "WHO AM I address[%d]: 0x%02X\r\n", id, who_am_i );
+        snprintf( dataOut, MAX_BUF_SIZE, "WHO AM I address[%d]: 0x%02X\r\n", id, who_am_i );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
 
       if ( BSP_PRESSURE_Get_ODR( handle, &odr ) == COMPONENT_ERROR )
       {
-        sprintf( dataOut, "ODR[%d]: ERROR\r\n", id );
+        snprintf( dataOut, MAX_BUF_SIZE, "ODR[%d]: ERROR\r\n", id );
       }
       else
       {
-        floatToInt( odr, &d1, &d2, 3 );
-        sprintf( dataOut, "ODR[%d]: %d.%03d Hz\r\n", (int)id, (int)d1, (int)d2 );
+        floatToInt( odr, &out_value, 3 );
+        snprintf( dataOut, MAX_BUF_SIZE, "ODR[%d]: %d.%03d Hz\r\n", (int)id, (int)out_value.out_int, (int)out_value.out_dec );
       }
 
       HAL_UART_Transmit( &UartHandle, ( uint8_t * )dataOut, strlen( dataOut ), 5000 );
@@ -934,19 +936,9 @@ void RTC_TimeRegulate( uint8_t hh, uint8_t mm, uint8_t ss )
 void HAL_GPIO_EXTI_Callback( uint16_t GPIO_Pin )
 {
   /* User button. */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   if(GPIO_Pin == KEY_BUTTON_PIN)
-#elif (defined (USE_STM32L1XX_NUCLEO))
-  if(GPIO_Pin == USER_BUTTON_PIN)
-#endif
   {
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
     if ( BSP_PB_GetState( BUTTON_KEY ) == GPIO_PIN_RESET )
-#elif (defined (USE_STM32L1XX_NUCLEO))
-    if ( BSP_PB_GetState( BUTTON_USER ) == GPIO_PIN_RESET )
-#elif (defined (USE_STM32L0XX_NUCLEO))
-    if ( BSP_PB_GetState( BUTTON_KEY ) == GPIO_PIN_SET )
-#endif
     {
       if ( acquire_data_enabled == 0 )
       {

@@ -38,6 +38,10 @@
 #define IMU_PWM_Pin GPIO_PIN_5
 #define IMU_PWM_GPIO_Port GPIOB
 
+#define SERVO1_PWM_Pin GPIO_PIN_6
+#define SERVO2_PWM_Pin GPIO_PIN_7
+#define SERVO_PWM_GPIO_Port GPIOC
+
 #define WIFI_PING_TIMEOUT 3600
 
 #define MIN_THROTTLE 1000
@@ -70,7 +74,7 @@
 #define MOTORS_ENABLED
 #define MC_NUM_MOTORS 4
 
-//#define MOTOR_ESC
+#define MOTOR_SERVO
 //#define MOTOR_TOSHIBA
 //#define MOTOR_STSPIN
 

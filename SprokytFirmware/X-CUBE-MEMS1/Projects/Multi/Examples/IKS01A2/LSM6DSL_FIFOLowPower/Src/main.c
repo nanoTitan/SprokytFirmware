@@ -2,13 +2,13 @@
  ******************************************************************************
  * @file    Projects/Multi/Examples/IKS01A2/LSM6DSL_FIFOLowPower/Src/main.c
  * @author  CL
- * @version V3.0.0
- * @date    12-August-2016
+ * @version V4.0.0
+ * @date    1-May-2017
  * @brief   Main program body
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+ * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -37,7 +37,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h> /* strlen */
-#include <stdio.h>  /* sprintf */
+#include <stdio.h>  /* snprintf */
 #include "main.h"
 
 /** @addtogroup X_NUCLEO_IKS01A2_Examples
@@ -76,10 +76,10 @@ typedef enum
 
 #define UART_TRANSMIT_TIMEOUT  5000
 
-
+#define MAX_BUF_SIZE 256
 
 /* Private variables ---------------------------------------------------------*/
-static char dataOut[256];
+static char dataOut[MAX_BUF_SIZE];
 static void *LSM6DSL_X_0_handle = NULL;
 
 /* This variable MUST be volatile because it could change into a ISR */
@@ -125,11 +125,7 @@ int main(void)
   BSP_LED_Init(LED2);
 
   /* Initialize button */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_EXTI);
-#elif (defined (USE_STM32L1XX_NUCLEO))
-  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
-#endif
 
   /* Initialize UART */
   USARTConfig();
@@ -150,10 +146,10 @@ int main(void)
     Error_Handler(__func__);
   }
 
-  sprintf(dataOut, "\r\n------ LSM6DSL FIFO Low Power DEMO ------\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\n------ LSM6DSL FIFO Low Power DEMO ------\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
-  sprintf(dataOut, "\r\nPress USER button to start the DEMO ...\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nPress USER button to start the DEMO ...\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   /* Wait for USER BUTTON push */
@@ -165,14 +161,14 @@ int main(void)
     {
       button_pressed = 0;
       /* _NOTE_: Pushing button creates interrupt/event and wakes up MCU from sleep mode */
-      sprintf(dataOut, "\r\nNucleo processor is waking up ...\r\n");
+      snprintf(dataOut, MAX_BUF_SIZE, "\r\nNucleo processor is waking up ...\r\n");
       HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
     }
 
     if(mems_int1_detected)
     {
       mems_int1_detected = 0;
-      sprintf(dataOut, "\r\nReceived FIFO Threshold Interrupt on INT1 pin ...\r\n\r\nNucleo processor is waking up ...\r\n");
+      snprintf(dataOut, MAX_BUF_SIZE, "\r\nReceived FIFO Threshold Interrupt on INT1 pin ...\r\n\r\nNucleo processor is waking up ...\r\n");
       HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
       demoFifoStatus = STATUS_MEMS_INT1_DETECTED;
     }
@@ -221,7 +217,7 @@ int main(void)
 
       case STATUS_SLEEP:
 
-        sprintf(dataOut, "\r\nNucleo processor is entering sleep mode while LSM6DSL is storing data into FIFO ...\r\n");
+        snprintf(dataOut, MAX_BUF_SIZE, "\r\nNucleo processor is entering sleep mode while LSM6DSL is storing data into FIFO ...\r\n");
         HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
         /* Set FIFO mode to FIFO */
@@ -352,12 +348,12 @@ static DrvStatusTypeDef LSM6DSL_Read_All_FIFO_Data(void)
     return COMPONENT_ERROR;
   }
 
-  sprintf(dataOut, "\r\n%d samples in FIFO.\r\n\r\nStarted downloading data from FIFO ...\r\n", samplesToRead);
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\n%d samples in FIFO.\r\n\r\nStarted downloading data from FIFO ...\r\n", samplesToRead);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   HAL_Delay(1000);
 
-  sprintf(dataOut, "\r\n[DATA ##]  ACC_X  ACC_Y  ACC_Z  [mg]\r\n");
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\n[DATA ##]  ACC_X  ACC_Y  ACC_Z  [mg]\r\n");
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   /* 'samplesToRead' actually contains number of words in FIFO but each FIFO sample (data set) consists of 3 words
@@ -374,7 +370,7 @@ static DrvStatusTypeDef LSM6DSL_Read_All_FIFO_Data(void)
 
   if ( samplesToRead > SAMPLE_LIST_MAX )
   {
-    sprintf(dataOut, "\r\nSample list limited to: %d\r\n", SAMPLE_LIST_MAX);
+    snprintf(dataOut, MAX_BUF_SIZE, "\r\nSample list limited to: %d\r\n", SAMPLE_LIST_MAX);
     HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
   }
 
@@ -433,7 +429,7 @@ static DrvStatusTypeDef LSM6DSL_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIn
 
   if ( sampleIndex < SAMPLE_LIST_MAX )
   {
-    sprintf(dataOut, "[DATA %02d]  %5ld  %5ld  %5ld\r\n", sampleIndex + 1, acc_x, acc_y, acc_z);
+    snprintf(dataOut, MAX_BUF_SIZE, "[DATA %02d]  %5ld  %5ld  %5ld\r\n", sampleIndex + 1, acc_x, acc_y, acc_z);
     HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
   }
 
@@ -450,19 +446,9 @@ static DrvStatusTypeDef LSM6DSL_Read_Single_FIFO_Pattern_Cycle(uint16_t sampleIn
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   /* User button pressed */
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L0XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
   if(GPIO_Pin == KEY_BUTTON_PIN)
-#elif (defined (USE_STM32L1XX_NUCLEO))
-  if(GPIO_Pin == USER_BUTTON_PIN)
-#endif
   {
-#if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
     if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_RESET)
-#elif (defined (USE_STM32L1XX_NUCLEO))
-    if (BSP_PB_GetState(BUTTON_USER) == GPIO_PIN_RESET)
-#elif (defined (USE_STM32L0XX_NUCLEO))
-    if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_SET)
-#endif
     {
       button_pressed = 1;
     }
@@ -490,7 +476,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  */
 void Error_Handler(const char *function_name)
 {
-  sprintf(dataOut, "\r\nError in '%s' function.\r\n", function_name);
+  snprintf(dataOut, MAX_BUF_SIZE, "\r\nError in '%s' function.\r\n", function_name);
   HAL_UART_Transmit(&UartHandle, (uint8_t *)dataOut, strlen(dataOut), UART_TRANSMIT_TIMEOUT);
 
   while (1)
