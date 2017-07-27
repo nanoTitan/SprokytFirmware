@@ -1,6 +1,7 @@
 #include "motor_controller.h"
 #include "math_ext.h"
 #include "TB6612FNG.h"
+#include "Servo.h"
 #include "stm32f4xx_hal.h"
 #include "debug.h"
 
@@ -10,12 +11,11 @@ int _motorsArmed = 0;
 /* Private Functions ------------------------------------------------------------------*/
 static void ArmMotorsCallback();
 static void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, direction_t direction);
+static void MotorController_setServos(uint8_t motorIndxMask, float power, direction_t dir);
 
 void MotorController_init()
 {
-	// 20000 us = 50 Hz, 2040.8us = 490 Hz, 83.3 us = 12 Khz	
-	float frequency = 50000;      // 50KHz
-	
+#if defined(MOTOR_TOSHIBA)
 	TB_Init();
 	TB_SetPwmPulsewidth(TB_CHANNEL_A1, 0);
 	TB_SetPwmPulsewidth(TB_CHANNEL_B1, 0);
@@ -23,6 +23,11 @@ void MotorController_init()
 	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
 	
 	MotorController_setMotor(MOTOR_ALL, 0, FWD);
+#elif defined(MOTOR_SERVO)
+	Servo_Init();
+	Servo_SetPwmPulsewidth(SERVO_CHANNEL_1, 0);
+	//Servo_SetPwmPulsewidth(SERVO_CHANNEL_2, 0)
+#endif // MOTOR_TOSHIBA
 }
 
 int MotorController_isArmed()
@@ -32,7 +37,11 @@ int MotorController_isArmed()
 
 void MotorController_setMotor(uint8_t motorIndxMask, float power, direction_t dir)
 {
+#if defined(MOTOR_TOSHIBA)
 	MotorController_setMotors_TB6612(motorIndxMask, power, dir);
+#elif defined(MOTOR_SERVO)
+	MotorController_setServos(motorIndxMask, power, dir);
+#endif // MOTOR_TOSHIBA
 }
 
 void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, direction_t direction)
@@ -94,8 +103,15 @@ void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, direct
 	}
 }
 
+void MotorController_setServos(uint8_t motorIndxMask, float power, direction_t dir)
+{
+	
+}
+
 void MotorController_UpdateMotorTest()
 {
+#if defined(MOTOR_TOSHIBA)
+	
 #define TEST_CHN_A1	// constant spin, PWM doesn't change
 #define TEST_CHN_B1	// good
 #define TEST_CHN_A2	// good
@@ -197,6 +213,20 @@ void MotorController_UpdateMotorTest()
 	TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_STOP);
 	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
 #endif
+	
+#elif defined(MOTOR_SERVO)
+	
+	float pwm = 0;
+	int dir = 1;
+	for (int i = 0; i < 11; ++i)
+	{
+		Servo_SetPwmPulsewidth(SERVO_CHANNEL_1, pwm);
+		HAL_Delay(500);
+		pwm += 0.1f;
+	}
+	
+	Servo_SetPwmPulsewidth(SERVO_CHANNEL_1, 0.5f);
+#endif // MOTOR_TOSHIBA
 	
 	HAL_Delay(2000);
 }
