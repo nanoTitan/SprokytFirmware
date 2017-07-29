@@ -73,7 +73,8 @@ void Servo_INIT_PWM()
 	//__HAL_RCC_TIM1_CLK_ENABLE();						// mbed
 	//__HAL_RCC_TIM3_CLK_ENABLE();
 	
-	Servo_SetPwmFrequency();      // 50Hz default
+	Servo_SetPwmFrequency();
+	Servo_SetPwmPulsewidth(SERVO_CHANNEL_1, 0.5f);	// Turn motor(s) off by default
 }
 
 void Servo_SetPwmFrequency()
@@ -191,7 +192,19 @@ void Servo_SetPwmPulsewidth(SERVO_CHANNEL channel, float dutyCycle)
 	else if (dutyCycle > 1)
 		dutyCycle = 1;
 	
+	uint32_t channelIndx = TIM_CHANNEL_1;
+	switch (channel)
+	{
+		case SERVO_CHANNEL_1: channelIndx = TIM_CHANNEL_1; break;
+		case SERVO_CHANNEL_2: channelIndx = TIM_CHANNEL_2; break;
+		case SERVO_CHANNEL_3: channelIndx = TIM_CHANNEL_3; break;
+		case SERVO_CHANNEL_4: channelIndx = TIM_CHANNEL_4; break;
+		default:
+			PRINTF("Invalid servo channel: %d\r\n", channel);
+			return;
+	}
+	
 	float range = pwmHigh - pwmLow;
 	float pwm = pwmLow + (range * dutyCycle);
-	__HAL_TIM_SET_COMPARE(&htim3, channel, pwm);
+	__HAL_TIM_SET_COMPARE(&htim3, channelIndx, pwm);
 }

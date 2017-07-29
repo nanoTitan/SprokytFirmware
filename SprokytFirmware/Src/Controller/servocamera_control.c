@@ -1,11 +1,10 @@
-#include "rover_control.h"
+#include "servocamera_control.h"
 #include "control_manager.h"
 #include "motor_controller.h"
 #include "BLE.h"
-//#include "Wifi.h"
+#include "Servo.h"
 #include "math_ext.h"
 #include "debug.h"
-//#include "imu.h"
 #include <math.h>
 
 /* Private variables ---------------------------------------------------------*/
@@ -22,11 +21,11 @@ static void PrintIMU();
 static void ParseTranslate(uint8_t _x, uint8_t _y);
 
 /* Private functions ---------------------------------------------------------*/
-void RoverControl_init()
+void ServoCameraControl_init()
 {	
 }
 
-void RoverControl_update()
+void ServoCameraControl_update()
 {	
 	CONTROL_STATE state = ControlMgr_getState();
 	
@@ -80,7 +79,7 @@ void Disarm()
 	ControlMgr_setState(CONTROL_STATE_IDLE);
 }
 
-void RoverControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
+void ServoCameraControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 {
 	 if (data_length == 0)
 		return;
@@ -104,95 +103,11 @@ void ParseTranslate(uint8_t _x, uint8_t _y)
 	*/
 	
 	direction_t dir = FWD;
-	float x = mapf(_x, 0, 255, -1, 1);
-	float y = mapf(_y, 0, 255, -1, 1);
+	float x = mapf(_x, 0, 255, 0, 1);
+	float y = mapf(_y, 0, 255, 0, 1);
 	
-	// ***********************
-	// TODO: Fix bug where using more than 75% of power causes wifi to loose connection. 
-	// This seems to be a power regulation issue
-/*
-	float max = 0.75f;
-	if (x < -max)
-		x = -max;
-	else if (x > max)
-		x = max;
-	
-	if (y < -max)
-		y = -max;
-	else if (y > max)
-		y = max;
-*/
-	// ***********************
-		
-	float e = x;
-	if (fabs(y) > fabs(x))
-		e = y;
-		
-	if (e < 0)
-		e = -e;
-		
-	if (x > 0)
-	{
-		if (y > 0)
-		{		
-			float d = y - x;
-			if (d < 0)
-			{
-				dir = BWD;
-				d = -d;
-			}	
-				
-			MotorController_setMotor(MOTOR_A, d, dir);
-			MotorController_setMotor(MOTOR_C, d, dir);
-			MotorController_setMotor(MOTOR_B, e, FWD);
-			MotorController_setMotor(MOTOR_D, e, FWD);
-		}
-		else
-		{
-			float d = x + y;
-			if (d < 0)
-			{
-				dir = BWD;
-				d = -d;
-			}	
-				
-			MotorController_setMotor(MOTOR_A, e, BWD);
-			MotorController_setMotor(MOTOR_C, e, BWD);
-			MotorController_setMotor(MOTOR_B, d, dir);
-			MotorController_setMotor(MOTOR_D, d, dir);
-		}
-	}
-	else
-	{
-		if (y > 0)
-		{
-			float d = x + y;
-			if (d < 0)
-			{
-				dir = BWD;
-				d = -d;
-			}	
-				
-			MotorController_setMotor(MOTOR_A, e, FWD);
-			MotorController_setMotor(MOTOR_C, e, FWD);
-			MotorController_setMotor(MOTOR_B, d, dir);
-			MotorController_setMotor(MOTOR_D, d, dir);
-		}
-		else
-		{
-			float d = y - x;
-			if (d < 0)
-			{
-				dir = BWD;
-				d = -d;
-			}	
-				
-			MotorController_setMotor(MOTOR_A, d, dir);
-			MotorController_setMotor(MOTOR_C, d, dir);
-			MotorController_setMotor(MOTOR_B, e, BWD);
-			MotorController_setMotor(MOTOR_D, e, BWD);
-		}
-	}
+	MotorController_setMotor(SERVO_CHANNEL_1, x, dir);
+	MotorController_setMotor(SERVO_CHANNEL_2, y, dir);
 }
 
 void RunMotorTest()

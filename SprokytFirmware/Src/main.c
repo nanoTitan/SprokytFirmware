@@ -38,7 +38,7 @@ int main()
 	
 	// Control Manager
 	ControlMgr_init();
-	ControlMgr_setType(CONTROLLER_ROVER);	//  CONTROLLER_ESC_PROGRAMMER CONTROLLER_FLIGHT
+	ControlMgr_setType(CONTROLLER_SERVO_CAMERA);	//  CONTROLLER_ESC_PROGRAMMER CONTROLLER_FLIGHT CONTROLLER_SERVO_CAMERA
 	
 	// IMU and Sensors
 	//IMU_init();
@@ -46,8 +46,8 @@ int main()
 	// Communication
 	//SWPF01SA::Instance()->InitWifi();		// ST Wifi
 	//Wifi::Instance()->Init();				// ESP Wifi
-	//if (InitBLE() != BLE_STATUS_SUCCESS)
-	//	Error_Handler();
+	if (InitBLE() != BLE_STATUS_SUCCESS)
+		Error_Handler();
 	
 	PRINTF("Initialization finished. Running program...\r\n");
 	
@@ -55,13 +55,13 @@ int main()
 	{		
 		// Communication
 		//Wifi::Instance()->Update();
-		//UpdateBLE();
+		UpdateBLE();
 		//SWPF01SA::Instance()->Update();
 		
 		// IMU and Sensors
 		//IMU_update();
 		
-		MotorController_UpdateMotorTest();
+		//MotorController_UpdateMotorTest();
 		
 		ControlMgr_update();
 	}

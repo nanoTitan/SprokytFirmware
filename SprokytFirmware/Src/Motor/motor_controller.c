@@ -11,7 +11,6 @@ int _motorsArmed = 0;
 /* Private Functions ------------------------------------------------------------------*/
 static void ArmMotorsCallback();
 static void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, direction_t direction);
-static void MotorController_setServos(uint8_t motorIndxMask, float power, direction_t dir);
 
 void MotorController_init()
 {
@@ -25,8 +24,6 @@ void MotorController_init()
 	MotorController_setMotor(MOTOR_ALL, 0, FWD);
 #elif defined(MOTOR_SERVO)
 	Servo_Init();
-	Servo_SetPwmPulsewidth(SERVO_CHANNEL_1, 0);
-	//Servo_SetPwmPulsewidth(SERVO_CHANNEL_2, 0)
 #endif // MOTOR_TOSHIBA
 }
 
@@ -40,7 +37,7 @@ void MotorController_setMotor(uint8_t motorIndxMask, float power, direction_t di
 #if defined(MOTOR_TOSHIBA)
 	MotorController_setMotors_TB6612(motorIndxMask, power, dir);
 #elif defined(MOTOR_SERVO)
-	MotorController_setServos(motorIndxMask, power, dir);
+	MotorController_setServo((SERVO_CHANNEL)motorIndxMask, power);
 #endif // MOTOR_TOSHIBA
 }
 
@@ -103,9 +100,9 @@ void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, direct
 	}
 }
 
-void MotorController_setServos(uint8_t motorIndxMask, float power, direction_t dir)
+void MotorController_setServo(SERVO_CHANNEL servo, float dutyCycle)
 {
-	
+	Servo_SetPwmPulsewidth(servo, dutyCycle);
 }
 
 void MotorController_UpdateMotorTest()
