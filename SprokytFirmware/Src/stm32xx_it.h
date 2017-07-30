@@ -45,6 +45,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "cube_hal.h"
+#include "main.h"
 
 /** @addtogroup X-CUBE-BLE1_Applications
  *  @{
@@ -61,7 +62,12 @@
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
+	 
+/* Exported variables ------------------------------------------------------------*/
+extern TIM_HandleTypeDef ImuTimHandle;
+	 
 /* Exported functions ------------------------------------------------------- */
+	 
 void NMI_Handler(void);
 void HardFault_Handler(void);
 void SVC_Handler(void);
@@ -70,8 +76,7 @@ void PendSV_Handler(void);
 void SysTick_Handler(void);
 void BNRG_SPI_EXTI_IRQHandler(void);
 void PUSH_BUTTON_EXTI_IRQHandler(void);
-void TIM_SF_IRQHandler(void);
-	 
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
 /**
  * @}
  */

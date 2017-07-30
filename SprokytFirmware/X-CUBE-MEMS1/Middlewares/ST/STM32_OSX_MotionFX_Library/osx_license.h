@@ -20,6 +20,8 @@
 
 /* Below line has to be removed once the license has been edited with valid codes */
 
+#include <stdint.h>
+
 #ifndef _OSX_MOTION_FX_LICENSE_
 #define _OSX_MOTION_FX_LICENSE_
 uint32_t osx_mfx_license[3][4] =

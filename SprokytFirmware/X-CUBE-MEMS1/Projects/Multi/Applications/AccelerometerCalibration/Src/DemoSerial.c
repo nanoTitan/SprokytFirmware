@@ -141,11 +141,13 @@ int HandleMSG(TMsg *Msg)
       BUILD_REPLY_HEADER(Msg);
 
       i = 0;
+      /*
       while (i < (sizeof(PresentationString) - 1))
       {
         Msg->Data[3 + i] = PresentationString[i];
         i++;
       }
+      */
 
       Msg->Len = 3 + i;
       UART_SendMsg(Msg);
@@ -260,7 +262,7 @@ int HandleMSG(TMsg *Msg)
 
       /* Start enabled sensors */
       if (Sensors_Enabled & PRESSURE_SENSOR     ) BSP_PRESSURE_Sensor_Enable(PRESSURE_handle);
-      if (Sensors_Enabled & TEMPERATURE_SENSOR  ) BSP_TEMPERATURE_Sensor_Enable(TEMPERATURE_handle);
+      //if (Sensors_Enabled & TEMPERATURE_SENSOR  ) BSP_TEMPERATURE_Sensor_Enable(TEMPERATURE_handle);
       if (Sensors_Enabled & HUMIDITY_SENSOR     ) BSP_HUMIDITY_Sensor_Enable(HUMIDITY_handle);
       if (Sensors_Enabled & ACCELEROMETER_SENSOR) BSP_ACCELERO_Sensor_Enable(ACCELERO_handle);
       if (Sensors_Enabled & GYROSCOPE_SENSOR    ) BSP_GYRO_Sensor_Enable(GYRO_handle);
@@ -278,7 +280,7 @@ int HandleMSG(TMsg *Msg)
 
       /* Disable all sensors */
       BSP_PRESSURE_Sensor_Disable(PRESSURE_handle);
-      BSP_TEMPERATURE_Sensor_Disable(TEMPERATURE_handle);
+      //BSP_TEMPERATURE_Sensor_Disable(TEMPERATURE_handle);
       BSP_HUMIDITY_Sensor_Disable(HUMIDITY_handle);
       BSP_ACCELERO_Sensor_Disable(ACCELERO_handle);
       BSP_GYRO_Sensor_Disable(GYRO_handle);

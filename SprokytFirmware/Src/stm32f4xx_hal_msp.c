@@ -68,7 +68,7 @@ void HAL_MspInit(void)
 {
 	// Begin - Sensor Fusion IRQ Init
 	/* TIMx Peripheral clock enable */
-	TIM_SF_CLK_ENABLE();
+	TIM_IMU_CLK_ENABLE();
 	HAL_NVIC_SetPriority(TIM_SF_IRQn, 10, 0);	/* Set the TIMx priority */
 	HAL_NVIC_EnableIRQ(TIM_SF_IRQn);			/* Enable the TIMx global Interrupt */
 	// End - Sensor Fusion IRQ Init

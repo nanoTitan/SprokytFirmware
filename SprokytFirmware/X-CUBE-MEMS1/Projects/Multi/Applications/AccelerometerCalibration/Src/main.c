@@ -222,7 +222,7 @@ static void Init_Sensors(void)
   /* Initialize other sensors: not used in Stand_alone Working Mode*/
   BSP_MAGNETO_Init(MAGNETO_SENSORS_AUTO, &MAGNETO_handle);
   BSP_GYRO_Init(GYRO_SENSORS_AUTO, &GYRO_handle);
-  BSP_TEMPERATURE_Init(TEMPERATURE_SENSORS_AUTO, &TEMPERATURE_handle);
+  //BSP_TEMPERATURE_Init(TEMPERATURE_SENSORS_AUTO, &TEMPERATURE_handle);
   BSP_HUMIDITY_Init(HUMIDITY_SENSORS_AUTO, &HUMIDITY_handle);
   BSP_PRESSURE_Init(PRESSURE_SENSORS_AUTO, &PRESSURE_handle);
 }
@@ -482,11 +482,13 @@ static void Temperature_Sensor_Handler(TMsg *Msg)
 
   if(Sensors_Enabled & TEMPERATURE_SENSOR)
   {
+	  /*
     if(BSP_TEMPERATURE_IsInitialized(TEMPERATURE_handle, &status) == COMPONENT_OK && status == 1)
     {
       BSP_TEMPERATURE_Get_Temp(TEMPERATURE_handle, &TEMPERATURE_Value);
       memcpy(&Msg->Data[11], (void *)&TEMPERATURE_Value, sizeof(float));
     }
+    */
   }
 }
 

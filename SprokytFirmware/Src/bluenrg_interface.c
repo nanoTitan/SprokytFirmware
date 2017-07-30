@@ -50,9 +50,12 @@ extern SPI_HandleTypeDef SpiHandle;
  * @param  Specifies the pins connected EXTI line
  * @retval None
  */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  HCI_Isr();
-}
+
+// Moved callback to stm32xx_it.c
+
+//void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+//{
+//  HCI_Isr();
+//}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

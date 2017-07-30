@@ -45,15 +45,15 @@
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 
-/* Definition for TIM_SF clock resources */
-#define TIM_SF			                     TIM3
-#define TIM_SF_CLK_ENABLE                    __TIM3_CLK_ENABLE
-#define TIM_SF_CLK_DISABLE                   __TIM3_CLK_DISABLE
+/* Definition for TIM_IMU clock resources */
+#define TIM_IMU			                     TIM3
+#define TIM_IMU_CLK_ENABLE                    __TIM3_CLK_ENABLE
+#define TIM_IMU_CLK_DISABLE                   __TIM3_CLK_DISABLE
 
-/* Definition for TIM_SF's NVIC */
+/* Definition for TIM_IMU's NVIC */
 #define TIM_SF_IRQn							 TIM3_IRQn
-#define TIM_SF_IRQHandler					 TIM3_IRQHandler
-#define TIM_SF_CHANNEL						 TIM_CHANNEL_2
+#define TIM_IMU_IRQHandler					 TIM3_IRQHandler
+#define TIM_IMU_CHANNEL						 TIM_CHANNEL_1
 
 
 /* Exported functions ------------------------------------------------------- */

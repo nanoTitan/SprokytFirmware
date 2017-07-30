@@ -1,20 +1,14 @@
 /**
-  *******************************************************************************
-  * @file    Projects/Multi/Applications/DataLogFusion/Inc/MotionFX_Manager.h
-  * @author  CL
-  * @version V1.5.0
-  * @date    4-April-2016
-  * @brief   header for MotionFX_Manager.c.
-  *******************************************************************************
+  ******************************************************************************
+  * @file        MotionFA_Manager.h
+  * @author      MEMS Application Team
+  * @version     V2.0.0
+  * @date        01-May-2017
+  * @brief       Header for MotionCP_Manager.c module
+  ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -38,26 +32,63 @@
   * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
-  ********************************************************************************
+  ******************************************************************************
   */
 
-#ifndef _MOTIONFX_MANAGER_H_
-#define _MOTIONFX_MANAGER_H_
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef _MOTIONFA_MANAGER_H_
+#define _MOTIONFA_MANAGER_H_
 
-#include "osx_motion_fx.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Includes ------------------------------------------------------------------*/
 #include "string.h"
-#include "x_nucleo_iks01a1_accelero.h"
-#include "x_nucleo_iks01a1_gyro.h"
+#include "motion_fx.h"
+#include "main.h"
 
-/* Exported functions ------------------------------------------------------- */
+/** @addtogroup MOTION_FA_Applications
+  * @{
+  */
 
-void MotionFX_manager_init(void);
-void MotionFX_manager_start_6X(void);
-void MotionFX_manager_stop_6X(void);
-void MotionFX_manager_start_9X(void);
-void MotionFX_manager_stop_9X(void);
-void MotionFX_manager_run(void);
-osxMFX_output* MotionFX_manager_getDataOUT(void);
-osxMFX_input* MotionFX_manager_getDataIN(void);
+/** @addtogroup FITNESS_ACTIVITIES
+  * @{
+  */
 
-#endif //_MOTIONFX_MANAGER_H_
+/* Extern Variables ----------------------------------------------------------*/
+/* Exported Macros -----------------------------------------------------------*/
+/* Exported Types ------------------------------------------------------------*/
+/* Imported Variables --------------------------------------------------------*/
+/* Exported Functions Prototypes ---------------------------------------------*/
+	void MotionFX_manager_init(void *handle);
+	void MotionFX_manager_run(MFX_input_t *data_in, MFX_output_t *data_out, float delta_time);
+	void MotionFX_manager_start_6X(void);
+	void MotionFX_manager_stop_6X(void);
+	void MotionFX_manager_start_9X(void);
+	void MotionFX_manager_stop_9X(void);
+	void MotionFX_manager_get_version(char *version, int *length);
+
+	void MotionFX_manager_MagCal_run(MFX_MagCal_input_t *data_in, MFX_MagCal_output_t *data_out);
+	void MotionFX_manager_MagCal_start(int sampletime);
+	void MotionFX_manager_MagCal_stop(int sampletime);
+
+	char MotionFX_LoadMagCalFromNVM(unsigned short int dataSize, unsigned int *data);
+	char MotionFX_SaveMagCalInNVM(unsigned short int dataSize, unsigned int *data);
+
+	/**
+	  * @}
+	  */
+
+	  /**
+	    * @}
+	    */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _MOTIONFA_MANAGER_H_ */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+

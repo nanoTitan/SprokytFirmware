@@ -40,6 +40,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32xx_it.h"
 #include "debug.h"
+#include "hci.h"
 
 /** @addtogroup X-CUBE-BLE1_Applications
  *  @{
@@ -60,9 +61,12 @@
 volatile uint32_t ms_counter = 0;
 volatile uint8_t button_event = 0;
 /* SPI handler declared in "main.c" file */
-extern TIM_HandleTypeDef SFTimHandle;
+
 extern SPI_HandleTypeDef SpiHandle;
+extern uint8_t magcal_request;
 /* Private function prototypes -----------------------------------------------*/
+void TIM_IMU_IRQHandler(void);
+
 /* Private functions ---------------------------------------------------------*/
 
 /******************************************************************************/
@@ -132,10 +136,7 @@ void SysTick_Handler(void)
 
 
 /******************************************************************************/
-/*                 STM32L0xx Peripherals Interrupt Handlers                   */
-/*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
-/*  available peripheral interrupt handler's name please refer to the startup */
-/*  file (startup_stm32l0xx.s).                                               */
+/*                 Peripherals Interrupt Handlers                   */
 /******************************************************************************/
 
 /**
@@ -166,9 +167,24 @@ void PUSH_BUTTON_EXTI_IRQHandler(void)
 * @param  None
 * @retval None
 */
-void TIM_SF_IRQHandler(void)
+void TIM_IMU_IRQHandler(void)
 {
-	HAL_TIM_IRQHandler(&SFTimHandle);
+	HAL_TIM_IRQHandler(&ImuTimHandle);
+}
+
+/**
+  * @brief  EXTI line detection callbacks
+  * @param  GPIO_Pin the pin connected to EXTI line
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	// Tell IMU to begin magnetometer calibration request
+	magcal_request = 1;
+	
+	// UPdate BlueNRG ISR. This normally happens in bluenrg_interface.c. 
+	// We put it here since multiple objects need to know about EXTI_Callback
+	HCI_Isr();
 }
 
 /******************************************************************************/

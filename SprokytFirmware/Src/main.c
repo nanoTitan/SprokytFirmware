@@ -31,23 +31,25 @@ int main()
 	//LEDMgr_Init();
 	
 	// Initialize Button
-	BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
+	BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_EXTI);	// BUTTON_MODE_GPIO
+	
+	__CRC_CLK_ENABLE();		// Enable HAL clock for IMU
 	
 	// Motor Controller
-	MotorController_init();	
+	//MotorController_init();	
+	
+	// IMU and Sensors
+	IMU_init();
 	
 	// Control Manager
 	ControlMgr_init();
 	ControlMgr_setType(CONTROLLER_SERVO_CAMERA);	//  CONTROLLER_ESC_PROGRAMMER CONTROLLER_FLIGHT CONTROLLER_SERVO_CAMERA
 	
-	// IMU and Sensors
-	//IMU_init();
-	
 	// Communication
 	//SWPF01SA::Instance()->InitWifi();		// ST Wifi
 	//Wifi::Instance()->Init();				// ESP Wifi
-	if (InitBLE() != BLE_STATUS_SUCCESS)
-		Error_Handler();
+	//if (InitBLE() != BLE_STATUS_SUCCESS)
+	//	Error_Handler();
 	
 	PRINTF("Initialization finished. Running program...\r\n");
 	
@@ -55,11 +57,11 @@ int main()
 	{		
 		// Communication
 		//Wifi::Instance()->Update();
-		UpdateBLE();
+		//UpdateBLE();
 		//SWPF01SA::Instance()->Update();
 		
 		// IMU and Sensors
-		//IMU_update();
+		IMU_update();
 		
 		//MotorController_UpdateMotorTest();
 		

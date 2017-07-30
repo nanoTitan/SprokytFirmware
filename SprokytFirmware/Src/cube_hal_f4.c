@@ -50,6 +50,11 @@ void SystemClock_Config(void)
 	RCC_OscInitTypeDef RCC_OscInitStruct;
 	
 	__HAL_RCC_PWR_CLK_ENABLE();
+	
+	/* The voltage scaling allows optimizing the power consumption when the device is
+  clocked below the maximum system frequency, to update the voltage scaling value
+  regarding system frequency refer to product datasheet.  */
+	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);				// *** BLE demo doesn't use this *** 
 
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
 	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
@@ -57,7 +62,7 @@ void SystemClock_Config(void)
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
 	RCC_OscInitStruct.PLL.PLLM = 16;
-	RCC_OscInitStruct.PLL.PLLN = 400;
+	RCC_OscInitStruct.PLL.PLLN = 336;											// *** BLE demo uses 400 *** 
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
 	RCC_OscInitStruct.PLL.PLLQ = 7;
 	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -71,7 +76,7 @@ void SystemClock_Config(void)
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;  
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;  
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)		// *** BLE demo uses FLASH_LATENCY_3 *** 
 	{
 	  /* Initialization Error */
 		Error_Handler();
