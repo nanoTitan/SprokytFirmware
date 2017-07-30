@@ -58,6 +58,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
+static void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim);
 /* Private functions ---------------------------------------------------------*/
 
 /** @defgroup STM32F4XX_HAL_MSP_Private_Functions
@@ -69,6 +70,13 @@ void HAL_MspInit(void)
 	// Begin - Sensor Fusion IRQ Init
 	/* TIMx Peripheral clock enable */
 	TIM_IMU_CLK_ENABLE();
+	TIM_SERVO_CLK_ENABLE();
+	
+	/* GPIO Ports Clock Enable */
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+	
 	HAL_NVIC_SetPriority(TIM_SF_IRQn, 10, 0);	/* Set the TIMx priority */
 	HAL_NVIC_EnableIRQ(TIM_SF_IRQn);			/* Enable the TIMx global Interrupt */
 	// End - Sensor Fusion IRQ Init
@@ -213,13 +221,13 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 
 		/* USER CODE END TIM3_MspInit 1 */
 	}
-	else if (htim_pwm->Instance == TIM4)
+	else if (htim_pwm->Instance == TIM_SERVO)
 	{
 	/* USER CODE BEGIN TIM4_MspInit 0 */
 
 	  /* USER CODE END TIM4_MspInit 0 */
 	    /* Peripheral clock enable */
-		__HAL_RCC_TIM4_CLK_ENABLE();
+		
 	  /* USER CODE BEGIN TIM4_MspInit 1 */
 
 	    /* USER CODE END TIM4_MspInit 1 */
@@ -229,8 +237,8 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 {
-
 	GPIO_InitTypeDef GPIO_InitStruct;
+	
 	if (htim->Instance == TIM1)
 	{
 	/* USER CODE BEGIN TIM1_MspPostInit 0 */
@@ -285,15 +293,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 	}
 	else if (htim->Instance == TIM4)
 	{
-	/* USER CODE BEGIN TIM4_MspPostInit 0 */
-
-	  /* USER CODE END TIM4_MspPostInit 0 */
-
-		  /* USER CODE BEGIN TIM4_MspPostInit 1 */
-
-		    /* USER CODE END TIM4_MspPostInit 1 */
+		
 	}
-
 }
 
 void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)

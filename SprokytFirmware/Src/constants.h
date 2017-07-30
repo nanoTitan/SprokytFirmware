@@ -38,8 +38,17 @@
 #define IMU_PWM_Pin GPIO_PIN_5
 #define IMU_PWM_GPIO_Port GPIOB
 
+/* Definition for Servo clock resources */
+#define TIM_SERVO		                     TIM4
+#define TIM_SERVO_CLK_ENABLE                 __TIM4_CLK_ENABLE
+#define TIM_SERVO_CLK_DISABLE                __TIM4_CLK_DISABLE
+#define SERVO_CHANNEL_1 TIM_CHANNEL_1
+#define SERVO_CHANNEL_2 TIM_CHANNEL_2
 #define SERVO1_PWM_Pin GPIO_PIN_6
 #define SERVO2_PWM_Pin GPIO_PIN_7
+#define SERVO_GPIO_Port GPIOB
+#define SERVO1_GPIO_Pin GPIO_PIN_6
+#define SERVO2_GPIO_Pin GPIO_PIN_7
 #define SERVO_PWM_GPIO_Port GPIOC
 
 #define WIFI_PING_TIMEOUT 3600

@@ -37,7 +37,7 @@ void MotorController_setMotor(uint8_t motorIndxMask, float power, direction_t di
 #if defined(MOTOR_TOSHIBA)
 	MotorController_setMotors_TB6612(motorIndxMask, power, dir);
 #elif defined(MOTOR_SERVO)
-	MotorController_setServo((SERVO_CHANNEL)motorIndxMask, power);
+	MotorController_setServo(motorIndxMask, power);
 #endif // MOTOR_TOSHIBA
 }
 
@@ -100,9 +100,9 @@ void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, direct
 	}
 }
 
-void MotorController_setServo(SERVO_CHANNEL servo, float dutyCycle)
+void MotorController_setServo(int servo, float dutyCycle)
 {
-	Servo_SetPwmPulsewidth(servo, dutyCycle);
+	Servo_SetDutyCycle(servo, dutyCycle);
 }
 
 void MotorController_UpdateMotorTest()
@@ -217,12 +217,12 @@ void MotorController_UpdateMotorTest()
 	int dir = 1;
 	for (int i = 0; i < 11; ++i)
 	{
-		Servo_SetPwmPulsewidth(SERVO_CHANNEL_1, pwm);
+		Servo_SetDutyCycle(SERVO_CHANNEL_1, pwm);
 		HAL_Delay(500);
 		pwm += 0.1f;
 	}
 	
-	Servo_SetPwmPulsewidth(SERVO_CHANNEL_1, 0.5f);
+	Servo_SetDutyCycle(SERVO_CHANNEL_1, 0.5f);
 #endif // MOTOR_TOSHIBA
 	
 	HAL_Delay(2000);

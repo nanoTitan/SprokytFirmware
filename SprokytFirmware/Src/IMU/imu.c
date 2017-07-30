@@ -144,8 +144,8 @@ static void ImuTimerInit()
 #define PERIOD_100HZ  ((uint8_t)20)
 
 #if (defined (USE_STM32F4XX_NUCLEO))
-#define PRESCALER_100HZ  ((uint16_t)41999)			/* 84 MHZ CPU clock */
-//#define PRESCALER_100HZ  ((uint16_t)49999)		/* 100 MHZ CPU clock which is: (100 MHz / 2) - 1 */
+//#define PRESCALER_100HZ  ((uint16_t)41999)	/* 84 MHZ CPU clock */
+#define PRESCALER_100HZ  ((uint16_t)49999)		/* 100 MHZ CPU clock which is: (100 MHz / 2) - 1 */
 
 #elif (defined (USE_STM32L4XX_NUCLEO))  /* 80 MHZ CPU clock */
 #define PRESCALER_100HZ  ((uint16_t)39999)

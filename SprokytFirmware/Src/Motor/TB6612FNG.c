@@ -89,7 +89,6 @@ void TB_PWM_OutWrite()
 {
 	TIM_MasterConfigTypeDef sMasterConfig;
 	TIM_OC_InitTypeDef sConfigOC;
-	GPIO_InitTypeDef GPIO_InitStruct;
 	
 	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
 	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;

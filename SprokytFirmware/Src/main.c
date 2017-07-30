@@ -36,10 +36,10 @@ int main()
 	__CRC_CLK_ENABLE();		// Enable HAL clock for IMU
 	
 	// Motor Controller
-	//MotorController_init();	
+	MotorController_init();	
 	
 	// IMU and Sensors
-	IMU_init();
+	//IMU_init();
 	
 	// Control Manager
 	ControlMgr_init();
@@ -61,9 +61,9 @@ int main()
 		//SWPF01SA::Instance()->Update();
 		
 		// IMU and Sensors
-		IMU_update();
+		//IMU_update();
 		
-		//MotorController_UpdateMotorTest();
+		MotorController_UpdateMotorTest();
 		
 		ControlMgr_update();
 	}

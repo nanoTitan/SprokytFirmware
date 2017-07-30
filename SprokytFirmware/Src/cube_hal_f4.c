@@ -62,7 +62,7 @@ void SystemClock_Config(void)
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
 	RCC_OscInitStruct.PLL.PLLM = 16;
-	RCC_OscInitStruct.PLL.PLLN = 336;											// *** BLE demo uses 400 *** 
+	RCC_OscInitStruct.PLL.PLLN = 400;											// *** BLE demo uses 400 for 100 Mhz, IMU demo uses 336 for 84 Mhz ***
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
 	RCC_OscInitStruct.PLL.PLLQ = 7;
 	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)

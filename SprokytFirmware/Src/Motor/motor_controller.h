@@ -6,7 +6,7 @@
 
 void MotorController_init();
 void MotorController_setMotor(uint8_t motorIndxMask, float power, direction_t direction);
-void MotorController_setServo(SERVO_CHANNEL servo, float dutyCycle);
+void MotorController_setServo(int servo, float dutyCycle);
 int MotorController_isArmed();
 void MotorController_callibrateESCs();
 
