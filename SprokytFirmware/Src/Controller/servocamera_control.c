@@ -107,7 +107,7 @@ void ParseTranslate(uint8_t _x, uint8_t _y)
 	float y = mapf(_y, 0, 255, 0, 1);
 	
 	MotorController_setMotor(SERVO_CHANNEL_1, x, dir);
-	MotorController_setMotor(SERVO_CHANNEL_2, y, dir);
+	//MotorController_setMotor(SERVO_CHANNEL_2, y, dir);
 }
 
 void RunMotorTest()
