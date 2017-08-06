@@ -163,7 +163,6 @@
     <ClCompile Include="Src\Motor\motor_controller.c" />
     <ClCompile Include="Src\Motor\Servo.c" />
     <ClCompile Include="Src\Motor\TB6612FNG.c" />
-    <ClCompile Include="Src\sensor_service.c" />
     <ClCompile Include="Src\stm32f4xx_hal_msp.c" />
     <ClCompile Include="Src\stm32xx_it.c" />
     <ClCompile Include="Src\system_stm32f4xx.c" />
@@ -339,7 +338,6 @@
     <ClInclude Include="Src\Motor\motor_controller.h" />
     <ClInclude Include="Src\Motor\Servo.h" />
     <ClInclude Include="Src\Motor\TB6612FNG.h" />
-    <ClInclude Include="Src\sensor_service.h" />
     <ClInclude Include="Src\stm32f4xx_hal_conf.h" />
     <ClInclude Include="Src\stm32xx_it.h" />
     <ClInclude Include="stm32f4xx_hal_conf.h" />

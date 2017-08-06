@@ -61,7 +61,7 @@ int main()
 	{		
 		// Communication
 		//Wifi::Instance()->Update();
-		UpdateBLE();
+		BLE_Update();
 		//SWPF01SA::Instance()->Update();
 		
 		// IMU and Sensors

@@ -52,6 +52,8 @@ void ControlMgr_setType(int ctrlType)
 void ControlMgr_init()
 {
 	ControlMgr_ConfigADC();
+	
+	ServoCameraControl_init();
 	//FlightControl_init();
 	//UserControl_init();
 }
@@ -137,7 +139,7 @@ void ControlMgr_update()
 		{
 			ControlMgr_setState(CONTROL_STATE_DISCONNECTED);
 		}
-		else if ( !IsBleConnected() )
+		else if ( !BLE_IsConnected() )
 			ControlMgr_setState(CONTROL_STATE_DISCONNECTED);
 	}
 	

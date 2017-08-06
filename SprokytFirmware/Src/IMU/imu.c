@@ -49,6 +49,7 @@ static SensorAxes_t ACC_Value;
 static SensorAxes_t GYR_Value;
 static SensorAxes_t MAG_Value;
 static SensorAxes_t MAG_Offset;
+static ImuFunctionCallback imuFunc = NULL;
 static void *ACCELERO_handle = NULL;
 static void *GYRO_handle = NULL;
 static void *MAGNETO_handle = NULL;
@@ -86,7 +87,7 @@ void IMU_init()
 	memset(&mfx_output, 0, sizeof(MFX_output_t));
 	
 	InitializeSensors();
-	//EnableSensors();
+	EnableSensors();
 	
 	ImuTimerInit();
   
@@ -183,6 +184,14 @@ static void ImuTimerInit()
 	HAL_TIM_Base_Start_IT(&ImuTimHandle);
 }
 
+void RegisterImuCallback(ImuFunctionCallback callback)
+{
+	if (callback != NULL)
+	{
+		imuFunc = callback;
+	}
+}
+
 /**
   * @brief  Period elapsed callback
   * @param  htim pointer to a TIM_HandleTypeDef structure that contains
@@ -209,7 +218,7 @@ static void Imu_Data_Handler()
 	MFX_output_t data_out;
 	MFX_output_t *pdata_out = &data_out;
 
-	if ((Sensors_Enabled & ACCELEROMETER_SENSOR) && (Sensors_Enabled & GYROSCOPE_SENSOR) && (Sensors_Enabled & MAGNETIC_SENSOR))
+	if ( (Sensors_Enabled & ACCELEROMETER_SENSOR) && (Sensors_Enabled & GYROSCOPE_SENSOR) && (SF_6X_Enabled || (Sensors_Enabled & MAGNETIC_SENSOR)) )
 	{
 		data_in.gyro[0] = GYR_Value.AXIS_X  * FROM_MDPS_TO_DPS;
 		data_in.gyro[1] = GYR_Value.AXIS_Y  * FROM_MDPS_TO_DPS;
@@ -223,24 +232,32 @@ static void Imu_Data_Handler()
 		data_in.mag[1] = MAG_Value.AXIS_Y * FROM_MGAUSS_TO_UT50;
 		data_in.mag[2] = MAG_Value.AXIS_Z * FROM_MGAUSS_TO_UT50;
 
-		    /* Run Sensor Fusion algorithm */
+		/* Run Sensor Fusion algorithm */
 		MotionFX_manager_run(pdata_in, pdata_out, MOTIONFX_ENGINE_DELTATIME);
 
 		if (SF_6X_Enabled == 1)
 		{
-			memcpy(&mfx_output.quaternion_6X, (void *)pdata_out->quaternion_6X, 4 * sizeof(float));
-			memcpy(&mfx_output.rotation_6X, (void *)pdata_out->rotation_6X, 3 * sizeof(float));
-			memcpy(&mfx_output.gravity_6X, (void *)pdata_out->gravity_6X, 3 * sizeof(float));
-			memcpy(&mfx_output.linear_acceleration_6X, (void *)pdata_out->linear_acceleration_6X, 3 * sizeof(float));
+			memcpy(&mfx_output.quaternion_6X, (void *)pdata_out->quaternion_6X, MFX_QNUM_AXES * sizeof(float));
+			memcpy(&mfx_output.rotation_6X, (void *)pdata_out->rotation_6X, MFX_NUM_AXES * sizeof(float));
+			memcpy(&mfx_output.gravity_6X, (void *)pdata_out->gravity_6X, MFX_NUM_AXES * sizeof(float));
+			memcpy(&mfx_output.linear_acceleration_6X, (void *)pdata_out->linear_acceleration_6X, MFX_NUM_AXES * sizeof(float));
 			memcpy(&mfx_output.heading_6X, (void *)&(pdata_out->heading_6X), sizeof(float));
+			
+			// IMU Callback 6X
+			if (imuFunc)
+				imuFunc(mfx_output.rotation_6X, MFX_NUM_AXES);
 		}
 		else
 		{
-			memcpy(&mfx_output.quaternion_9X, (void *)pdata_out->quaternion_9X, 4 * sizeof(float));
-			memcpy(&mfx_output.rotation_9X, (void *)pdata_out->rotation_9X, 3 * sizeof(float));
-			memcpy(&mfx_output.gravity_9X, (void *)pdata_out->gravity_9X, 3 * sizeof(float));
-			memcpy(&mfx_output.linear_acceleration_9X, (void *)pdata_out->linear_acceleration_9X, 3 * sizeof(float));
+			memcpy(&mfx_output.quaternion_9X, (void *)pdata_out->quaternion_9X, MFX_QNUM_AXES * sizeof(float));
+			memcpy(&mfx_output.rotation_9X, (void *)pdata_out->rotation_9X, MFX_NUM_AXES * sizeof(float));
+			memcpy(&mfx_output.gravity_9X, (void *)pdata_out->gravity_9X, MFX_NUM_AXES * sizeof(float));
+			memcpy(&mfx_output.linear_acceleration_9X, (void *)pdata_out->linear_acceleration_9X, MFX_NUM_AXES * sizeof(float));
 			memcpy(&mfx_output.heading_9X, (void *)&(pdata_out->heading_9X), sizeof(float));
+			
+			// IMU Callback 9X
+			if (imuFunc)
+				imuFunc(mfx_output.rotation_9X, MFX_NUM_AXES);
 		}
 	}
 }
@@ -250,7 +267,6 @@ void IMU_update(void)
 	/* Check if user button was pressed only when Sensor Fusion is active */
 	if (magcal_request)
 	{
-		
 		/* Reset the Compass Calibration */
 		magcal_request = 0;
 		mag_cal_status = 0;
@@ -301,11 +317,15 @@ void InitializeSensors(void)
 	result = BSP_ACCELERO_Init(ACCELERO_SENSORS_AUTO, &ACCELERO_handle);		// ACCELERO_SENSORS_AUTO, LSM6DS3_X_0, LSM6DS0_X_0
 	if (result != COMPONENT_OK)
 		Error_Handler();
+	else	
+		Sensors_Enabled |= ACCELEROMETER_SENSOR;
 	
 	/* Try to use LSM6DS3 if present, otherwise use LSM6DS0 */
 	result = BSP_GYRO_Init(GYRO_SENSORS_AUTO, &GYRO_handle);
 	if (result != COMPONENT_OK)
 		Error_Handler();
+	else
+		Sensors_Enabled |= GYROSCOPE_SENSOR;
 	
 	/* Force to use LIS3MDL */
 	if (!SF_6X_Enabled)
@@ -313,6 +333,8 @@ void InitializeSensors(void)
 		result = BSP_MAGNETO_Init(LIS3MDL_0, &MAGNETO_handle);
 		if (result != COMPONENT_OK)
 			Error_Handler();
+		else
+			Sensors_Enabled |= MAGNETIC_SENSOR;
 	}
 	
 	PRINTF("IMU sensors initialized.\r\n");
@@ -330,8 +352,6 @@ void EnableSensors(void)
 	
 	if (!SF_6X_Enabled)
 		BSP_MAGNETO_Sensor_Enable(MAGNETO_handle);
-	
-	Sensors_Enabled = 1;
 	
 	PRINTF("IMU sensors enabled.\r\n");
 }

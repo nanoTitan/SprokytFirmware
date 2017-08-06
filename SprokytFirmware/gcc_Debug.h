@@ -822,6 +822,9 @@
 #ifndef __QQ_FBIT__
 #define __QQ_FBIT__ 7
 #endif
+#ifndef DEBUG_PRINT
+#define DEBUG_PRINT 1
+#endif
 #ifndef __cpp_range_based_for
 #define __cpp_range_based_for 200907
 #endif

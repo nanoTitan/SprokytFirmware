@@ -2,10 +2,12 @@
 #include "control_manager.h"
 #include "motor_controller.h"
 #include "BLE.h"
+#include "imu.h"
 #include "Servo.h"
 #include "math_ext.h"
 #include "debug.h"
 #include <math.h>
+#include <assert.h>
 
 /* Private variables ---------------------------------------------------------*/
 static BOOL m_doUpdate = FALSE;
@@ -15,6 +17,7 @@ static uint8_t m_y = 0;
 /* Private function prototypes -----------------------------------------------*/
 static void UpdateConnected();
 static void UpdateDisconnected();
+static void ServoIMUUpdate();
 static void Disarm();
 static void RunMotorTest();
 static void PrintIMU();
@@ -23,6 +26,7 @@ static void ParseTranslate(uint8_t _x, uint8_t _y);
 /* Private functions ---------------------------------------------------------*/
 void ServoCameraControl_init()
 {	
+	RegisterImuCallback(ServoIMUUpdate);
 }
 
 void ServoCameraControl_update()
@@ -70,6 +74,18 @@ void UpdateDisconnected()
 	// TODO: Show flashing LEDs if connection is lost
 	
 	Disarm();
+}
+
+void ServoIMUUpdate(float data[], int size)
+{
+	assert(size > 1);
+	if (size < 2)
+		return;
+	
+	if (!BLE_IsConnected())
+		return;
+	
+	BLE_Imu_Update(data[0], data[1]);
 }
 
 void Disarm()

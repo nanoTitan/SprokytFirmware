@@ -19,7 +19,6 @@
 #include "bluenrg_aci_const.h"  
 #include "bluenrg_hal_aci.h"
 #include "bluenrg_utils.h"
-#include "sensor_service.h"
 #include <stdlib.h>
 
 
@@ -30,22 +29,21 @@ do {\
             uuid_struct[8] = uuid_8; uuid_struct[9] = uuid_9; uuid_struct[10] = uuid_10; uuid_struct[11] = uuid_11; \
                 uuid_struct[12] = uuid_12; uuid_struct[13] = uuid_13; uuid_struct[14] = uuid_14; uuid_struct[15] = uuid_15; \
 } while(0)
-
-// LED service
-#define COPY_LED_SERVICE_UUID(uuid_struct)  COPY_UUID_128_V2(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#define COPY_LED_UUID(uuid_struct)          COPY_UUID_128_V2(uuid_struct,0x0c,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 	
-// Input Service
+/* Store Value into a buffer in Little Endian Format */
+#define STORE_LE_16(buf, val)    ( ((buf)[0] =  (uint8_t) (val)    ) , \
+                                   ((buf)[1] =  (uint8_t) (val>>8) ) )
+	
+// Control Service
 #define COPY_CONTROL_SERVICE_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0d,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
+#define COPY_IMU_SERVICE_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1c)
+
+// Characteristics
 #define COPY_CONTROL_CHAR_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
 #define COPY_INSTRUCTION_CHAR_UUID(uuid_struct)     COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xe5,0x2b)
+#define COPY_IMU_CHAR_UUID(uuid_struct)				COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 
 /* Private variables ---------------------------------------------------------*/
-static tBleStatus AddLEDService(void);
-static tBleStatus AddControlService(void);
-static tBleStatus AddInstructionService(void);
-static void User_Process();
-static void setBLEConnectable(void);
 static uint8_t SERVER_BDADDR[] = { 0x12, 0x34, 0x00, 0xE1, 0x80, 0x03 };	
 static uint8_t bdaddr[BDADDR_SIZE];
 uint8_t bnrg_expansion_board = IDB04A1; /* at startup, suppose the X-NUCLEO-IDB04A1 is used */	
@@ -53,13 +51,17 @@ volatile uint8_t do_set_connectable = TRUE;
 volatile uint16_t service_connection_handle = 0;
 volatile uint8_t is_notification_enabled = FALSE;
 volatile uint8_t connected = 0;
-uint16_t ledServHandle = 0;
-uint16_t ledButtonCharHandle = 0;
 uint16_t controlServHandle = 0;
+uint16_t imuServHandle = 0;
 uint16_t controlButtonCharHandle = 0;
 uint16_t instructionButtonCharHandle = 0;
+uint16_t imuCharHandle = 0;
 
 /* Private function prototypes -----------------------------------------------*/
+static tBleStatus AddControlService(void);
+static tBleStatus AddInstructionService(void);
+static void User_Process();
+static void setBLEConnectable(void);
 uint8_t GetExpansionBoard();
 void Read_Request_CB(uint16_t handle);
 void GAPDisconnectionCompleteCB(void);
@@ -182,34 +184,12 @@ int InitBLE()
 	}
   
 	PRINTF("SERVER: BLE Stack Initialized\n");
-  
-	status = Add_Acc_Service();
-  
-	if (status == BLE_STATUS_SUCCESS)
-		PRINTF("Acc service added successfully.\n");
-	else
-		PRINTF("Error while adding Acc service.\n");
-  
-	status = Add_Environmental_Sensor_Service();
-  
-	if (status == BLE_STATUS_SUCCESS)
-		PRINTF("Environmental Sensor service added successfully.\n");
-	else
-		PRINTF("Error while adding Environmental Sensor service.\n");
-	
-	status = AddLEDService();
-	if (status == BLE_STATUS_SUCCESS)
-		PRINTF("LED service added successfully.\n");
-	else
-		PRINTF("Error while adding LED service.\n");
 	
 	status = AddControlService();
-	if (status == BLE_STATUS_SUCCESS)
-		PRINTF("Input service added successfully.\n");
-	else
-		PRINTF("Error while adding Input service.\n");
+	if (status != BLE_STATUS_SUCCESS)
+		return status;
 
-		  /* Set output power level */
+	/* Set output power level */
 	status = aci_hal_set_tx_power_level(1, 4);
 	if (status != BLE_STATUS_SUCCESS)
 	{
@@ -219,13 +199,13 @@ int InitBLE()
 	return BLE_STATUS_SUCCESS;
 }
 
-void UpdateBLE()
+void BLE_Update()
 {
 	HCI_Process();
 	User_Process();
 }
 
-BOOL IsBleConnected()
+BOOL BLE_IsConnected()
 {
 	return connected;
 }
@@ -245,51 +225,6 @@ void setConnectable(void)
 	
 	if (ret != BLE_STATUS_SUCCESS) 
 	PRINTF("Error while setting discoverable mode (%d)\n", ret);    
-}
-
-/*
- * @brief  Add LED button service using a vendor specific profile.
- * @param  None
- * @retval Status
- */
-tBleStatus AddLEDService(void)
-{
-	tBleStatus ret;
-	uint8_t uuid[16];
-  
-	/* copy "LED service UUID" defined above to 'uuid' local variable */
-	COPY_LED_SERVICE_UUID(uuid);
-	
-	ret = aci_gatt_add_serv(
-		UUID_TYPE_128,
-		uuid,
-		PRIMARY_SERVICE,
-		7,
-		&ledServHandle);
-	if (ret != BLE_STATUS_SUCCESS) goto fail;    
-  
-	/* copy "LED button characteristic UUID" defined above to 'uuid' local variable */  
-	COPY_LED_UUID(uuid);
-	
-	ret =  aci_gatt_add_char(
-		ledServHandle,
-		UUID_TYPE_128,
-		uuid,
-		4,
-		CHAR_PROP_WRITE | CHAR_PROP_WRITE_WITHOUT_RESP,
-		ATTR_PERMISSION_NONE,
-		GATT_NOTIFY_ATTRIBUTE_WRITE,
-		16,
-		1,
-		&ledButtonCharHandle);
-	if (ret != BLE_STATUS_SUCCESS) goto fail;  
-  
-	PRINTF("Service LED BUTTON added. Handle 0x%04X, LED button Charac handle: 0x%04X\n", ledServHandle, ledButtonCharHandle);	
-	return BLE_STATUS_SUCCESS; 
-  
-fail:
-	PRINTF("Error while adding LED service.\n");
-	return BLE_STATUS_ERROR;
 }
 
 /*
@@ -328,8 +263,8 @@ tBleStatus AddControlService(void)
 		1,
 		&controlButtonCharHandle);
 	if (ret != BLE_STATUS_SUCCESS) goto fail;  
-  
-	PRINTF("Service Input BUTTON added. Handle 0x%04X, Input button Charac handle: 0x%04X\n", controlServHandle, controlButtonCharHandle);	
+	
+	PRINTF("Control characteristic added\n");	
 	
 	/* copy "Instructionn characteristic UUID" defined above to 'uuid' local variable */  
 	COPY_INSTRUCTION_CHAR_UUID(uuid);
@@ -345,13 +280,45 @@ tBleStatus AddControlService(void)
 		16,
 		1,
 		&instructionButtonCharHandle);
+	if (ret != BLE_STATUS_SUCCESS) goto fail; 
+	
+	PRINTF("Instruction characteristic added\n");
+	
+	
+	// IMU service
+	/********************************************************************************************/
+	
+	COPY_IMU_SERVICE_UUID(uuid);
+	
+	ret = aci_gatt_add_serv(
+		UUID_TYPE_128,
+		uuid,
+		PRIMARY_SERVICE,
+		7,
+		&imuServHandle);
+	if (ret != BLE_STATUS_SUCCESS) goto fail;    
+	
+	COPY_IMU_CHAR_UUID(uuid);
+	
+	ret =  aci_gatt_add_char(
+		imuServHandle,
+		UUID_TYPE_128,
+		uuid,
+		4,
+		CHAR_PROP_NOTIFY | CHAR_PROP_READ | ATTR_PERMISSION_NONE,
+		ATTR_PERMISSION_NONE,
+		GATT_NOTIFY_ATTRIBUTE_WRITE,
+		16,
+		1,
+		&imuCharHandle);
 	if (ret != BLE_STATUS_SUCCESS) goto fail;  
-  
-	PRINTF("Service Instruction added. Handle 0x%04X, Input button Charac handle: 0x%04X\n", controlServHandle, instructionButtonCharHandle);
+	
+	PRINTF("IMU characteristic added");	
+	PRINTF("BLE services added successfully.\n");
 	return BLE_STATUS_SUCCESS; 
   
 fail:
-	PRINTF("Error while adding INPUT service.\n");
+	PRINTF("Error while adding BLE services: %x.\n", ret);
 	return BLE_STATUS_ERROR;
 }
 
@@ -464,32 +431,9 @@ uint8_t GetExpansionBoard()
  */
 void Read_Request_CB(uint16_t handle)
 {  
-	if (handle == GetAccServHandle() + 1) {
-		Acc_Update();
-	}  
-	else if (handle == GetTempCharHandle() + 1) {
-		int16_t data;
-		data = 270 + ((uint64_t)rand() * 15) / RAND_MAX; //sensor emulation        
-		Acc_Update(); //FIXME: to overcome issue on Android App
-		                                    // If the user button is not pressed within
-		                                    // a short time after the connection,
-		                                    // a pop-up reports a "No valid characteristics found" error.
-		Temp_Update(data);
-	}
-	else if(handle == GetPressCharHandle() + 1){
-		int32_t data;
-		struct timer t;  
-		Timer_Set(&t, CLOCK_SECOND/10);
-		data = 100000 + ((uint64_t)rand()*1000)/RAND_MAX;
-		Press_Update(data);
-	}
-	else if(handle == GetHumidtyCharHandle() + 1){
-		uint16_t data;
-    
-		data = 450 + ((uint64_t)rand()*100)/RAND_MAX;
-    
-		Humidity_Update(data);
-	}
+	if (handle == imuCharHandle + 1) {
+		BLE_Imu_Update(0, 0);
+	} 
   
 	//EXIT:
 	if (service_connection_handle != 0)
@@ -591,4 +535,39 @@ void HCI_Event_CB(void *pckt)
 		}
 		break;
 	}    
+}
+
+/**
+ * @brief  Update acceleration characteristic value.
+ *
+ * @param  Structure containing acceleration value in mg
+ * @retval Status
+ */
+tBleStatus BLE_Imu_Update(float yaw, float pitch)
+{
+	tBleStatus retValue = BLE_STATUS_SUCCESS;    
+	uint8_t buff[4];
+	
+	if (!connected)
+		return BLE_STATUS_ERROR;
+	
+	unsigned int iYaw = (unsigned int)yaw;
+	unsigned int iPitch = (int)pitch;
+    
+	STORE_LE_16(buff, iYaw);
+	STORE_LE_16(buff + 2, iPitch);
+	
+	tBleStatus status = aci_gatt_update_char_value(
+		imuServHandle,
+		imuCharHandle,
+		0,
+		sizeof(buff),
+		buff);
+	
+	if (status != BLE_STATUS_SUCCESS)
+	{
+		PRINTF("Error while updating IMU characteristic: %x\n", status);
+		return BLE_STATUS_ERROR ;
+	}
+	return BLE_STATUS_SUCCESS;	
 }

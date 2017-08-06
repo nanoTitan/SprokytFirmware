@@ -44,14 +44,13 @@ typedef struct
 void HCI_Event_CB(void *pckt);
 
 int InitBLE();
-void UpdateBLE();
-BOOL IsBleConnected();
+void BLE_Update();
+BOOL BLE_IsConnected();
 void setConnectable(void);
-//void enableNotification(void);
 void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle);
 void GAP_DisconnectionComplete_CB(void);
 void HCI_Event_CB(void *pckt);
-
+tBleStatus BLE_Imu_Update(float yaw, float pitch);
 
 /** @addtogroup SPROKYT_BLE_Exported_Functions
 *  @{
