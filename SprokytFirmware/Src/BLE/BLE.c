@@ -34,6 +34,12 @@ do {\
 #define STORE_LE_16(buf, val)    ( ((buf)[0] =  (uint8_t) (val)    ) , \
                                    ((buf)[1] =  (uint8_t) (val>>8) ) )
 	
+#define STORE_LE_32(buf, val)    ( ((buf)[0] =  (uint8_t) (val)    ) , \
+                                   ((buf)[1] =  (uint8_t) (val>>8) ) , \
+								   ((buf)[2] =  (uint8_t) (val>>16) ) , \
+								   ((buf)[3] =  (uint8_t) (val>>24) ) )
+
+	
 // Control Service
 #define COPY_CONTROL_SERVICE_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0d,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
 #define COPY_IMU_SERVICE_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1c)
@@ -431,8 +437,7 @@ uint8_t GetExpansionBoard()
  */
 void Read_Request_CB(uint16_t handle)
 {  
-	if (handle == imuCharHandle + 1) {
-		BLE_Imu_Update(0, 0);
+	if (handle == imuCharHandle + 1) {		
 	} 
   
 	//EXIT:
@@ -543,25 +548,29 @@ void HCI_Event_CB(void *pckt)
  * @param  Structure containing acceleration value in mg
  * @retval Status
  */
-tBleStatus BLE_Imu_Update(float yaw, float pitch)
+tBleStatus BLE_Imu_Update(float data[], int size)
 {
 	tBleStatus retValue = BLE_STATUS_SUCCESS;    
-	uint8_t buff[4];
+	int byteSize = 12;
+	uint8_t buff[4] = { 0, 0, 0, 0 };
 	
 	if (!connected)
 		return BLE_STATUS_ERROR;
-	
-	unsigned int iYaw = (unsigned int)yaw;
-	unsigned int iPitch = (int)pitch;
     
-	STORE_LE_16(buff, iYaw);
-	STORE_LE_16(buff + 2, iPitch);
+//	STORE_LE_32(buff, data[0]);
+//	STORE_LE_32(buff + 4, pitch);
+//	STORE_LE_32(buff + 8, roll);
+	
+	memcpy(buff, (void*)data, 4); // Copy yaw
+	
+	
+	//PRINTF("%f, %f, %f\n", data[0], data[1], data[2]);
 	
 	tBleStatus status = aci_gatt_update_char_value(
 		imuServHandle,
 		imuCharHandle,
 		0,
-		sizeof(buff),
+		4,
 		buff);
 	
 	if (status != BLE_STATUS_SUCCESS)

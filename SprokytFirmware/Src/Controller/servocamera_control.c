@@ -78,14 +78,14 @@ void UpdateDisconnected()
 
 void ServoIMUUpdate(float data[], int size)
 {
-	assert(size > 1);
-	if (size < 2)
+	assert(size > 2);
+	if (size < 3)
 		return;
 	
 	if (!BLE_IsConnected())
 		return;
 	
-	BLE_Imu_Update(data[0], data[1]);
+	BLE_Imu_Update(data, size);
 }
 
 void Disarm()

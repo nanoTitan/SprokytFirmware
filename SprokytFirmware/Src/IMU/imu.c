@@ -45,6 +45,7 @@ uint8_t magcal_request = 0;
 TIM_HandleTypeDef ImuTimHandle;
 
 /* Private variables ---------------------------------------------------------*/
+static float lastImuReadArray[MFX_NUM_AXES];
 static SensorAxes_t ACC_Value;
 static SensorAxes_t GYR_Value;
 static SensorAxes_t MAG_Value;
@@ -55,7 +56,8 @@ static void *GYRO_handle = NULL;
 static void *MAGNETO_handle = NULL;
 static void *PRESSURE_handle = NULL;
 static uint32_t Sensors_Enabled = 0;
-static uint8_t SF_6X_Enabled = 1;
+static uint32_t mag_time_stamp = 0;
+static uint8_t SF_6X_Enabled = 0;
 static uint8_t calibIndex = 0;         // run calibration @ 25Hz
 static uint8_t mag_cal_status = 0;
 static uint8_t sensor_fusion_active = 0;
@@ -77,6 +79,7 @@ void IMU_init()
 	char lib_version[35];
 	int lib_version_len;
 	
+	memset(&lastImuReadArray, 0, sizeof(MFX_NUM_AXES));
 	memset(&mfx_output, 0, sizeof(MFX_output_t));
 	memset(&ACC_Value, 0, sizeof(SensorAxes_t));
 	memset(&GYR_Value, 0, sizeof(SensorAxes_t));
@@ -102,20 +105,18 @@ void IMU_init()
 	else
 		MotionFX_manager_start_9X();
 	
+	MAG_Offset.AXIS_Y = 20;
 	// Check if the calibration is already available in memory
 	unsigned char calibLoaded = MotionFX_LoadMagCalFromNVM(sizeof(SensorAxes_t), (unsigned int*)&MAG_Offset) ;
 	
-	if (calibLoaded == 1)
+	if ( 0 /*calibLoaded == 1*/ )
 		PRINTF("IMU calibration successfully loaded\r\n");
 	else
 	{
-		/* Enable magnetometer calibration */
-		MotionFX_manager_MagCal_start(SAMPLE_PERIOD);
-
-			  /* Test if calibration data are available */
+		/* Test if calibration data are available */
 		MFX_MagCal_output_t mag_cal_test;
 		MotionFX_MagCal_getParams(&mag_cal_test);
-
+		
 		/* If calibration data are available, load HI coeficients */
 		if (mag_cal_test.cal_quality == MFX_MAGCALGOOD)
 		{
@@ -128,10 +129,9 @@ void IMU_init()
 		}
 		else
 		{
-			PRINTF("IMU calibration not loaded. Run calibration to set magnetometer\r\n");
+			magcal_request = 1;
+			PRINTF("IMU calibration not loaded. Running calibration to set magnetometer...\n\n");
 		}
-		
-		MotionFX_manager_MagCal_stop(SAMPLE_PERIOD);
 	}
 }
 
@@ -234,7 +234,8 @@ static void Imu_Data_Handler()
 
 		/* Run Sensor Fusion algorithm */
 		MotionFX_manager_run(pdata_in, pdata_out, MOTIONFX_ENGINE_DELTATIME);
-
+		
+		float* pRotationData = NULL;	// For IMU callback
 		if (SF_6X_Enabled == 1)
 		{
 			memcpy(&mfx_output.quaternion_6X, (void *)pdata_out->quaternion_6X, MFX_QNUM_AXES * sizeof(float));
@@ -243,9 +244,7 @@ static void Imu_Data_Handler()
 			memcpy(&mfx_output.linear_acceleration_6X, (void *)pdata_out->linear_acceleration_6X, MFX_NUM_AXES * sizeof(float));
 			memcpy(&mfx_output.heading_6X, (void *)&(pdata_out->heading_6X), sizeof(float));
 			
-			// IMU Callback 6X
-			if (imuFunc)
-				imuFunc(mfx_output.rotation_6X, MFX_NUM_AXES);
+			pRotationData = mfx_output.rotation_6X;
 		}
 		else
 		{
@@ -256,8 +255,22 @@ static void Imu_Data_Handler()
 			memcpy(&mfx_output.heading_9X, (void *)&(pdata_out->heading_9X), sizeof(float));
 			
 			// IMU Callback 9X
-			if (imuFunc)
-				imuFunc(mfx_output.rotation_9X, MFX_NUM_AXES);
+			pRotationData = mfx_output.rotation_9X;
+		}
+		
+		// IMU Callback 6X
+		if (imuFunc && pRotationData)
+		{
+			if (lastImuReadArray[0] != pRotationData[0] ||
+				lastImuReadArray[1] != pRotationData[1] ||
+				lastImuReadArray[2] != pRotationData[2])
+			{
+				imuFunc(pRotationData, MFX_NUM_AXES);
+				
+				lastImuReadArray[0] = pRotationData[0];
+				lastImuReadArray[1] = pRotationData[1];
+				lastImuReadArray[2] = pRotationData[2];
+			}
 		}
 	}
 }
@@ -411,6 +424,12 @@ void Magneto_Sensor_Handler()
 			
 			if (mag_cal_status == 0)
 			{
+				mag_data_in.mag[0] = MAG_Value.AXIS_X * FROM_MGAUSS_TO_UT50;
+				mag_data_in.mag[1] = MAG_Value.AXIS_Y * FROM_MGAUSS_TO_UT50;
+				mag_data_in.mag[2] = MAG_Value.AXIS_Z * FROM_MGAUSS_TO_UT50;
+				mag_data_in.time_stamp = mag_time_stamp;
+				mag_time_stamp += SAMPLE_PERIOD;
+				
 				MotionFX_manager_MagCal_run(&mag_data_in, &mag_data_out);
 
 				if (mag_data_out.cal_quality == MFX_MAGCALGOOD)
@@ -425,7 +444,8 @@ void Magneto_Sensor_Handler()
 					MotionFX_manager_MagCal_stop(SAMPLE_PERIOD);
 
 					/* Switch on the LED */
-					BSP_LED_On(LED2);
+					//BSP_LED_On(LED2);
+					HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
 				}
 			}
 

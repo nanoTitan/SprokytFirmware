@@ -18,11 +18,11 @@ void blink();
 
 int main()
 {	
-	PRINTF("***************************\r\n");
-	PRINTF("Ruka Firmware Version %s\r\n", FIRMWARE_VERSION_STR);
-	PRINTF("Copyright Sprokyt LLC 2016\r\n");
-	PRINTF("All Rights Reserved\r\n");
-	PRINTF("***************************\r\n\r\n");
+	PRINTF("***************************\n");
+	PRINTF("Ruka Firmware Version %s\n", FIRMWARE_VERSION_STR);
+	PRINTF("Copyright Sprokyt LLC 2016\n");
+	PRINTF("All Rights Reserved\n");
+	PRINTF("***************************\n");
 	
 	if (HAL_Init() != HAL_OK)
 		Error_Handler(); 
@@ -37,7 +37,9 @@ int main()
 	
 	__CRC_CLK_ENABLE();		// Enable HAL clock for IMU
 	
-	blink();
+	PRINTF("System Clock set to: %u \n", (unsigned int)SystemCoreClock);
+	
+	//blink();
 	
 	// Motor Controller
 	MotorController_init();	
@@ -55,7 +57,7 @@ int main()
 	if (InitBLE() != BLE_STATUS_SUCCESS)
 		Error_Handler();
 	
-	PRINTF("Initialization finished. Running program...\r\n");
+	PRINTF("Initialization finished. Running program...\n");
 	
 	while (1)
 	{		
