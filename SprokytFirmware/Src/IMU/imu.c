@@ -18,6 +18,7 @@
 #include "x_nucleo_iks01a1_magneto.h"
 #include "x_nucleo_iks01a1_pressure.h"
 #include "error.h"
+#include <stdlib.h>
 
 
 /* Extern variables ----------------------------------------------------------*/
@@ -105,12 +106,12 @@ void IMU_init()
 	else
 		MotionFX_manager_start_9X();
 	
-	MAG_Offset.AXIS_Y = 20;
 	// Check if the calibration is already available in memory
 	unsigned char calibLoaded = MotionFX_LoadMagCalFromNVM(sizeof(SensorAxes_t), (unsigned int*)&MAG_Offset) ;
-	
-	if ( 0 /*calibLoaded == 1*/ )
+	if (calibLoaded == 0 && ( abs(MAG_Offset.AXIS_X) < 1000 && abs(MAG_Offset.AXIS_Y) < 1000 && abs(MAG_Offset.AXIS_Z) < 1000))
+	{
 		PRINTF("IMU calibration successfully loaded\r\n");
+	}
 	else
 	{
 		/* Test if calibration data are available */
@@ -289,11 +290,6 @@ void IMU_update(void)
 		MAG_Offset.AXIS_Y = 0;
 		MAG_Offset.AXIS_Z = 0;
 		
-#if (defined (MOTION_FX_STORE_CALIB_FLASH))
-		/* Reset values in memory */
-		ResetCalibrationInMemory();
-#endif
-		
 		/* Enable magnetometer calibration */
 		MotionFX_manager_MagCal_start(SAMPLE_PERIOD);
       
@@ -415,7 +411,7 @@ void Magneto_Sensor_Handler()
 	uint8_t status = 0;
 	MFX_MagCal_input_t mag_data_in;
 	MFX_MagCal_output_t mag_data_out;
-  
+	
 	if (Sensors_Enabled & MAGNETIC_SENSOR)
 	{
 		if (BSP_MAGNETO_IsInitialized(MAGNETO_handle, &status) == COMPONENT_OK && status == 1)
@@ -442,6 +438,13 @@ void Magneto_Sensor_Handler()
 
 					/* Disable magnetometer calibration */
 					MotionFX_manager_MagCal_stop(SAMPLE_PERIOD);
+					
+					// Save magnatometer data to memory
+					unsigned char calibSaved = MotionFX_SaveMagCalInNVM(sizeof(SensorAxes_t), (unsigned int*)&MAG_Offset);
+					if (calibSaved)
+					{
+						PRINTF("Magnitometer clibration saved.\n");
+					}
 
 					/* Switch on the LED */
 					//BSP_LED_On(LED2);

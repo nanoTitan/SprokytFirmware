@@ -822,6 +822,9 @@
 #ifndef __QQ_FBIT__
 #define __QQ_FBIT__ 7
 #endif
+#ifndef MOTION_FX_STORE_CALIB_FLASH
+#define MOTION_FX_STORE_CALIB_FLASH 1
+#endif
 #ifndef DEBUG_PRINT
 #define DEBUG_PRINT 1
 #endif

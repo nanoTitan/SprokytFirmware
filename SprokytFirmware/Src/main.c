@@ -14,6 +14,10 @@ All Rights Reserved
 #include "debug.h"
 #include "cube_hal.h"
 
+/* Private variables ---------------------------------------------------------*/
+UART_HandleTypeDef huart1;
+
+static void InitUSART();
 void blink();
 
 int main()
@@ -29,6 +33,8 @@ int main()
 	
 	// Configure the system clock
 	SystemClock_Config();
+	
+	//InitUSART();
 	
 	//LEDMgr_Init();
 	
@@ -59,8 +65,12 @@ int main()
 	
 	PRINTF("Initialization finished. Running program...\n");
 	
+	//uint8_t buff[4] = {'a', 'b', 'c', 'd'};
+	
 	while (1)
 	{		
+		//HAL_UART_Transmit(&huart1, buff, 4, 100);
+		
 		// Communication
 		//Wifi::Instance()->Update();
 		BLE_Update();
@@ -72,6 +82,22 @@ int main()
 		//MotorController_UpdateMotorTest();
 		
 		ControlMgr_update();
+	}
+}
+
+void InitUSART()
+{
+	huart1.Instance = USART1;
+	huart1.Init.BaudRate = 9600;
+	huart1.Init.WordLength = UART_WORDLENGTH_8B;
+	huart1.Init.StopBits = UART_STOPBITS_1;
+	huart1.Init.Parity = UART_PARITY_NONE;
+	huart1.Init.Mode = UART_MODE_TX_RX;
+	huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+	if (HAL_UART_Init(&huart1) != HAL_OK)
+	{
+		Error_Handler();
 	}
 }
 

@@ -38,6 +38,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "MotionFX_Manager.h"
 #include "x_nucleo_iks01a1_gyro.h"
+#include "imu_calibration.h"
 
 /** @addtogroup MOTION_FX_Applications
   * @{
