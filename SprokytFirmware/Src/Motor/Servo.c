@@ -38,7 +38,7 @@ void ServoTimerInit()
 	GPIO_InitTypeDef GPIO_InitStruct;
 	uint32_t scc = SystemCoreClock;
 	
-	GPIO_InitStruct.Pin = SERVO1_PWM_Pin | SERVO2_PWM_Pin;
+	GPIO_InitStruct.Pin = SERVO1_PWM_PIN | SERVO2_PWM_PIN;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;

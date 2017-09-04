@@ -58,6 +58,7 @@ static void *MAGNETO_handle = NULL;
 static void *PRESSURE_handle = NULL;
 static uint32_t Sensors_Enabled = 0;
 static uint32_t mag_time_stamp = 0;
+static uint32_t last_imu_send_time = 0;
 static uint8_t SF_6X_Enabled = 0;
 static uint8_t calibIndex = 0;         // run calibration @ 25Hz
 static uint8_t mag_cal_status = 0;
@@ -94,11 +95,13 @@ void IMU_init()
 	EnableSensors();
 	
 	ImuTimerInit();
-  
-	// Initialize Sensor Fusion
-	MotionFX_manager_init(GYRO_handle);
 	
-	// Optional: Get library version
+	/* Pause period after timer initialization */
+	BSP_LED_On(LED2);
+	HAL_Delay(500);
+	BSP_LED_Off(LED2);
+	
+	MotionFX_manager_init(GYRO_handle);
 	MotionFX_manager_get_version(lib_version, &lib_version_len);
   
 	if (SF_6X_Enabled)
@@ -106,11 +109,10 @@ void IMU_init()
 	else
 		MotionFX_manager_start_9X();
 	
-	// Check if the calibration is already available in memory
-	unsigned char calibLoaded = MotionFX_LoadMagCalFromNVM(sizeof(SensorAxes_t), (unsigned int*)&MAG_Offset) ;
-	if (calibLoaded == 0 && ( abs(MAG_Offset.AXIS_X) < 1000 && abs(MAG_Offset.AXIS_Y) < 1000 && abs(MAG_Offset.AXIS_Z) < 1000))
+	unsigned char calibLoaded = MotionFX_LoadMagCalFromNVM(sizeof(SensorAxes_t), (unsigned int*)&MAG_Offset);
+	if (calibLoaded == 0 && (abs(MAG_Offset.AXIS_X) < 1000 && abs(MAG_Offset.AXIS_Y) < 1000 && abs(MAG_Offset.AXIS_Z) < 1000))
 	{
-		PRINTF("IMU calibration successfully loaded\r\n");
+		PRINTF("IMU calibration successfully loaded\r\n");		
 	}
 	else
 	{
@@ -170,17 +172,17 @@ static void ImuTimerInit()
 	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
 	HAL_TIM_ConfigClockSource(&ImuTimHandle, &sClockSourceConfig);
 	
-	HAL_TIM_OC_Init(&ImuTimHandle);
+	//HAL_TIM_OC_Init(&ImuTimHandle);
 
 	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
 	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
 	HAL_TIMEx_MasterConfigSynchronization(&ImuTimHandle, &sMasterConfig);
-	
-	sConfigOC.OCMode = TIM_OCMODE_TIMING;
-	sConfigOC.Pulse = 2;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	HAL_TIM_OC_ConfigChannel(&ImuTimHandle, &sConfigOC, TIM_IMU_CHANNEL);
+//	
+//	sConfigOC.OCMode = TIM_OCMODE_TIMING;
+//	sConfigOC.Pulse = 2;
+//	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+//	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+//	HAL_TIM_OC_ConfigChannel(&ImuTimHandle, &sConfigOC, TIM_IMU_CHANNEL);
 	
 	HAL_TIM_Base_Start_IT(&ImuTimHandle);
 }
@@ -262,15 +264,25 @@ static void Imu_Data_Handler()
 		// IMU Callback 6X
 		if (imuFunc && pRotationData)
 		{
-			if (lastImuReadArray[0] != pRotationData[0] ||
-				lastImuReadArray[1] != pRotationData[1] ||
-				lastImuReadArray[2] != pRotationData[2])
+			uint32_t tickstart = HAL_GetTick();
+			if (tickstart - last_imu_send_time > 100)
 			{
-				imuFunc(pRotationData, MFX_NUM_AXES);
+				float yaw = floor(pRotationData[0]);
+				float pitch = floor(pRotationData[1]);
+				float roll = floor(pRotationData[2]);
 				
-				lastImuReadArray[0] = pRotationData[0];
-				lastImuReadArray[1] = pRotationData[1];
-				lastImuReadArray[2] = pRotationData[2];
+				// *** Ignoring roll ***
+				if (lastImuReadArray[0] != yaw ||
+					lastImuReadArray[1] != pitch)
+				{
+					imuFunc(pRotationData, MFX_NUM_AXES);
+				
+					last_imu_send_time = HAL_GetTick();
+				
+					lastImuReadArray[0] = yaw;
+					lastImuReadArray[1] = pitch;
+					lastImuReadArray[2] = roll;
+				}	
 			}
 		}
 	}
@@ -418,6 +430,22 @@ void Magneto_Sensor_Handler()
 		{
 			BSP_MAGNETO_Get_Axes(MAGNETO_handle, &MAG_Value);
 			
+			// ******************** FIX ME  ********************
+			// Trying to save/load calibration with MOTION_FX_STORE_CALIB_FLASH defined causes a hard fault
+			// This hack allows the calibration to run so we can set the magnetometer offset values
+			if (mag_cal_status == 0 && 1 == 1)
+			{
+				MotionFX_manager_MagCal_run(&mag_data_in, &mag_data_out);
+				mag_cal_status = 1;
+				MotionFX_manager_MagCal_stop(SAMPLE_PERIOD);
+				
+				MAG_Offset.AXIS_X = MAG_OFFSET_X;
+				MAG_Offset.AXIS_Y = MAG_OFFSET_Y;
+				MAG_Offset.AXIS_Z = MAG_OFFSET_Z;
+				
+			} else 
+			// *************************************************
+				
 			if (mag_cal_status == 0)
 			{
 				mag_data_in.mag[0] = MAG_Value.AXIS_X * FROM_MGAUSS_TO_UT50;
@@ -435,15 +463,15 @@ void Magneto_Sensor_Handler()
 					MAG_Offset.AXIS_X = (int32_t)(mag_data_out.hi_bias[0] * FROM_UT50_TO_MGAUSS);
 					MAG_Offset.AXIS_Y = (int32_t)(mag_data_out.hi_bias[1] * FROM_UT50_TO_MGAUSS);
 					MAG_Offset.AXIS_Z = (int32_t)(mag_data_out.hi_bias[2] * FROM_UT50_TO_MGAUSS);
-
+					
 					/* Disable magnetometer calibration */
 					MotionFX_manager_MagCal_stop(SAMPLE_PERIOD);
 					
 					// Save magnatometer data to memory
 					unsigned char calibSaved = MotionFX_SaveMagCalInNVM(sizeof(SensorAxes_t), (unsigned int*)&MAG_Offset);
-					if (calibSaved)
+					if (calibSaved == 0)
 					{
-						PRINTF("Magnitometer clibration saved.\n");
+						PRINTF("Magnetometer calibration saved\n");
 					}
 
 					/* Switch on the LED */

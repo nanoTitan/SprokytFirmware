@@ -319,8 +319,8 @@ tBleStatus AddControlService(void)
 		&imuCharHandle);
 	if (ret != BLE_STATUS_SUCCESS) goto fail;  
 	
-	PRINTF("IMU characteristic added");	
-	PRINTF("BLE services added successfully.\n");
+	PRINTF("IMU characteristic added\n");	
+	PRINTF("BLE services added\n");
 	return BLE_STATUS_SUCCESS; 
   
 fail:

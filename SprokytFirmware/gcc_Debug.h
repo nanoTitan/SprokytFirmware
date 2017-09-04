@@ -146,6 +146,9 @@
 #ifndef __cpp_variable_templates
 #define __cpp_variable_templates 201304
 #endif
+#ifndef XDEBUG_DEFAULT_INTERRUPT_HANDLERS
+#define XDEBUG_DEFAULT_INTERRUPT_HANDLERS 1
+#endif
 #ifndef __ARM_FEATURE_UNALIGNED
 #define __ARM_FEATURE_UNALIGNED 1
 #endif
@@ -265,6 +268,9 @@
 #endif
 #ifndef __USER_LABEL_PREFIX__
 #define __USER_LABEL_PREFIX__ 
+#endif
+#ifndef XMOTION_FX_STORE_CALIB_FLASH
+#define XMOTION_FX_STORE_CALIB_FLASH 1
 #endif
 #ifndef __STDC_HOSTED__
 #define __STDC_HOSTED__ 1
@@ -615,9 +621,6 @@
 #ifndef __GCC_ATOMIC_INT_LOCK_FREE
 #define __GCC_ATOMIC_INT_LOCK_FREE 2
 #endif
-#ifndef DEBUG_DEFAULT_INTERRUPT_HANDLERS
-#define DEBUG_DEFAULT_INTERRUPT_HANDLERS 1
-#endif
 #ifndef __FLOAT_WORD_ORDER__
 #define __FLOAT_WORD_ORDER__ __ORDER_LITTLE_ENDIAN__
 #endif
@@ -821,9 +824,6 @@
 #endif
 #ifndef __QQ_FBIT__
 #define __QQ_FBIT__ 7
-#endif
-#ifndef MOTION_FX_STORE_CALIB_FLASH
-#define MOTION_FX_STORE_CALIB_FLASH 1
 #endif
 #ifndef DEBUG_PRINT
 #define DEBUG_PRINT 1

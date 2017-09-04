@@ -51,7 +51,7 @@ void ControlMgr_setType(int ctrlType)
 
 void ControlMgr_init()
 {
-	ControlMgr_ConfigADC();
+	//ControlMgr_ConfigADC();
 	
 	ServoCameraControl_init();
 	//FlightControl_init();

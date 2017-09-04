@@ -71,13 +71,13 @@ int main()
 	{		
 		//HAL_UART_Transmit(&huart1, buff, 4, 100);
 		
+		// IMU and Sensors
+		IMU_update();
+		
 		// Communication
 		//Wifi::Instance()->Update();
 		BLE_Update();
 		//SWPF01SA::Instance()->Update();
-		
-		// IMU and Sensors
-		IMU_update();
 		
 		//MotorController_UpdateMotorTest();
 		

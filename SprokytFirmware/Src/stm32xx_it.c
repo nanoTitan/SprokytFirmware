@@ -41,6 +41,7 @@
 #include "stm32xx_it.h"
 #include "debug.h"
 #include "hci.h"
+#include "constants.h"
 
 /** @addtogroup X-CUBE-BLE1_Applications
  *  @{
@@ -65,9 +66,9 @@ volatile uint8_t button_event = 0;
 extern SPI_HandleTypeDef SpiHandle;
 extern uint8_t magcal_request;
 /* Private function prototypes -----------------------------------------------*/
-void TIM_IMU_IRQHandler(void);
 
 /* Private functions ---------------------------------------------------------*/
+void prvGetRegistersFromStack(uint32_t *pulFaultStackAddress);
 
 /******************************************************************************/
 /*            Cortex-M0+ Processor Exceptions Handlers                         */
@@ -88,7 +89,7 @@ void NMI_Handler(void)
   * @retval None
   */
 void HardFault_Handler(void)
-{
+{	
   /* Go to infinite loop when Hard Fault exception occurs */
   while (1)
   {
@@ -180,7 +181,8 @@ void TIM_IMU_IRQHandler(void)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	// Tell IMU to begin magnetometer calibration request
-	magcal_request = 1;
+	if (GPIO_Pin == KEY_BUTTON_PIN)
+		magcal_request = 1;
 	
 	// UPdate BlueNRG ISR. This normally happens in bluenrg_interface.c. 
 	// We put it here since multiple objects need to know about EXTI_Callback
