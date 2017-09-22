@@ -42,6 +42,7 @@
 #include "debug.h"
 #include "hci.h"
 #include "constants.h"
+#include "stm32f4xx_nucleo_ihm06a1.h"
 
 /** @addtogroup X-CUBE-BLE1_Applications
  *  @{
@@ -65,6 +66,7 @@ volatile uint8_t button_event = 0;
 
 extern SPI_HandleTypeDef SpiHandle;
 extern uint8_t magcal_request;
+extern TIM_HandleTypeDef hTimerStepClock;
 /* Private function prototypes -----------------------------------------------*/
 
 /* Private functions ---------------------------------------------------------*/
@@ -158,7 +160,8 @@ void BNRG_SPI_EXTI_IRQHandler(void)
   */
 void PUSH_BUTTON_EXTI_IRQHandler(void)
 {
-  HAL_GPIO_EXTI_IRQHandler(KEY_BUTTON_PIN);
+	HAL_GPIO_EXTI_IRQHandler(KEY_BUTTON_PIN);
+	HAL_GPIO_EXTI_IRQHandler(BSP_MOTOR_CONTROL_BOARD_PIN_EN_AND_FAULT);
   
   button_event = 1;
 }
@@ -171,6 +174,16 @@ void PUSH_BUTTON_EXTI_IRQHandler(void)
 void TIM_IMU_IRQHandler(void)
 {
 	HAL_TIM_IRQHandler(&ImuTimHandle);
+}
+
+/**
+* @brief  This function handles TIM interrupt request for StSpin220 Stepper
+* @param  None
+* @retval None
+*/
+void TIM2_IRQHandler(void)
+{
+	HAL_TIM_IRQHandler(&hTimerStepClock);
 }
 
 /**
