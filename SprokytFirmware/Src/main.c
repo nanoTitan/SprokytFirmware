@@ -94,8 +94,10 @@ int main()
 		BLE_Update();
 #endif // BLE_ENABLED
 		
-		MotorController_UpdateMotorTest();
+		MotorController_update();
 		ControlMgr_update();
+		
+		MotorController_UpdateMotorTest();
 	}
 }
 

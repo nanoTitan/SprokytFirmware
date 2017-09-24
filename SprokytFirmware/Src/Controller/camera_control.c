@@ -1,4 +1,4 @@
-#include "servocamera_control.h"
+#include "camera_control.h"
 #include "control_manager.h"
 #include "motor_controller.h"
 #include "BLE.h"
@@ -13,23 +13,31 @@
 static BOOL m_doUpdate = FALSE;
 static uint8_t m_x = 0;
 static uint8_t m_y = 0;
+static float m_yaw = 0;
+static float m_pitch = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 static void UpdateConnected();
 static void UpdateDisconnected();
-static void ServoIMUUpdate();
+static void AngularYawUpdate(float yaw);
+static void AngularPitchUpdate(float pitch);
 static void Disarm();
-static void RunMotorTest();
 static void PrintIMU();
 static void ParseTranslate(uint8_t _x, uint8_t _y);
 
 /* Private functions ---------------------------------------------------------*/
-void ServoCameraControl_init()
+void CameraControl_init()
 {	
-	RegisterImuCallback(ServoIMUUpdate);
+#if defined(IMU_ENABLED)
+	IMU_RegisterAngularPosCallback(AngularYawUpdate);
+#endif // IMU_ENABLED
+	
+#if defined(STEPPER_ENABLED)
+	Stepper_RegisterAngularPosCallback(AngularYawUpdate);
+#endif // STEPPER_ENABLED
 }
 
-void ServoCameraControl_update()
+void CameraControl_update()
 {	
 	CONTROL_STATE state = ControlMgr_getState();
 	
@@ -58,7 +66,6 @@ void ServoCameraControl_update()
 
 void UpdateConnected()
 {
-	//RunMotorTest();
 	//PrintIMU();
 	
 	if (m_doUpdate)
@@ -76,26 +83,45 @@ void UpdateDisconnected()
 	Disarm();
 }
 
-void ServoIMUUpdate(float data[], int size)
+void AngularYawUpdate(float yaw)
 {
-	assert(size > 2);
-	if (size < 3)
+	if (m_yaw == yaw)
 		return;
 	
 	if (!BLE_IsConnected())
 		return;
 	
-	BLE_Imu_Update(data, size);
+	m_yaw = yaw;
+	BLE_AngularPosUpdate(m_yaw, m_pitch);
+}
+
+void AngularPitchUpdate(float pitch)
+{
+	if (m_pitch == pitch)
+		return;
+	
+	if (!BLE_IsConnected())
+		return;
+	
+	m_pitch = pitch;
+	BLE_AngularPosUpdate(m_yaw, m_pitch);
 }
 
 void Disarm()
 {	
 	// Turn motors off
+#if defined(STEPPER_ENABLED)
+	MotorController_setMotor(STEPPER_MOTOR_1, 0, FWD);
+#endif // STEPPER_ENABLED
+	
+#if defined(SERVO_ENABLED)
 	MotorController_setMotor(MOTOR_ALL, MIN_THROTTLE, FWD);
+#endif // SERVO_ENABLED
+	
 	ControlMgr_setState(CONTROL_STATE_IDLE);
 }
 
-void ServoCameraControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
+void CameraControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 {
 	 if (data_length == 0)
 		return;
@@ -111,74 +137,20 @@ void ServoCameraControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 }
 
 void ParseTranslate(uint8_t _x, uint8_t _y)
-{
-	/*
-	A - B
-	|   |
-	D - C
-	*/
-	
+{	
 	direction_t dir = FWD;
 	float x = mapf(_x, 0, 255, 0, 1);
 	float y = mapf(_y, 0, 255, 0, 1);
 	
+		// Turn motors off
+#if defined(STEPPER_ENABLED)
+	MotorController_setMotor(STEPPER_MOTOR_1, x, dir);
+#endif // STEPPER_ENABLED
+	
+#if defined(SERVO_ENABLED)
 	MotorController_setMotor(SERVO_CHANNEL_1, x, dir);
-	//MotorController_setMotor(SERVO_CHANNEL_2, y, dir);
-}
-
-void RunMotorTest()
-{
-		// ********* Test code for servos *********
-	static float speed = 0;	
-	static BOOL hasRun = FALSE;
-	static int motor = MOTOR_ALL;
+#endif // SERVO_ENABLED
 	
-	if (hasRun)
-		return;
-	
-	// up
-	//wait_ms(5);
-	speed = 0.5;
-	MotorController_setMotor(motor, speed, FWD);	// TEST Servos
-	HAL_Delay(3000);
-	
-	// Back
-	MotorController_setMotor(motor, speed, BWD);	// TEST Servos
-	HAL_Delay(3000);
-	
-	// Left
-	MotorController_setMotor(MOTOR_A, speed, BWD);
-	MotorController_setMotor(MOTOR_B, speed, FWD);
-	MotorController_setMotor(MOTOR_C, speed, FWD);
-	MotorController_setMotor(MOTOR_D, speed, BWD);
-	HAL_Delay(3000);
-	
-	// Right
-	MotorController_setMotor(MOTOR_A, speed, FWD);
-	MotorController_setMotor(MOTOR_B, speed, BWD);
-	MotorController_setMotor(MOTOR_C, speed, BWD);
-	MotorController_setMotor(MOTOR_D, speed, FWD);
-	HAL_Delay(3000);
-	
-	// Rotate Left
-	MotorController_setMotor(MOTOR_A, speed, BWD);
-	MotorController_setMotor(MOTOR_B, speed, FWD);
-	MotorController_setMotor(MOTOR_C, speed, BWD);
-	MotorController_setMotor(MOTOR_D, speed, FWD);
-	HAL_Delay(3000);
-	
-	// Rotate Right
-	MotorController_setMotor(MOTOR_A, speed, FWD);
-	MotorController_setMotor(MOTOR_B, speed, BWD);
-	MotorController_setMotor(MOTOR_C, speed, FWD);
-	MotorController_setMotor(MOTOR_D, speed, BWD);
-	HAL_Delay(3000);
-	
-	MotorController_setMotor(motor, 0, FWD);	// TEST Servos
-	
-	hasRun = TRUE;
-	
-	// ********* End Test code for servos ********* 
 }
 
 //void PrintIMU()

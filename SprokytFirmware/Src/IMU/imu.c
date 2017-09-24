@@ -51,7 +51,7 @@ static SensorAxes_t ACC_Value;
 static SensorAxes_t GYR_Value;
 static SensorAxes_t MAG_Value;
 static SensorAxes_t MAG_Offset;
-static ImuFunctionCallback imuFunc = NULL;
+static AngularPositionCallback imuFunc = NULL;
 static void *ACCELERO_handle = NULL;
 static void *GYRO_handle = NULL;
 static void *MAGNETO_handle = NULL;
@@ -187,7 +187,7 @@ static void ImuTimerInit()
 	HAL_TIM_Base_Start_IT(&ImuTimHandle);
 }
 
-void RegisterImuCallback(ImuFunctionCallback callback)
+void IMU_RegisterAngularPosCallback(AngularPositionCallback callback)
 {
 	if (callback != NULL)
 	{
@@ -271,11 +271,10 @@ static void Imu_Data_Handler()
 				float pitch = floor(pRotationData[1]);
 				float roll = floor(pRotationData[2]);
 				
-				// *** Ignoring roll ***
-				if (lastImuReadArray[0] != yaw ||
-					lastImuReadArray[1] != pitch)
+				// *** Ignoring pitch ***
+				if (lastImuReadArray[0] != yaw)
 				{
-					imuFunc(pRotationData, MFX_NUM_AXES);
+					imuFunc(pRotationData[0]);
 				
 					last_imu_send_time = HAL_GetTick();
 				

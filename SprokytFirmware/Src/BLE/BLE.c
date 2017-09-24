@@ -29,15 +29,15 @@ do {\
             uuid_struct[8] = uuid_8; uuid_struct[9] = uuid_9; uuid_struct[10] = uuid_10; uuid_struct[11] = uuid_11; \
                 uuid_struct[12] = uuid_12; uuid_struct[13] = uuid_13; uuid_struct[14] = uuid_14; uuid_struct[15] = uuid_15; \
 } while(0)
-	
+
 /* Store Value into a buffer in Little Endian Format */
 #define STORE_LE_16(buf, val)    ( ((buf)[0] =  (uint8_t) (val)    ) , \
                                    ((buf)[1] =  (uint8_t) (val>>8) ) )
-	
-#define STORE_LE_32(buf, val)    ( ((buf)[0] =  (uint8_t) (val)    ) , \
-                                   ((buf)[1] =  (uint8_t) (val>>8) ) , \
-								   ((buf)[2] =  (uint8_t) (val>>16) ) , \
-								   ((buf)[3] =  (uint8_t) (val>>24) ) )
+
+#define STORE_LE_32(buf, val)    ( (buf[0] =  (int)val & 0xFF    ) , \
+                                   (buf[1] =  (int)val>>8 & 0xFF ) , \
+								   (buf[2] =  (int)val>>16 & 0xFF ) , \
+								   (buf[3] =  (int)val>>24 & 0xFF ) )
 
 	
 // Control Service
@@ -548,21 +548,25 @@ void HCI_Event_CB(void *pckt)
  * @param  Structure containing acceleration value in mg
  * @retval Status
  */
-tBleStatus BLE_Imu_Update(float data[], int size)
+tBleStatus BLE_AngularPosUpdate(float yaw, float pitch)
 {
-	tBleStatus retValue = BLE_STATUS_SUCCESS;    
-	int byteSize = 12;
-	uint8_t buff[4] = { 0, 0, 0, 0 };
+	uint8_t buff[8];
 	
 	if (!connected)
 		return BLE_STATUS_ERROR;
     
-//	STORE_LE_32(buff, data[0]);
-//	STORE_LE_32(buff + 4, pitch);
-//	STORE_LE_32(buff + 8, roll);
-	
-	memcpy(buff, (void*)data, 4); // Copy yaw
-	
+	STORE_LE_32(buff, yaw);
+	STORE_LE_32((buff + 4), pitch);
+//	
+//	buff[0] =  (int)yaw & 0xFF;
+//	buff[1] =  (int)yaw >> 8 & 0xFF;
+//	buff[2] =  (int)yaw >> 16 & 0xFF;
+//	buff[3] =  (int)yaw >> 24 & 0xFF;
+//	
+//	buff[4] =  (int)pitch & 0xFF;
+//	buff[5] =  (int)pitch >> 8 & 0xFF;
+//	buff[6] =  (int)pitch >> 16 & 0xFF;
+//	buff[7] =  (int)pitch >> 24 & 0xFF;
 	
 	//PRINTF("%f, %f, %f\n", data[0], data[1], data[2]);
 	

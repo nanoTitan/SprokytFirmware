@@ -5,6 +5,7 @@
 #include "Servo.h"
 
 void MotorController_init();
+void MotorController_update();
 void MotorController_setMotor(uint8_t motorIndxMask, float power, direction_t direction);
 void MotorController_setServo(int servo, float dutyCycle);
 void MotorController_setStepper(uint8_t motorIndxMask, float power, direction_t direction);

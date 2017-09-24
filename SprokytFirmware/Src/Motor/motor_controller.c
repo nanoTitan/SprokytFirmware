@@ -23,10 +23,21 @@ void MotorController_init()
 	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
 	
 	MotorController_setMotor(MOTOR_ALL, 0, FWD);
-#elif defined(MOTOR_SERVO)
+#endif // MOTOR_TOSHIBA
+	
+#if defined(MOTOR_SERVO)
 	Servo_Init();
-#elif defined(MOTOR_STEPPER)
+#endif // MOTOR_SERVO
+	
+#if defined(MOTOR_STEPPER)
 	Stepper_Init();
+#endif // MOTOR_TOSHIBA
+}
+
+void MotorController_update()
+{
+#if defined(MOTOR_STEPPER)
+	Stepper_Update();
 #endif // MOTOR_TOSHIBA
 }
 

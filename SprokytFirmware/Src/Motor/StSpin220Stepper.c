@@ -20,30 +20,32 @@ static uint16_t m_Speed;
 static uint16_t m_Dec;
 static motorStepMode_t m_StepMode;
 static uint32_t m_FreqPwm;
+static uint32_t m_lastPosSendTime;
 static uint8_t m_Torque;
-static uint16_t m_minSpeed;
-static uint16_t m_maxSpeed;
+static uint32_t m_numStepsPerTurn = 0;
+static AngularPositionCallback m_angularFunc = NULL;
 
 /* Private function prototypes -----------------------------------------------*/
+static void UpdateAngularPosition();
 static void MyFlagInterruptHandler(void);
 void ButtonHandler(void);
 
 /* Initialization parameters. */
 Stspin220_Init_t initDeviceParameters =
 {
-	480,             //Acceleration rate in pulse/s2 (must be greater than 0)
-	480,             //Deceleration rate in pulse/s2 (must be greater than 0)
-	1600,            //Running speed in pulse/s (8 pulse/s < Maximum speed <= 10 000 pulse/s )
-	400,             //Minimum speed in pulse/s (8 pulse/s <= Minimum speed < 10 000 pulse/s)
-	20,              //Acceleration current torque in % (from 0 to 100)
-	15,              //Deceleration current torque in % (from 0 to 100)
-	10,              //Running current torque in % (from 0 to 100)
-	25,              //Holding current torque in % (from 0 to 100)
-	TRUE,            //Torque boost speed enable
-	200,             //Torque boost speed threshold in fullstep/s
-	STEP_MODE_1_32,  //Step mode via enum motorStepMode_t  
-	HOLD_MODE,       //Automatic HIZ STOP
-	100000           //REF frequency (Hz)
+	1200,						//Acceleration rate in pulse/s2 (must be greater than 0)
+	1200,						//Deceleration rate in pulse/s2 (must be greater than 0)
+	STEPPER_MAX_CAMERA_SPEED,   //Running speed in pulse/s (8 pulse/s < Maximum speed <= 10 000 pulse/s )
+	STEPPER_MIN_CAMERA_SPEED,   //Minimum speed in pulse/s (8 pulse/s <= Minimum speed < 10 000 pulse/s)
+	20,							//Acceleration current torque in % (from 0 to 100)
+	15,							//Deceleration current torque in % (from 0 to 100)
+	10,							//Running current torque in % (from 0 to 100)
+	25,							//Holding current torque in % (from 0 to 100)
+	TRUE,						//Torque boost speed enable
+	200,						//Torque boost speed threshold in fullstep/s
+	STEP_MODE_1_32,				//Step mode via enum motorStepMode_t  
+	HOLD_MODE,					//Automatic HIZ STOP
+	100000						//REF frequency (Hz)
 };
 
 void Stepper_Init()
@@ -55,8 +57,8 @@ void Stepper_Init()
 	/* the STSPIN220 parameters are set with the predefined values from file    */
 	/* stspin220_target_config.h, otherwise the parameters are set using the    */
 	/* initDeviceParameters structure values.                                   */
-	//BSP_MotorControl_Init(BSP_MOTOR_CONTROL_BOARD_ID_STSPIN220, &initDeviceParameters);
-	BSP_MotorControl_Init(BSP_MOTOR_CONTROL_BOARD_ID_STSPIN220, NULL);
+	BSP_MotorControl_Init(BSP_MOTOR_CONTROL_BOARD_ID_STSPIN220, &initDeviceParameters);
+	//BSP_MotorControl_Init(BSP_MOTOR_CONTROL_BOARD_ID_STSPIN220, NULL);
 	
 	BSP_MotorControl_AttachFlagInterrupt(MyFlagInterruptHandler);
 	BSP_MotorControl_AttachErrorHandler(CError_Handler_1);
@@ -65,39 +67,64 @@ void Stepper_Init()
 	BSP_MotorControl_SetBridgeInputPwmFreq(0, m_FreqPwm >> 1);	// Set the PWM frequency used for the VREFA and VREFB voltage generation
 	
 	m_StepMode = BSP_MotorControl_GetStepMode(0);	// Get the predefined step mode
-	
-	m_minSpeed = BSP_MotorControl_GetMinSpeed(0);
-	m_maxSpeed = BSP_MotorControl_GetMaxSpeed(0);
+	m_numStepsPerTurn = FULL_STEPS_PER_TURN * (1 << BSP_MotorControl_GetStepMode(0));
+}
+
+void Stepper_RegisterAngularPosCallback(AngularPositionCallback callback)
+{
+	if (callback != NULL)
+	{
+		m_angularFunc = callback;
+	}
+}
+
+void Stepper_Update()
+{
+	UpdateAngularPosition();
+}
+
+void UpdateAngularPosition()
+{
+	// IMU Callback 6X
+	if (m_angularFunc)
+	{
+		uint32_t tickstart = HAL_GetTick();
+		if (tickstart - m_lastPosSendTime > 50)
+		{
+			int32_t pos = BSP_MotorControl_GetPosition(STEPPER_MOTOR_1);
+			if (pos < 0)
+				pos += m_numStepsPerTurn;
+			
+			m_angularFunc(pos);
+			m_lastPosSendTime = tickstart;
+		}
+	}
 }
 
 void Stepper_SetSpeedAndDirection(float speed, direction_t direction)
 {
-	if (speed == 0)
-	{
-		/* Request to perform a soft stop */
-		//BSP_MotorControl_SetStopMode(0, HOLD_MODE);   
-		//BSP_MotorControl_SoftStop(0);
-		BSP_MotorControl_HardStop(0);
-		//BSP_MotorControl_WaitWhileActive(0);
-	}
-	else
-	{
-		motorDir_t dir = direction == FWD ? FORWARD : BACKWARD;
-		Stepper_SetSpeed(speed);
-		BSP_MotorControl_Run(0, dir);
-	}
+	Stepper_SetDirection(direction);
+	Stepper_SetSpeed(speed);
 }
 
 void Stepper_SetSpeed(float speed)
 {
-	uint16_t newMax = (STEPPER_MAX_CAMERA_SPEED - STEPPER_MIN_CAMERA_SPEED) * speed + STEPPER_MIN_CAMERA_SPEED;
-	BSP_MotorControl_SetMaxSpeed(0, newMax);
+	if (speed == 0)
+	{
+		BSP_MotorControl_HardStop(0);
+	}
+	else
+	{
+		uint16_t newMax = (STEPPER_MAX_CAMERA_SPEED - STEPPER_MIN_CAMERA_SPEED) * speed + STEPPER_MIN_CAMERA_SPEED;
+		BSP_MotorControl_SetMaxSpeed(0, newMax);
+	}
 }
 
 void Stepper_SetDirection(direction_t direction)
 {
 	motorDir_t dir = direction == FWD ? FORWARD : BACKWARD;
-	BSP_MotorControl_SetDirection(0, dir);
+	if (dir != BSP_MotorControl_GetDirection(0))
+		BSP_MotorControl_SetDirection(0, dir);
 }
 
 /**
@@ -135,32 +162,44 @@ void ButtonHandler(void)
 
 void Stepper_MotorTest()
 {
+	//BSP_MotorControl_SetMinSpeed(0, 20);
+	//BSP_MotorControl_SetAcceleration(0, 1200);
+	//BSP_MotorControl_SetDeceleration(0, 1200);
+	
+	/* Keep power bridges on when motor is stopped */
+	BSP_MotorControl_SetStopMode(0, HOLD_MODE);   
+	
 	/* Request to run BACKWARD */
-	BSP_MotorControl_SetMaxSpeed(0, 2400);
-	BSP_MotorControl_SetMinSpeed(0, 2400);
-	BSP_MotorControl_SetAcceleration(0, 2400);
-	BSP_MotorControl_SetDeceleration(0, 2400);
+	BSP_MotorControl_SetMaxSpeed(0, 1200);
 	BSP_MotorControl_Run(0, BACKWARD);       
-	HAL_Delay(10000);
+	HAL_Delay(5000);
+	
+	BSP_MotorControl_SetMaxSpeed(0, 2400);
+	HAL_Delay(5000);
 
 	m_Speed = BSP_MotorControl_GetCurrentSpeed(0);
 	if (m_Speed != 2400)
 	{
 		CError_Handler_1(1);
 	}
+	
+	BSP_MotorControl_SetMaxSpeed(0, 4800);
+	HAL_Delay(5000);
+
+	m_Speed = BSP_MotorControl_GetCurrentSpeed(0);
+	if (m_Speed != 4800)
+	{
+		CError_Handler_1(1);
+	}
 
 	//----- Decrease the speed while running
 
-	/* Decrease speed to 200 microstep/s */
-	BSP_MotorControl_SetMaxSpeed(0, 50);
-	BSP_MotorControl_SetMinSpeed(0, 50);
-	BSP_MotorControl_SetAcceleration(0, 50);
-	BSP_MotorControl_SetDeceleration(0, 50);
+	BSP_MotorControl_SetMaxSpeed(0, 20);	
 	BSP_MotorControl_Run(0, FORWARD);  
-	HAL_Delay(10000);
+	HAL_Delay(5000);
 	
 	m_Speed = BSP_MotorControl_GetCurrentSpeed(0);
-	if (m_Speed != 50)
+	if (m_Speed != 20)
 	{
 		CError_Handler_1(1);
 	}

@@ -42,6 +42,7 @@
 //#define WIFI_ENABLED
 //#define IMU_ENABLED
 #define STEPPER_ENABLED
+#define SERVO_ENABLED
 
 /* Definition for TIM_IMU clock resources */
 #define TIM_IMU			                     TIM3
@@ -71,7 +72,7 @@
 #define TIM_STEPPER_IRQHandler				TIM2_IRQHandler
 #define STEPPER_MOTOR_1 0
 #define STEPPER_MAX_CAMERA_SPEED			4800
-#define STEPPER_MIN_CAMERA_SPEED			200
+#define STEPPER_MIN_CAMERA_SPEED			20
 
 #define WIFI_PING_TIMEOUT 3600
 
@@ -175,6 +176,8 @@ typedef enum
 	
 	CONTROLLER_COUNT			= 7
 } CONTROLLER_TYPE;
+
+typedef void(*AngularPositionCallback)(float);
 
 #endif /* _CONSTANTS_H_ */
 
