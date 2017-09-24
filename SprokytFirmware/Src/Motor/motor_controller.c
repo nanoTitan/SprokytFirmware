@@ -2,6 +2,7 @@
 #include "math_ext.h"
 #include "TB6612FNG.h"
 #include "Servo.h"
+#include "StSpin220Stepper.h"
 #include "stm32f4xx_hal.h"
 #include "debug.h"
 
@@ -24,6 +25,8 @@ void MotorController_init()
 	MotorController_setMotor(MOTOR_ALL, 0, FWD);
 #elif defined(MOTOR_SERVO)
 	Servo_Init();
+#elif defined(MOTOR_STEPPER)
+	Stepper_Init();
 #endif // MOTOR_TOSHIBA
 }
 
@@ -38,6 +41,8 @@ void MotorController_setMotor(uint8_t motorIndxMask, float power, direction_t di
 	MotorController_setMotors_TB6612(motorIndxMask, power, dir);
 #elif defined(MOTOR_SERVO)
 	MotorController_setServo(motorIndxMask, power);
+#elif defined(MOTOR_STEPPER)
+	MotorController_setStepper(motorIndxMask, power, dir);
 #endif // MOTOR_TOSHIBA
 }
 
@@ -105,10 +110,24 @@ void MotorController_setServo(int servo, float dutyCycle)
 	Servo_SetDutyCycle(servo, dutyCycle);
 }
 
+void MotorController_setStepper(uint8_t motorIndxMask, float power, direction_t direction)
+{
+	Stepper_SetSpeedAndDirection(power, direction);
+}
+
 void MotorController_UpdateMotorTest()
 {
-#if defined(MOTOR_TOSHIBA)
-	
+#if defined(MOTOR_STEPPER)
+//*******************************************************************
+// Stepper Motor Test	
+//*******************************************************************
+	Stepper_MotorTest();
+
+#elif defined(MOTOR_TOSHIBA)
+//*******************************************************************
+// TOSHIBA Motor Test	
+//*******************************************************************
+
 #define TEST_CHN_A1	// constant spin, PWM doesn't change
 #define TEST_CHN_B1	// good
 #define TEST_CHN_A2	// good
@@ -211,7 +230,11 @@ void MotorController_UpdateMotorTest()
 	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
 #endif
 	
+
 #elif defined(MOTOR_SERVO)
+//*******************************************************************
+// Servo Motor Test	
+//*******************************************************************
 	
 	float pwm = 0;
 	int dir = 1;

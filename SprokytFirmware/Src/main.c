@@ -51,17 +51,23 @@ int main()
 	MotorController_init();	
 	
 	// IMU and Sensors
+#if defined(IMU_ENABLED)
 	IMU_init();
+#endif // IMU_ENABLED
 	
 	// Control Manager
 	ControlMgr_init();
-	ControlMgr_setType(CONTROLLER_SERVO_CAMERA);	//  CONTROLLER_ESC_PROGRAMMER CONTROLLER_FLIGHT CONTROLLER_SERVO_CAMERA
+	ControlMgr_setType(CONTROLLER_STEPPER_CAMERA);
 	
 	// Communication
-	//SWPF01SA::Instance()->InitWifi();		// ST Wifi
-	//Wifi::Instance()->Init();				// ESP Wifi
+#if defined(WIFI_ENABLED)
+	Wifi::Instance()->Init();				// ESP Wifi
+#endif // WIFI_ENABLED
+	
+#if defined(BLE_ENABLED)
 	if (InitBLE() != BLE_STATUS_SUCCESS)
 		Error_Handler();
+#endif // BLE_ENABLED
 	
 	PRINTF("Initialization finished. Running program...\n");
 	
@@ -72,15 +78,20 @@ int main()
 		//HAL_UART_Transmit(&huart1, buff, 4, 100);
 		
 		// IMU and Sensors
+#if defined(IMU_ENABLED)
 		IMU_update();
+#endif // IMU_ENABLED
 		
 		// Communication
+#if defined(WIFI_ENABLED)
 		//Wifi::Instance()->Update();
+#endif // WIFI_ENABLED
+		
+#if defined(BLE_ENABLED)
 		BLE_Update();
-		//SWPF01SA::Instance()->Update();
+#endif // BLE_ENABLED
 		
-		//MotorController_UpdateMotorTest();
-		
+		MotorController_UpdateMotorTest();
 		ControlMgr_update();
 	}
 }

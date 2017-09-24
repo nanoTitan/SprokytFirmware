@@ -137,6 +137,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/Src/main.c</locationURI>
 		</link>
 		<link>
+			<name>Example/User/main.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Inc/main.h</locationURI>
+		</link>
+		<link>
+			<name>Example/User/stm32f4xx_hal_conf.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Inc/stm32f4xx_hal_conf.h</locationURI>
+		</link>
+		<link>
 			<name>Example/User/stm32f4xx_hal_msp.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Src/stm32f4xx_hal_msp.c</locationURI>
@@ -145,6 +155,11 @@
 			<name>Example/User/stm32f4xx_it.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Src/stm32f4xx_it.c</locationURI>
+		</link>
+		<link>
+			<name>Example/User/stm32f4xx_it.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Inc/stm32f4xx_it.h</locationURI>
 		</link>
 		<link>
 			<name>Drivers/BSP/Components/stspin220</name>

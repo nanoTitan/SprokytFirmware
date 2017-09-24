@@ -38,6 +38,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_nucleo_bluenrg.h"
+#include "stm32f4xx_nucleo_ihm06a1.h"
 #include "main.h"
 #include "constants.h"
 
@@ -66,36 +67,45 @@ static void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim);
   */
 
 void HAL_MspInit(void)
-{
-	// Begin - Sensor Fusion IRQ Init
-	/* TIMx Peripheral clock enable */
-	TIM_IMU_CLK_ENABLE();
-	TIM_SERVO_CLK_ENABLE();
-	
+{		
 	/* GPIO Ports Clock Enable */
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 	
+#if defined(IMU_ENABLED)
+	// IMU Sensor Fusion clock enable
+	TIM_IMU_CLK_ENABLE();
 	HAL_NVIC_SetPriority(TIM_SF_IRQn, 10, 0);	/* Set the TIMx priority */
 	HAL_NVIC_EnableIRQ(TIM_SF_IRQn);			/* Enable the TIMx global Interrupt */
-	// End - Sensor Fusion IRQ Init
+#endif // IMU_ENABLED
+	
+#if defined(SERVO_ENABLED)
+	// Motor IRQ enable
+	TIM_SERVO_CLK_ENABLE();
+#endif // SERVO_ENABLED
 	
 	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
 	/* System interrupt init*/
 	/* MemoryManagement_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(MemoryManagement_IRQn, 0, 0);
+	
 	/* BusFault_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(BusFault_IRQn, 0, 0);
+	
 	/* UsageFault_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(UsageFault_IRQn, 0, 0);
+	
 	/* SVCall_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(SVCall_IRQn, 0, 0);
+	
 	/* DebugMonitor_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DebugMonitor_IRQn, 0, 0);
+	
 	/* PendSV_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(PendSV_IRQn, 0, 0);
+	
 	/* SysTick_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 
@@ -143,8 +153,10 @@ void HAL_MspInit(void)
 void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 {
 	GPIO_InitTypeDef GPIO_InitStruct;
+
 	if(hspi->Instance==BNRG_SPI_INSTANCE)
 	{	
+#if defined(BLE_ENABLED)
 		/* Enable peripherals clock */
 
 		/* Enable GPIO Ports Clock */  
@@ -211,87 +223,81 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 		/* Configure the NVIC for SPI */  
 		HAL_NVIC_SetPriority(BNRG_SPI_EXTI_IRQn, 3, 0);    
 		HAL_NVIC_EnableIRQ(BNRG_SPI_EXTI_IRQn);
+#endif // BLE_ENABLED
 	}
+
 }
 
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 {
-
+	GPIO_InitTypeDef GPIO_InitStruct;
+	
 	if (htim_pwm->Instance == TIM1)
 	{
-	/* USER CODE BEGIN TIM1_MspInit 0 */
-
-	  /* USER CODE END TIM1_MspInit 0 */
-	    /* Peripheral clock enable */
 		__HAL_RCC_TIM1_CLK_ENABLE();
-	  /* USER CODE BEGIN TIM1_MspInit 1 */
-
-	    /* USER CODE END TIM1_MspInit 1 */
 	}
 	else if (htim_pwm->Instance == TIM2)
 	{
-	/* USER CODE BEGIN TIM2_MspInit 0 */
-
-	  /* USER CODE END TIM2_MspInit 0 */
-	    /* Peripheral clock enable */
 		__HAL_RCC_TIM2_CLK_ENABLE();
-	  /* USER CODE BEGIN TIM2_MspInit 1 */
-
-	    /* USER CODE END TIM2_MspInit 1 */
 	}
-	else if (htim_pwm->Instance == TIM3)
+	else if (htim_pwm->Instance == BSP_MOTOR_CONTROL_BOARD_PWM_REF)
 	{
-		/* USER CODE BEGIN TIM3_MspInit 0 */
-
-		/* USER CODE END TIM3_MspInit 0 */
+#if defined(STEPPER_ENABLED)
 		/* Peripheral clock enable */
-		__HAL_RCC_TIM3_CLK_ENABLE();
-		
-		/* USER CODE BEGIN TIM3_MspInit 1 */
+		__BSP_MOTOR_CONTROL_BOARD_CLCK_ENABLE_PWM_REF();
+		//__HAL_RCC_TIM2_CLK_ENABLE();
 
-		/* USER CODE END TIM3_MspInit 1 */
+		/* GPIO clock enable -----------------------------------------------------*/
+		/* already done in STSPIN220 GPIO initialization function */
+    
+		/* Configure STSPIN220 - PWM for REF pin ---------------------------------*/
+		GPIO_InitStruct.Pin = BSP_MOTOR_CONTROL_BOARD_PIN_PWM_REF;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
+		GPIO_InitStruct.Alternate = BSP_MOTOR_CONTROL_BOARD_AF_PWM_REF;
+		HAL_GPIO_Init(BSP_MOTOR_CONTROL_BOARD_PORT_PWM_REF, &GPIO_InitStruct);
+#endif // STEPPER_ENABLED
 	}
 	else if (htim_pwm->Instance == TIM_SERVO)
 	{
-	/* USER CODE BEGIN TIM4_MspInit 0 */
-
-	  /* USER CODE END TIM4_MspInit 0 */
-	    /* Peripheral clock enable */
-		
-	  /* USER CODE BEGIN TIM4_MspInit 1 */
-
-	    /* USER CODE END TIM4_MspInit 1 */
+		__HAL_RCC_TIM4_CLK_ENABLE();
 	}
+}
 
+void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
+{
+	if (htim_pwm->Instance == TIM1)
+	{
+		__HAL_RCC_TIM1_CLK_DISABLE();
+	}
+	else if (htim_pwm->Instance == TIM2)
+	{
+		__HAL_RCC_TIM2_CLK_DISABLE();
+	}
+	else if (htim_pwm->Instance == BSP_MOTOR_CONTROL_BOARD_PWM_REF)
+	{
+#if defined(STEPPER_ENABLED)
+	  /* Peripheral clock disable */
+		__BSP_MOTOR_CONTROL_BOARD_CLCK_DISABLE_PWM_REF();
+    
+		/* GPIO Deconfiguration */
+		HAL_GPIO_DeInit(
+			BSP_MOTOR_CONTROL_BOARD_PORT_PWM_REF,
+			BSP_MOTOR_CONTROL_BOARD_PIN_PWM_REF);
+#endif // STEPPER_ENABLED
+	}
+	else if (htim_pwm->Instance == TIM4)
+	{
+		__HAL_RCC_TIM4_CLK_DISABLE();
+	}
 }
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 {
 	GPIO_InitTypeDef GPIO_InitStruct;
 	
-	if (htim->Instance == TIM1)
-	{
-	/* USER CODE BEGIN TIM1_MspPostInit 0 */
-
-	  /* USER CODE END TIM1_MspPostInit 0 */
-
-		  /* USER CODE BEGIN TIM1_MspPostInit 1 */
-
-		    /* USER CODE END TIM1_MspPostInit 1 */
-	}
-	else if (htim->Instance == TIM2)
-	{
-	/* USER CODE BEGIN TIM2_MspPostInit 0 */
-
-	  /* USER CODE END TIM2_MspPostInit 0 */
-  
-	    /* TIM2 GPIO Configuration */
-
-		  /* USER CODE BEGIN TIM2_MspPostInit 1 */
-
-		    /* USER CODE END TIM2_MspPostInit 1 */
-	}
-	else if (htim->Instance == TIM3)
+	if (htim->Instance == TIM3)
 	{
 		/* USER CODE BEGIN TIM3_MspPostInit 0 */
 
@@ -310,111 +316,108 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 //		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
 //		HAL_GPIO_Init(MD2_PWMA_GPIO_Port, &GPIO_InitStruct);
 
-		GPIO_InitStruct.Pin = MD1_PWMB_Pin | MD1_PWMA_Pin;
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Pull = GPIO_NOPULL;
-		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+//		GPIO_InitStruct.Pin = MD1_PWMB_Pin | MD1_PWMA_Pin;
+//		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+//		GPIO_InitStruct.Pull = GPIO_NOPULL;
+//		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+//		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+//		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 		/* USER CODE BEGIN TIM3_MspPostInit 1 */
 
 		/* USER CODE END TIM3_MspPostInit 1 */
 	}
-	else if (htim->Instance == TIM4)
-	{
-		
-	}
 }
 
-void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
+//void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
+//{
+//
+//	if (huart->Instance == USART1)
+//	{
+//		__HAL_RCC_USART1_CLK_DISABLE();
+//  
+//	    /**USART1 GPIO Configuration    
+//	    PA9     ------> USART1_TX
+//	    PA10     ------> USART1_RX 
+//	    */
+//		HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9 | GPIO_PIN_10);
+//	}
+//
+//}
+
+
+
+/**
+  * @ brief TIM MSP Initialization
+  * @ param[in] htim TIM handle pointer
+  * @ retval None
+  */
+void HAL_TIM_OC_MspInit(TIM_HandleTypeDef *htim)
 {
-
-	if (huart->Instance == USART1)
-	{
-	/* USER CODE BEGIN USART1_MspDeInit 0 */
-
-	  /* USER CODE END USART1_MspDeInit 0 */
-	    /* Peripheral clock disable */
-		__HAL_RCC_USART1_CLK_DISABLE();
+	GPIO_InitTypeDef GPIO_InitStruct;
   
-	    /**USART1 GPIO Configuration    
-	    PA9     ------> USART1_TX
-	    PA10     ------> USART1_RX 
-	    */
-		HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9 | GPIO_PIN_10);
-
-		  /* USER CODE BEGIN USART1_MspDeInit 1 */
-
-		    /* USER CODE END USART1_MspDeInit 1 */
+	if (htim->Instance == BSP_MOTOR_CONTROL_BOARD_TIM_STCK)
+	{
+#if defined(STEPPER_ENABLED)
+		/* Peripheral clock enable -----------------------------------------------*/
+		__BSP_MOTOR_CONTROL_BOARD_CLCK_ENABLE_TIM_STCK();
+    
+		/* GPIO clock enable -----------------------------------------------------*/
+		/* already done in STSPIN220 GPIO initialization function */
+  
+	    /* Configure STSPIN220 - TIMER for STCK pin ------------------------------*/
+		GPIO_InitStruct.Pin = BSP_MOTOR_CONTROL_BOARD_PIN_TIM_STCK_MODE3;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
+		GPIO_InitStruct.Alternate = BSP_MOTOR_CONTROL_BOARD_AF_TIM_STCK;
+		HAL_GPIO_Init(BSP_MOTOR_CONTROL_BOARD_PORT_TIM_STCK_MODE3, &GPIO_InitStruct);
+      
+		/* Enable the timer interrupt & set priority -----------------------------*/
+		HAL_NVIC_SetPriority(
+			BSP_MOTOR_CONTROL_BOARD_IRQn_TIM_STCK,
+			BSP_MOTOR_CONTROL_BOARD_PRIORITY_TIM_STCK,
+			0);
+		
+		HAL_NVIC_EnableIRQ(BSP_MOTOR_CONTROL_BOARD_IRQn_TIM_STCK);
+#endif // STEPPER_ENABLED
 	}
-
 }
 
-void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
+/**
+  * @brief TIM MSP DeInitialization
+  * @param[in] htim TIM handle pointer
+  * @retval None
+  */
+void HAL_TIM_OC_MspDeInit(TIM_HandleTypeDef *htim)
 {
-
-	if (htim_pwm->Instance == TIM1)
+	if (htim->Instance == BSP_MOTOR_CONTROL_BOARD_TIM_STCK)
 	{
-	/* USER CODE BEGIN TIM1_MspDeInit 0 */
-
-	  /* USER CODE END TIM1_MspDeInit 0 */
-	    /* Peripheral clock disable */
-		__HAL_RCC_TIM1_CLK_DISABLE();
-	  /* USER CODE BEGIN TIM1_MspDeInit 1 */
-
-	    /* USER CODE END TIM1_MspDeInit 1 */
+#if defined(STEPPER_ENABLED)
+		/* Peripheral clock disable ----------------------------------------------*/
+		__BSP_MOTOR_CONTROL_BOARD_CLCK_DISABLE_TIM_STCK();
+    
+		/* GPIO clock disable ----------------------------------------------------*/
+		/* do not disable as the clock is likely used for other HW resources */
+  
+	    /* STCK pin GPIO deinitialization ----------------------------------------*/
+		HAL_GPIO_DeInit(BSP_MOTOR_CONTROL_BOARD_PORT_TIM_STCK_MODE3, BSP_MOTOR_CONTROL_BOARD_PIN_TIM_STCK_MODE3);
+      
+		  /* Disable the timer interrupt -------------------------------------------*/
+		HAL_NVIC_DisableIRQ(BSP_MOTOR_CONTROL_BOARD_IRQn_TIM_STCK);
+#endif // STEPPER_ENABLED
 	}
-	else if (htim_pwm->Instance == TIM2)
-	{
-	/* USER CODE BEGIN TIM2_MspDeInit 0 */
-
-	  /* USER CODE END TIM2_MspDeInit 0 */
-	    /* Peripheral clock disable */
-		__HAL_RCC_TIM2_CLK_DISABLE();
-	  /* USER CODE BEGIN TIM2_MspDeInit 1 */
-
-	    /* USER CODE END TIM2_MspDeInit 1 */
-	}
-	else if (htim_pwm->Instance == TIM3)
-	{
-	/* USER CODE BEGIN TIM3_MspDeInit 0 */
-
-	  /* USER CODE END TIM3_MspDeInit 0 */
-	    /* Peripheral clock disable */
-		__HAL_RCC_TIM3_CLK_DISABLE();
-	  /* USER CODE BEGIN TIM3_MspDeInit 1 */
-
-	    /* USER CODE END TIM3_MspDeInit 1 */
-	}
-	else if (htim_pwm->Instance == TIM4)
-	{
-	/* USER CODE BEGIN TIM4_MspDeInit 0 */
-
-	  /* USER CODE END TIM4_MspDeInit 0 */
-	    /* Peripheral clock disable */
-		__HAL_RCC_TIM4_CLK_DISABLE();
-	  /* USER CODE BEGIN TIM4_MspDeInit 1 */
-
-	    /* USER CODE END TIM4_MspDeInit 1 */
-	}
-
 }
 
 /**
-  * @}
+  * @brief  Output Compare callback in non blocking mode 
+  * @param  htim : TIM OC handle
+  * @retval None
   */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if ( (htim->Instance == BSP_MOTOR_CONTROL_BOARD_TIM_STCK) && (htim->Channel == BSP_MOTOR_CONTROL_BOARD_HAL_ACT_CHAN_TIM_STCK) )
+	{
+		BSP_MotorControl_StepClockHandler(0);
+	}
+}

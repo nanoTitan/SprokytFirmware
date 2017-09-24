@@ -3,6 +3,7 @@
 //#include "PID.h"
 //#include "user_control.h"
 #include "rover_control.h"
+#include "steppercamera_control.h"
 #include "servocamera_control.h"
 //#include "flight_control.h"
 //#include "esc_programmer.h"
@@ -53,7 +54,8 @@ void ControlMgr_init()
 {
 	//ControlMgr_ConfigADC();
 	
-	ServoCameraControl_init();
+	StepperCameraControl_init();
+	//ServoCameraControl_init();
 	//FlightControl_init();
 	//UserControl_init();
 }
@@ -144,7 +146,7 @@ void ControlMgr_update()
 	}
 	
 	// Jump table to store controller update functions
-	static void(* const pf[])(void) = { RoverControl_update, ServoCameraControl_update /*, UserControl_update, FlightControl_update, NULL, NULL*/ };
+	static void(* const pf[])(void) = { RoverControl_update, StepperCameraControl_update, ServoCameraControl_update /*, UserControl_update, FlightControl_update, NULL, NULL*/ };
 	
 	// Update current controller
 	if (m_currControllerType < sizeof(pf) / sizeof(*pf))
@@ -200,7 +202,7 @@ void ControlMgr_parseInstruction(uint8_t data_length, uint8_t *att_data)
 	}
 	
 	// Jump table to store functions for parsing instructions
-	static void(* const pf[])(uint8_t, uint8_t*) = { RoverControl_parseInstruction, ServoCameraControl_parseInstruction, /*, FlightControl_parseInstruction , UserControl_parseInstruction*/ };
+	static void(* const pf[])(uint8_t, uint8_t*) = { RoverControl_parseInstruction, StepperCameraControl_parseInstruction, ServoCameraControl_parseInstruction, /*, FlightControl_parseInstruction , UserControl_parseInstruction*/ };
 	
 	// Update current controller
 	if (m_currControllerType < sizeof(pf) / sizeof(*pf))

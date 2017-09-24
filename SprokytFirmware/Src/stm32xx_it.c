@@ -132,9 +132,9 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-  HAL_IncTick();
+	HAL_IncTick();
   
-  ms_counter++;
+	ms_counter++;
 }
 
 
@@ -193,9 +193,16 @@ void TIM2_IRQHandler(void)
   */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	// Tell IMU to begin magnetometer calibration request
+	if (GPIO_Pin == BSP_MOTOR_CONTROL_BOARD_PIN_EN_AND_FAULT)
+	{
+		BSP_MotorControl_FlagInterruptHandler();
+	}
 	if (GPIO_Pin == KEY_BUTTON_PIN)
+	{
+		// Tell IMU to begin magnetometer calibration request
 		magcal_request = 1;
+	}
+		
 	
 	// UPdate BlueNRG ISR. This normally happens in bluenrg_interface.c. 
 	// We put it here since multiple objects need to know about EXTI_Callback

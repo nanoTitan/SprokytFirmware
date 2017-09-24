@@ -38,6 +38,11 @@
 #define IMU_PWM_Pin GPIO_PIN_5
 #define IMU_PWM_GPIO_Port GPIOB
 
+//#define BLE_ENABLED
+//#define WIFI_ENABLED
+//#define IMU_ENABLED
+#define STEPPER_ENABLED
+
 /* Definition for TIM_IMU clock resources */
 #define TIM_IMU			                     TIM3
 #define TIM_IMU_CLK_ENABLE                    __TIM3_CLK_ENABLE
@@ -57,6 +62,14 @@
 #define SERVO1_PWM_PIN GPIO_PIN_6
 #define SERVO2_PWM_PIN GPIO_PIN_7
 #define SERVO_GPIO_Port GPIOB
+
+/* Definition for Stepper Motors resources */
+#define TIM_STEPPER		                     TIM2
+#define TIM_STEPPER_CLK_ENABLE              __TIM2_CLK_ENABLE
+#define TIM_STEPPER_CLK_DISABLE             __TIM2_CLK_DISABLE
+#define TIM_STEPPER_IRQn					TIM2_IRQn
+#define TIM_STEPPER_IRQHandler				TIM2_IRQHandler
+#define STEPPER_MOTOR_1 0
 
 #define WIFI_PING_TIMEOUT 3600
 
@@ -94,7 +107,8 @@
 #define MOTORS_ENABLED
 #define MC_NUM_MOTORS 4
 
-#define MOTOR_SERVO
+#define MOTOR_STEPPER
+//#define MOTOR_SERVO
 //#define MOTOR_TOSHIBA
 //#define MOTOR_STSPIN
 
@@ -149,15 +163,15 @@ typedef enum
 
 typedef enum
 {
-	CONTROLLER_ROVER        = 0,
-	CONTROLLER_SERVO_CAMERA	= 1,
-	CONTROLLER_FLIGHT       = 2,
-	CONTROLLER_BALANCE		= 3,
-	CONTROLLER_PROGRAMMER	= 4,	
-	CONTROLLER_USER         = 5,
+	CONTROLLER_ROVER			= 0,
+	CONTROLLER_STEPPER_CAMERA	= 1,
+	CONTROLLER_SERVO_CAMERA		= 2,
+	CONTROLLER_FLIGHT			= 3,
+	CONTROLLER_BALANCE			= 4,
+	CONTROLLER_PROGRAMMER		= 5,	
+	CONTROLLER_USER				= 6,
 	
-	
-	CONTROLLER_COUNT        = 6
+	CONTROLLER_COUNT			= 7
 } CONTROLLER_TYPE;
 
 #endif /* _CONSTANTS_H_ */
