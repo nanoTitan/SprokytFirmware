@@ -59,6 +59,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
+extern void BSP_MotorControl_StepClockHandler(uint8_t deviceId);
 static void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim);
 /* Private functions ---------------------------------------------------------*/
 

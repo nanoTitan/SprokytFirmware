@@ -69,6 +69,9 @@ int main()
 		Error_Handler();
 #endif // BLE_ENABLED
 	
+	/* Set Systick Interrupt priority highest to ensure no lock by using HAL_Delay with StSpin220 */
+	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+	
 	PRINTF("Initialization finished. Running program...\n");
 	
 	//uint8_t buff[4] = {'a', 'b', 'c', 'd'};

@@ -5,6 +5,7 @@
 #include "stm32f4xx_hal_conf.h"
 #include "constants.h"
 #include "error.h"
+#include "debug.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -71,27 +72,25 @@ void Stepper_Init()
 
 void Stepper_SetSpeedAndDirection(float speed, direction_t direction)
 {
-	motorDir_t dir = direction == FWD ? FORWARD : BACKWARD;
-	Stepper_SetDirection(direction);
-	
 	if (speed == 0)
 	{
 		/* Request to perform a soft stop */
 		//BSP_MotorControl_SetStopMode(0, HOLD_MODE);   
-		BSP_MotorControl_SoftStop(0);
-		//BSP_MotorControl_HardStop(0);
-		BSP_MotorControl_WaitWhileActive(0);
+		//BSP_MotorControl_SoftStop(0);
+		BSP_MotorControl_HardStop(0);
+		//BSP_MotorControl_WaitWhileActive(0);
 	}
 	else
 	{
+		motorDir_t dir = direction == FWD ? FORWARD : BACKWARD;
 		Stepper_SetSpeed(speed);
-		//BSP_MotorControl_CmdRun(0, dir, speed);	
+		BSP_MotorControl_Run(0, dir);
 	}
 }
 
 void Stepper_SetSpeed(float speed)
 {
-	uint16_t newMax = (STSPIN220_MAX_STCK_FREQ - STSPIN220_MIN_STCK_FREQ) * speed + STSPIN220_MIN_STCK_FREQ;
+	uint16_t newMax = (STEPPER_MAX_CAMERA_SPEED - STEPPER_MIN_CAMERA_SPEED) * speed + STEPPER_MIN_CAMERA_SPEED;
 	BSP_MotorControl_SetMaxSpeed(0, newMax);
 }
 
@@ -135,6 +134,42 @@ void ButtonHandler(void)
 }
 
 void Stepper_MotorTest()
+{
+	/* Request to run BACKWARD */
+	BSP_MotorControl_SetMaxSpeed(0, 2400);
+	BSP_MotorControl_SetMinSpeed(0, 2400);
+	BSP_MotorControl_SetAcceleration(0, 2400);
+	BSP_MotorControl_SetDeceleration(0, 2400);
+	BSP_MotorControl_Run(0, BACKWARD);       
+	HAL_Delay(10000);
+
+	m_Speed = BSP_MotorControl_GetCurrentSpeed(0);
+	if (m_Speed != 2400)
+	{
+		CError_Handler_1(1);
+	}
+
+	//----- Decrease the speed while running
+
+	/* Decrease speed to 200 microstep/s */
+	BSP_MotorControl_SetMaxSpeed(0, 50);
+	BSP_MotorControl_SetMinSpeed(0, 50);
+	BSP_MotorControl_SetAcceleration(0, 50);
+	BSP_MotorControl_SetDeceleration(0, 50);
+	BSP_MotorControl_Run(0, FORWARD);  
+	HAL_Delay(10000);
+	
+	m_Speed = BSP_MotorControl_GetCurrentSpeed(0);
+	if (m_Speed != 50)
+	{
+		CError_Handler_1(1);
+	}
+
+	BSP_MotorControl_SoftStop(0);
+	BSP_MotorControl_WaitWhileActive(0);
+}
+
+void Stepper_MotorTest2()
 {
 	/* Move 2*FULL_STEPS_PER_TURN<<m_StepMode microsteps in the FORWARD direction */
 	BSP_MotorControl_Move(0, FORWARD, 2*FULL_STEPS_PER_TURN << m_StepMode);

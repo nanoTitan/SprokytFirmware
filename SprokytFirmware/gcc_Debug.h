@@ -702,9 +702,6 @@
 #ifndef __LDBL_EPSILON__
 #define __LDBL_EPSILON__ 2.2204460492503131e-16L
 #endif
-#ifndef XDEBUG_PRINT
-#define XDEBUG_PRINT 1
-#endif
 #ifndef __SACCUM_MAX__
 #define __SACCUM_MAX__ 0X7FFFP-7HK
 #endif
@@ -827,6 +824,9 @@
 #endif
 #ifndef __QQ_FBIT__
 #define __QQ_FBIT__ 7
+#endif
+#ifndef DEBUG_PRINT
+#define DEBUG_PRINT 1
 #endif
 #ifndef __cpp_range_based_for
 #define __cpp_range_based_for 200907
