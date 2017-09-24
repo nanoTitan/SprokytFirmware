@@ -13,8 +13,8 @@
 static BOOL m_doUpdate = FALSE;
 static uint8_t m_x = 0;
 static uint8_t m_y = 0;
-static float m_yaw = 0;
-static float m_pitch = 0;
+static float m_yaw = -1;
+static float m_pitch = -1;
 
 /* Private function prototypes -----------------------------------------------*/
 static void UpdateConnected();

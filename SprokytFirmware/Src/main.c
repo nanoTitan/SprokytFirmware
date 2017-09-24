@@ -54,11 +54,7 @@ int main()
 #if defined(IMU_ENABLED)
 	IMU_init();
 #endif // IMU_ENABLED
-	
-	// Control Manager
-	ControlMgr_init();
-	ControlMgr_setType(CONTROLLER_STEPPER_CAMERA);
-	
+			
 	// Communication
 #if defined(WIFI_ENABLED)
 	Wifi::Instance()->Init();				// ESP Wifi
@@ -68,6 +64,10 @@ int main()
 	if (InitBLE() != BLE_STATUS_SUCCESS)
 		Error_Handler();
 #endif // BLE_ENABLED
+	
+	// Control Manager
+	ControlMgr_init();
+	ControlMgr_setType(CONTROLLER_STEPPER_CAMERA);
 	
 	/* Set Systick Interrupt priority highest to ensure no lock by using HAL_Delay with StSpin220 */
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
@@ -97,7 +97,7 @@ int main()
 		MotorController_update();
 		ControlMgr_update();
 		
-		MotorController_UpdateMotorTest();
+		//MotorController_UpdateMotorTest();
 	}
 }
 

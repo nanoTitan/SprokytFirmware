@@ -23,6 +23,7 @@ static uint32_t m_FreqPwm;
 static uint32_t m_lastPosSendTime;
 static uint8_t m_Torque;
 static uint32_t m_numStepsPerTurn = 0;
+static float m_oneOverNumStepsPerTurn = 0;
 static AngularPositionCallback m_angularFunc = NULL;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -68,6 +69,7 @@ void Stepper_Init()
 	
 	m_StepMode = BSP_MotorControl_GetStepMode(0);	// Get the predefined step mode
 	m_numStepsPerTurn = FULL_STEPS_PER_TURN * (1 << BSP_MotorControl_GetStepMode(0));
+	m_oneOverNumStepsPerTurn = 1.0f / (float)m_numStepsPerTurn;
 }
 
 void Stepper_RegisterAngularPosCallback(AngularPositionCallback callback)
@@ -92,10 +94,18 @@ void UpdateAngularPosition()
 		if (tickstart - m_lastPosSendTime > 50)
 		{
 			int32_t pos = BSP_MotorControl_GetPosition(STEPPER_MOTOR_1);
-			if (pos < 0)
-				pos += m_numStepsPerTurn;
+			if (pos > m_numStepsPerTurn-1 || pos < 0)
+			{
+				pos = pos % m_numStepsPerTurn;
+			}
 			
-			m_angularFunc(pos);
+			if (pos < 0)
+			{
+				pos += m_numStepsPerTurn;
+			}
+			
+			float angle = pos * m_oneOverNumStepsPerTurn * 360.0f;
+			m_angularFunc(angle);
 			m_lastPosSendTime = tickstart;
 		}
 	}

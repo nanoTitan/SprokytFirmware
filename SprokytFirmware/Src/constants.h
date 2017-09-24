@@ -38,11 +38,11 @@
 #define IMU_PWM_Pin GPIO_PIN_5
 #define IMU_PWM_GPIO_Port GPIOB
 
-//#define BLE_ENABLED
+#define BLE_ENABLED
 //#define WIFI_ENABLED
 //#define IMU_ENABLED
 #define STEPPER_ENABLED
-#define SERVO_ENABLED
+//#define SERVO_ENABLED
 
 /* Definition for TIM_IMU clock resources */
 #define TIM_IMU			                     TIM3
