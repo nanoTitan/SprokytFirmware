@@ -40,23 +40,6 @@
 #include "gp_timer.h"
 #include "debug.h"
 
-extern volatile uint32_t ms_counter;
-
-/** @addtogroup BSP
- *  @{
- */
-
-/** @defgroup X-NUCLEO-IDB0xA1
- *  @{
- */
- 
-/** @defgroup STM32_BLUENRG_BLE
- *  @{
- */
-
-/** @defgroup STM32_BLUENRG_BLE_Private_Defines 
- * @{
- */ 
 
 #define HEADER_SIZE 5
 #define MAX_BUFFER_SIZE 255
@@ -100,8 +83,8 @@ void set_irq_as_input(void);
  * @retval None
  */
 void print_csv_time(void){
-  uint32_t ms = ms_counter;
-  PRINT_CSV("%02d:%02d:%02d.%03d", ms/(60*60*1000)%24, ms/(60*1000)%60, (ms/1000)%60, ms%1000);
+	uint32_t ms = HAL_GetTick();
+	PRINT_CSV("%02d:%02d:%02d.%03d", ms/(60*60*1000)%24, ms/(60*1000)%60, (ms/1000)%60, ms%1000);
 }
 
 /**

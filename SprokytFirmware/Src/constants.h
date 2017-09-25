@@ -154,7 +154,8 @@
 typedef enum
 {
 	BWD = 0, /* Backward. */
-	FWD = 1  /* Forward. */
+	FWD = 1,  /* Forward. */
+	NONE = 2
 } direction_t;
 
 typedef enum

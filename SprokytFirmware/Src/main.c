@@ -97,7 +97,7 @@ int main()
 		MotorController_update();
 		ControlMgr_update();
 		
-		//MotorController_UpdateMotorTest();
+		MotorController_UpdateMotorTest();
 	}
 }
 

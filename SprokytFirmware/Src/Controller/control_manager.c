@@ -135,13 +135,20 @@ void ControlMgr_update()
 	
 	if (ControlMgr_getState() == CONTROL_STATE_CONNECTED)
 	{
+#if defined(WIFI_ENABLED)
 		uint32_t delta = HAL_GetTick() - m_lastPing;
 		if (delta > WIFI_PING_TIMEOUT)							// Ping check
 		{
 			ControlMgr_setState(CONTROL_STATE_DISCONNECTED);
 		}
-		else if ( !BLE_IsConnected() )
+#endif // WIFI_ENABLED
+		
+#if defined(BLE_ENABLED)
+		if (!BLE_IsConnected() && ControlMgr_getState() != CONTROL_STATE_DISCONNECTED)
+		{
 			ControlMgr_setState(CONTROL_STATE_DISCONNECTED);
+		}	
+#endif // BLE_ENABLED
 	}
 	
 	// Jump table to store controller update functions

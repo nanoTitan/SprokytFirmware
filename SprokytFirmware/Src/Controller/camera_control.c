@@ -138,7 +138,7 @@ void CameraControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 
 void ParseTranslate(uint8_t _x, uint8_t _y)
 {	
-	direction_t dir = FWD;
+	direction_t dir = _x > 127? FWD : BWD;
 	float x = mapf(_x, 0, 255, 0, 1);
 	float y = mapf(_y, 0, 255, 0, 1);
 	
