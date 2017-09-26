@@ -86,7 +86,7 @@ void HAL_MspInit(void)
 	TIM_SERVO_CLK_ENABLE();
 #endif // SERVO_ENABLED
 	
-	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+	//HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
 	/* System interrupt init*/
 	/* MemoryManagement_IRQn interrupt configuration */
@@ -178,15 +178,15 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 		GPIO_InitStruct.Speed = BNRG_SPI_RESET_SPEED;
 		GPIO_InitStruct.Alternate = BNRG_SPI_RESET_ALTERNATE;
 		HAL_GPIO_Init(BNRG_SPI_RESET_PORT, &GPIO_InitStruct);	
-		HAL_GPIO_WritePin(BNRG_SPI_RESET_PORT, BNRG_SPI_RESET_PIN, GPIO_PIN_RESET);	/*Added to avoid spurious interrupt from the BlueNRG */
+		HAL_GPIO_WritePin(BNRG_SPI_RESET_PORT, BNRG_SPI_RESET_PIN, GPIO_PIN_RESET);		/*Added to avoid spurious interrupt from the BlueNRG */
 
 		/* SCLK */
-		GPIO_InitStruct.Pin = GPIO_PIN_5;			// Orig: BNRG_SPI_SCLK_PIN	Alternate: GPIO_PIN_5
+		GPIO_InitStruct.Pin = BNRG_SPI_SCLK_PIN;
 		GPIO_InitStruct.Mode = BNRG_SPI_SCLK_MODE;
 		GPIO_InitStruct.Pull = BNRG_SPI_SCLK_PULL;
 		GPIO_InitStruct.Speed = BNRG_SPI_SCLK_SPEED;
 		GPIO_InitStruct.Alternate = BNRG_SPI_SCLK_ALTERNATE;
-		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);		// Orig: BNRG_SPI_SCLK_PORT  Alternate: GPIOA
+		HAL_GPIO_Init(BNRG_SPI_SCLK_PORT, &GPIO_InitStruct);
 
 		/* MISO */
 		GPIO_InitStruct.Pin = BNRG_SPI_MISO_PIN;

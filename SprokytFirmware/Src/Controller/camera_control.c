@@ -138,13 +138,19 @@ void CameraControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 
 void ParseTranslate(uint8_t _x, uint8_t _y)
 {	
-	direction_t dir = _x > 127? FWD : BWD;
-	float x = mapf(_x, 0, 255, 0, 1);
-	float y = mapf(_y, 0, 255, 0, 1);
-	
-		// Turn motors off
+	float x = mapf(_x, 0, 255, -1, 1);
+	float y = mapf(_y, 0, 255, -1, 1);
+		
 #if defined(STEPPER_ENABLED)
-	MotorController_setMotor(STEPPER_MOTOR_1, x, dir);
+	{
+		direction_t dir = FWD;
+		if (x < 0)
+		{
+			dir = BWD;
+			x = -x;
+		}
+		MotorController_setMotor(STEPPER_MOTOR_1, x, dir);
+	}
 #endif // STEPPER_ENABLED
 	
 #if defined(SERVO_ENABLED)

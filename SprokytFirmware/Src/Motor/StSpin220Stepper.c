@@ -77,7 +77,7 @@ void Stepper_Init()
 	m_numStepsPerTurn = FULL_STEPS_PER_TURN * (1 << BSP_MotorControl_GetStepMode(0));
 	m_oneOverNumStepsPerTurn = 1.0f / (float)m_numStepsPerTurn;
 	
-	BSP_MotorControl_SetStopMode(0, HOLD_MODE);   
+	BSP_MotorControl_SetStopMode(0, HOLD_MODE);   	
 }
 
 void Stepper_RegisterAngularPosCallback(AngularPositionCallback callback)
@@ -90,29 +90,29 @@ void Stepper_RegisterAngularPosCallback(AngularPositionCallback callback)
 
 void Stepper_Update()
 {
-	static float nspeed = 1.0f;
-	static uint32_t count = 0;
+//	static float nspeed = 1.0f;
+//	static uint32_t count = 0;
 	static uint8_t toggle = 0;
-	++count;
-	if (count == 10000)
-	{
-		if (toggle % 4 == 3)
-		{
-			m_newDir = FWD;
-			nspeed = 1;
-		}
-		else
-		{
-			m_newDir = BWD;
-			nspeed -= 0.2f;
-		}
-		
-		m_updateSpeed = 1;
-		m_updateDir = 1;
-		count = 0;
-		m_newSpeed = nspeed;
-		++toggle;
-	}
+//	++count;
+//	if (count == 100000)
+//	{
+//		if (toggle % 4 == 3)
+//		{
+//			m_newDir = BWD;
+//			nspeed = 1;
+//		}
+//		else
+//		{
+//			m_newDir = FWD;
+//			nspeed -= 0.2f;
+//		}
+//		
+//		m_updateSpeed = 1;
+//		m_updateDir = 1;
+//		count = 0;
+//		m_newSpeed = nspeed;
+//		++toggle;
+//	}
 	
 	UpdateSpeed();
 	UpdateDirection();
@@ -156,6 +156,9 @@ void UpdateSpeed()
 	else
 	{
 		uint16_t newMax = (STEPPER_MAX_CAMERA_SPEED - STEPPER_MIN_CAMERA_SPEED) * m_newSpeed + STEPPER_MIN_CAMERA_SPEED;
+		if (newMax < STEPPER_MIN_CAMERA_SPEED)
+			newMax = STEPPER_MIN_CAMERA_SPEED;
+		
 		BSP_MotorControl_SetMaxSpeed(STEPPER_MOTOR_1, newMax);
 	}
 	
@@ -163,14 +166,18 @@ void UpdateSpeed()
 }
 
 void UpdateDirection()
-{
+{	
 	if (m_updateDir == 0)
 		return;
 	
 	motorDir_t dir = m_newDir == FWD ? FORWARD : BACKWARD;
 	motorState_t state = BSP_MotorControl_GetDeviceState(STEPPER_MOTOR_1);
 	if (dir != BSP_MotorControl_GetDirection(STEPPER_MOTOR_1) || state == INACTIVE || state == STANDBY || state == STANDBYTOINACTIVE)
+	{
+		BSP_MotorControl_HardStop(STEPPER_MOTOR_1);
+		BSP_MotorControl_WaitWhileActive(0);
 		BSP_MotorControl_Run(STEPPER_MOTOR_1, dir);
+	}
 	
 	m_updateDir = 0;
 }
@@ -184,6 +191,11 @@ void Stepper_SetSpeedAndDirection(float speed, direction_t direction)
 void Stepper_SetSpeed(float speed)
 {
 	m_newSpeed = speed;
+	if (m_newSpeed < 0)
+		m_newSpeed = 0;
+	else if (m_newSpeed > 1)
+		m_newSpeed = 1;
+	
 	m_updateSpeed = 1;
 }
 
