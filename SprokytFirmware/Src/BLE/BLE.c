@@ -550,37 +550,36 @@ void HCI_Event_CB(void *pckt)
  */
 tBleStatus BLE_AngularPosUpdate(float yaw, float pitch)
 {
-	static uint8_t buff[8] = {0};
+	static uint8_t buff[4] = {0};
 	
-//	if (!connected)
-//		return BLE_STATUS_ERROR;
-//    
+	if (!connected)
+		return BLE_STATUS_ERROR;
+    
 //	STORE_LE_32(buff, yaw);
 //	STORE_LE_32((buff + 4), pitch);
-//	
-//	buff[0] =  (int)yaw & 0xFF;
-//	buff[1] =  (int)yaw >> 8 & 0xFF;
-//	buff[2] =  (int)yaw >> 16 & 0xFF;
-//	buff[3] =  (int)yaw >> 24 & 0xFF;
-//	
+	
+	buff[0] =  (int)yaw & 0xFF;
+	buff[1] =  (int)yaw >> 8 & 0xFF;
+	buff[2] =  (int)yaw >> 16 & 0xFF;
+	buff[3] =  (int)yaw >> 24 & 0xFF;
+	
 //	buff[4] =  (int)pitch & 0xFF;
 //	buff[5] =  (int)pitch >> 8 & 0xFF;
 //	buff[6] =  (int)pitch >> 16 & 0xFF;
 //	buff[7] =  (int)pitch >> 24 & 0xFF;
 	
-	//PRINTF("%f, %f, %f\n", data[0], data[1], data[2]);
+	tBleStatus status = aci_gatt_update_char_value(
+		imuServHandle,
+		imuCharHandle,
+		0,
+		sizeof(buff) * sizeof(uint8_t),
+		buff);
 	
-//	tBleStatus status = aci_gatt_update_char_value(
-//		imuServHandle,
-//		imuCharHandle,
-//		0,
-//		sizeof(buff),
-//		buff);
-//	
-//	if (status != BLE_STATUS_SUCCESS)
-//	{
-//		PRINTF("Error while updating IMU characteristic: %x\n", status);
-//		return BLE_STATUS_ERROR ;
-//	}
+	if (status != BLE_STATUS_SUCCESS)
+	{
+		PRINTF("Error while updating IMU characteristic: %x\n", status);
+		return BLE_STATUS_ERROR ;
+	}
+	
 	return BLE_STATUS_SUCCESS;	
 }

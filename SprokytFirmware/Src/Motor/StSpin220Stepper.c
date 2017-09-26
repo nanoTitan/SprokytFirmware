@@ -124,7 +124,7 @@ void UpdateAngularPosition()
 	if (m_angularFunc)
 	{
 		uint32_t tickstart = HAL_GetTick();
-		if (tickstart - m_lastPosSendTime > 50)
+		if (tickstart - m_lastPosSendTime > 100)
 		{
 			int32_t pos = BSP_MotorControl_GetPosition(STEPPER_MOTOR_1);
 			if (pos > m_numStepsPerTurn-1 || pos < 0)
