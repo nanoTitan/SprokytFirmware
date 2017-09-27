@@ -89,31 +89,7 @@ void Stepper_RegisterAngularPosCallback(AngularPositionCallback callback)
 }
 
 void Stepper_Update()
-{
-//	static float nspeed = 1.0f;
-//	static uint32_t count = 0;
-	static uint8_t toggle = 0;
-//	++count;
-//	if (count == 100000)
-//	{
-//		if (toggle % 4 == 3)
-//		{
-//			m_newDir = BWD;
-//			nspeed = 1;
-//		}
-//		else
-//		{
-//			m_newDir = FWD;
-//			nspeed -= 0.2f;
-//		}
-//		
-//		m_updateSpeed = 1;
-//		m_updateDir = 1;
-//		count = 0;
-//		m_newSpeed = nspeed;
-//		++toggle;
-//	}
-	
+{	
 	UpdateSpeed();
 	UpdateDirection();
 	UpdateAngularPosition();
@@ -146,12 +122,17 @@ void UpdateAngularPosition()
 
 void UpdateSpeed()
 {	
+	static uint8_t didSetZero = 0;
+	if (didSetZero == 1)
+		return;
+	
 	if (m_updateSpeed == 0)
 		return;
 	
 	if (m_newSpeed == 0)
 	{
 		BSP_MotorControl_HardStop(STEPPER_MOTOR_1);
+		BSP_MotorControl_WaitWhileActive(0);
 	}
 	else
 	{
@@ -176,7 +157,9 @@ void UpdateDirection()
 	{
 		BSP_MotorControl_HardStop(STEPPER_MOTOR_1);
 		BSP_MotorControl_WaitWhileActive(0);
-		BSP_MotorControl_Run(STEPPER_MOTOR_1, dir);
+		
+		if (m_newSpeed != 0)
+			BSP_MotorControl_Run(STEPPER_MOTOR_1, dir);
 	}
 	
 	m_updateDir = 0;

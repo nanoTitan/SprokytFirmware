@@ -138,17 +138,30 @@ void CameraControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 
 void ParseTranslate(uint8_t _x, uint8_t _y)
 {	
-	float x = mapf(_x, 0, 255, -1, 1);
-	float y = mapf(_y, 0, 255, -1, 1);
+	float x = 0; 
+	float y = 0; 
+	
+	// Make sure x and y are fully stopped at 127. Otherwise, precision point keeps them turning
+	if (_x == 127)
+		x = 0;
+	else
+		x = mapf(_x, 0, 255, -1, 1);
+	
+	if (_y == 127)
+		y = 0;
+	else
+		y = mapf(_y, 0, 255, -1, 1);
 		
 #if defined(STEPPER_ENABLED)
 	{
+		// Put x between 0 to 1 and change direction based on positive/negative
 		direction_t dir = FWD;
 		if (x < 0)
 		{
 			dir = BWD;
 			x = -x;
 		}
+		
 		MotorController_setMotor(STEPPER_MOTOR_1, x, dir);
 	}
 #endif // STEPPER_ENABLED
