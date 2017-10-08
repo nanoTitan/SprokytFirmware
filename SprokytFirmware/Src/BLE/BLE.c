@@ -43,11 +43,13 @@ do {\
 // Control Service
 #define COPY_CONTROL_SERVICE_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0d,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
 #define COPY_IMU_SERVICE_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1c)
+#define COPY_DISTANCE_SERVICE_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x2d)
 
 // Characteristics
 #define COPY_CONTROL_CHAR_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
 #define COPY_INSTRUCTION_CHAR_UUID(uuid_struct)     COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xe5,0x2b)
 #define COPY_IMU_CHAR_UUID(uuid_struct)				COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#define COPY_DISTANCE_CHAR_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x2c)
 
 /* Private variables ---------------------------------------------------------*/
 static uint8_t SERVER_BDADDR[] = { 0x12, 0x34, 0x00, 0xE1, 0x80, 0x03 };	
@@ -59,9 +61,11 @@ volatile uint8_t is_notification_enabled = FALSE;
 volatile uint8_t connected = 0;
 uint16_t controlServHandle = 0;
 uint16_t imuServHandle = 0;
+uint16_t distServHandle = 0;
 uint16_t controlButtonCharHandle = 0;
 uint16_t instructionButtonCharHandle = 0;
 uint16_t imuCharHandle = 0;
+uint16_t distCharHandle = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 static tBleStatus AddControlService(void);
@@ -293,7 +297,6 @@ tBleStatus AddControlService(void)
 	
 	// IMU service
 	/********************************************************************************************/
-	
 	COPY_IMU_SERVICE_UUID(uuid);
 	
 	ret = aci_gatt_add_serv(
@@ -320,6 +323,37 @@ tBleStatus AddControlService(void)
 	if (ret != BLE_STATUS_SUCCESS) goto fail;  
 	
 	PRINTF("IMU characteristic added\n");	
+	
+	// Distance service
+	/********************************************************************************************/
+	COPY_DISTANCE_SERVICE_UUID(uuid);
+	
+	ret = aci_gatt_add_serv(
+		UUID_TYPE_128,
+		uuid,
+		PRIMARY_SERVICE,
+		7,
+		&distServHandle);
+	if (ret != BLE_STATUS_SUCCESS) goto fail;    
+	
+	COPY_DISTANCE_CHAR_UUID(uuid);
+	
+	ret =  aci_gatt_add_char(
+		distServHandle,
+		UUID_TYPE_128,
+		uuid,
+		4,
+		CHAR_PROP_NOTIFY | CHAR_PROP_READ | ATTR_PERMISSION_NONE,
+		ATTR_PERMISSION_NONE,
+		GATT_NOTIFY_ATTRIBUTE_WRITE,
+		16,
+		1,
+		&distCharHandle);
+	if (ret != BLE_STATUS_SUCCESS) goto fail;  
+	
+	PRINTF("Distance characteristic added\n");	
+	
+	// Done adding services
 	PRINTF("BLE services added\n");
 	return BLE_STATUS_SUCCESS; 
   
@@ -580,6 +614,30 @@ tBleStatus BLE_AngularPosUpdate(float yaw, float pitch)
 	{
 		PRINTF("Error while updating IMU characteristic: %x\n", status);
 		return BLE_STATUS_ERROR ;
+	}
+	
+	return BLE_STATUS_SUCCESS;	
+}
+
+tBleStatus BLE_DistanceUpdate(uint32_t distance)
+{
+	//static uint8_t buff[4] = {0};
+	unsigned char const * const buff = (unsigned char const *)&distance;
+	
+	if (!connected)
+		return BLE_STATUS_ERROR;
+	
+	tBleStatus status = aci_gatt_update_char_value(
+		distServHandle,
+		distCharHandle,
+		0,
+		sizeof(distance),
+		buff);
+	
+	if (status != BLE_STATUS_SUCCESS)
+	{
+		PRINTF("Error while updating IMU characteristic: %x\n", status);
+		return BLE_STATUS_ERROR;
 	}
 	
 	return BLE_STATUS_SUCCESS;	

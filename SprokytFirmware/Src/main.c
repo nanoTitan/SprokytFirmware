@@ -10,6 +10,7 @@ All Rights Reserved
 #include "motor_controller.h"
 #include "imu.h"
 //#include "LED/LEDManager.h"
+#include "sonar.h"
 #include "error.h"
 #include "debug.h"
 #include "cube_hal.h"
@@ -54,7 +55,7 @@ int main()
 #if defined(IMU_ENABLED)
 	IMU_init();
 #endif // IMU_ENABLED
-			
+	
 	// Communication
 #if defined(WIFI_ENABLED)
 	Wifi::Instance()->Init();				// ESP Wifi
@@ -64,6 +65,11 @@ int main()
 	if (InitBLE() != BLE_STATUS_SUCCESS)
 		Error_Handler();
 #endif // BLE_ENABLED
+	
+#if defined(SONAR_ENABLED)
+	if (Sonar_init() != SONAR_STATUS_SUCCESS)
+		Error_Handler();
+#endif // SONAR_ENABLED
 	
 	// Control Manager
 	ControlMgr_init();
@@ -84,6 +90,10 @@ int main()
 #if defined(IMU_ENABLED)
 		IMU_update();
 #endif // IMU_ENABLED
+		
+#if defined(SONAR_ENABLED)
+		Sonar_update();
+#endif // SONAR_ENABLED
 		
 		// Communication
 #if defined(WIFI_ENABLED)

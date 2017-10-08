@@ -52,8 +52,8 @@ void SystemClock_Config(void)
 	__HAL_RCC_PWR_CLK_ENABLE();
 	
 	/* The voltage scaling allows optimizing the power consumption when the device is
-  clocked below the maximum system frequency, to update the voltage scaling value
-  regarding system frequency refer to product datasheet.  */
+	clocked below the maximum system frequency, to update the voltage scaling value
+	regarding system frequency refer to product datasheet.  */
 	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);				// *** BLE demo doesn't use this *** 
 
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;

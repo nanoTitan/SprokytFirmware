@@ -4,6 +4,8 @@
 #include "BLE.h"
 #include "imu.h"
 #include "Servo.h"
+#include "StSpin220Stepper.h"
+#include "sonar.h"
 #include "math_ext.h"
 #include "debug.h"
 #include <math.h>
@@ -15,11 +17,13 @@ static uint8_t m_x = 0;
 static uint8_t m_y = 0;
 static float m_yaw = -1;
 static float m_pitch = -1;
+static uint32_t m_dist = -1;
 
 /* Private function prototypes -----------------------------------------------*/
 static void UpdateConnected();
 static void UpdateDisconnected();
 static void AngularYawUpdate(float yaw);
+static void DistanceUpdate(uint32_t dist);
 static void AngularPitchUpdate(float pitch);
 static void Disarm();
 static void PrintIMU();
@@ -35,6 +39,10 @@ void CameraControl_init()
 #if defined(STEPPER_ENABLED)
 	Stepper_RegisterAngularPosCallback(AngularYawUpdate);
 #endif // STEPPER_ENABLED
+	
+#if defined(SONAR_ENABLED)
+	Sonar_RegisterDistanceCallback(DistanceUpdate);
+#endif // SONAR_ENABLED
 }
 
 void CameraControl_update()
@@ -105,6 +113,18 @@ void AngularPitchUpdate(float pitch)
 	
 	m_pitch = pitch;
 	BLE_AngularPosUpdate(m_yaw, m_pitch);
+}
+
+void DistanceUpdate(uint32_t dist)
+{
+	if (m_dist == dist)
+		return;
+	
+	if (!BLE_IsConnected())
+		return;
+	
+	m_dist = dist;
+	BLE_DistanceUpdate(dist);	
 }
 
 void Disarm()
