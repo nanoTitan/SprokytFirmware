@@ -77,7 +77,13 @@ void Stepper_Init()
 	m_numStepsPerTurn = FULL_STEPS_PER_TURN * (1 << BSP_MotorControl_GetStepMode(0));
 	m_oneOverNumStepsPerTurn = 1.0f / (float)m_numStepsPerTurn;
 	
-	BSP_MotorControl_SetStopMode(0, HOLD_MODE);   	
+	BSP_MotorControl_SetStopMode(STEPPER_MOTOR_1, HOLD_MODE);   
+	
+	BSP_MotorControl_SetTorque(STEPPER_MOTOR_1, HOLD_TORQUE, 50);
+	BSP_MotorControl_SetTorque(STEPPER_MOTOR_1, RUN_TORQUE, 50);
+	BSP_MotorControl_SetTorque(STEPPER_MOTOR_1, ACC_TORQUE, 50);
+	BSP_MotorControl_SetTorque(STEPPER_MOTOR_1, DEC_TORQUE, 50);
+	BSP_MotorControl_SetTorque(STEPPER_MOTOR_1, CURRENT_TORQUE, 50);
 }
 
 void Stepper_RegisterAngularPosCallback(AngularPositionCallback callback)

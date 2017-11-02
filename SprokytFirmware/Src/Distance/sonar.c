@@ -82,7 +82,7 @@ void Sonar_update()
 	uint32_t deltaTick = HAL_GetTick() - lastTick;
 	if (deltaTick > SONAR_UPDATE_TIME)
 	{
-		SendDistance();
+		//SendDistance();
 		lastTick += deltaTick;
 	}
 }
@@ -106,14 +106,13 @@ void SendDistance()
 	if (((HAL_ADC_GetState(&adcHandle) & HAL_ADC_STATE_EOC_REG) == HAL_ADC_STATE_EOC_REG))
 	{
 		/* Get the converted value of regular channel in mV */
-		uint32_t convertedvalue = HAL_ADC_GetValue(&adcHandle);
-		//convertedvalue = mapi(convertedvalue, 0, 4095, 0, 3300);
-		convertedvalue = convertedvalue * 3300 / 4095;
+		float convertedvalue = (float)HAL_ADC_GetValue(&adcHandle);
+		convertedvalue = (convertedvalue * 0.80586f);		// 3300 / 4095 = 0.80586
 		
 		uint32_t dist = (uint32_t)(oneOverVoltageScale * convertedvalue);
 		
 		//PRINTF("%u", (unsigned int)dist);
-		//m_distanceFunc(dist);
+		m_distanceFunc(dist);
 	}
 }
 

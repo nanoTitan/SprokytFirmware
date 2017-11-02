@@ -43,7 +43,7 @@ do {\
 // Control Service
 #define COPY_CONTROL_SERVICE_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0d,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
 #define COPY_IMU_SERVICE_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1c)
-#define COPY_DISTANCE_SERVICE_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x2d)
+//#define COPY_DISTANCE_SERVICE_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x2d)
 
 // Characteristics
 #define COPY_CONTROL_CHAR_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
@@ -61,7 +61,7 @@ volatile uint8_t is_notification_enabled = FALSE;
 volatile uint8_t connected = 0;
 uint16_t controlServHandle = 0;
 uint16_t imuServHandle = 0;
-uint16_t distServHandle = 0;
+//uint16_t distServHandle = 0;
 uint16_t controlButtonCharHandle = 0;
 uint16_t instructionButtonCharHandle = 0;
 uint16_t imuCharHandle = 0;
@@ -313,7 +313,7 @@ tBleStatus AddControlService(void)
 		imuServHandle,
 		UUID_TYPE_128,
 		uuid,
-		4,
+		8,
 		CHAR_PROP_NOTIFY | CHAR_PROP_READ | ATTR_PERMISSION_NONE,
 		ATTR_PERMISSION_NONE,
 		GATT_NOTIFY_ATTRIBUTE_WRITE,
@@ -324,22 +324,12 @@ tBleStatus AddControlService(void)
 	
 	PRINTF("IMU characteristic added\n");	
 	
-	// Distance service
-	/********************************************************************************************/
-	COPY_DISTANCE_SERVICE_UUID(uuid);
-	
-	ret = aci_gatt_add_serv(
-		UUID_TYPE_128,
-		uuid,
-		PRIMARY_SERVICE,
-		7,
-		&distServHandle);
-	if (ret != BLE_STATUS_SUCCESS) goto fail;    
-	
+	// Distance - uses IMU service with distance characteristic (initialize after IMU)
+	/********************************************************************************************/	
 	COPY_DISTANCE_CHAR_UUID(uuid);
 	
 	ret =  aci_gatt_add_char(
-		distServHandle,
+		imuServHandle,
 		UUID_TYPE_128,
 		uuid,
 		4,
@@ -628,7 +618,7 @@ tBleStatus BLE_DistanceUpdate(uint32_t distance)
 		return BLE_STATUS_ERROR;
 	
 	tBleStatus status = aci_gatt_update_char_value(
-		distServHandle,
+		imuServHandle,
 		distCharHandle,
 		0,
 		sizeof(distance),

@@ -12,7 +12,7 @@
 #define BLE_ENABLED
 //#define WIFI_ENABLED
 //#define IMU_ENABLED
-//#define STEPPER_ENABLED
+#define STEPPER_ENABLED
 //#define SERVO_ENABLED
 #define SONAR_ENABLED
 
@@ -81,7 +81,7 @@
 /* Definition for Sonar sensor */
 #define SONAR_GPIO_Port						GPIOB
 #define SONAR_IN_Pin						GPIO_PIN_15
-#define SONAR_VOLTAGE						5.0f
+#define SONAR_VOLTAGE						3.3f
 #define SONAR_UPDATE_TIME					500
 #define SONAR_STATUS_SUCCESS				0
 #define SONAR_STATUS_ERROR					1
@@ -128,16 +128,16 @@
 
 #define CTRL_UPDATE_TIME 1000
 
-//  Default supply voltage in mV
+//  Battery and Voltage defines
 #ifndef ADC_SUPPLY_VOLTAGE
 #define ADC_SUPPLY_VOLTAGE		3300
+#define VBAT_UPDATE_TIME		1000
 #endif
 
 // Multipliers for VBAT measurement
-#if defined (STM32F40_41xxx)
+#if defined(STM32F405xx) || defined(STM32F407xx) || defined(STM32F415xx) || defined(STM32F417xx)
 #define ADC_VBAT_MULTI			2
-#endif
-#if defined (STM32F427_437xx) || defined (STM32F429_439xx) || defined (STM32F401xx) || defined (STM32F411xE)
+#else
 #define ADC_VBAT_MULTI			4
 #endif
 
