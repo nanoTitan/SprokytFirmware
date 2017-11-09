@@ -87,16 +87,16 @@
 #define BNRG_SPI_CRCCALCULATION     SPI_CRCCALCULATION_DISABLED
 
 // SPI Reset Pin: PA.8
-#define BNRG_SPI_RESET_PIN          GPIO_PIN_9						// Original: GPIO_PIN_8				Alt: GPIO_PIN_9
+#define BNRG_SPI_RESET_PIN          GPIO_PIN_8						// Original: GPIO_PIN_8				Alt: GPIO_PIN_9
 #define BNRG_SPI_RESET_MODE         GPIO_MODE_OUTPUT_PP
 #define BNRG_SPI_RESET_PULL         GPIO_PULLUP
 #define BNRG_SPI_RESET_SPEED        GPIO_SPEED_LOW
 #define BNRG_SPI_RESET_ALTERNATE    0
-#define BNRG_SPI_RESET_PORT         GPIOB							// Original: GPIOA					Alt: GPIOB
-#define BNRG_SPI_RESET_CLK_ENABLE()	__GPIOB_CLK_ENABLE()		    // Original __GPIOA_CLK_ENABLE()	Alt: __GPIOB_CLK_ENABLE()
+#define BNRG_SPI_RESET_PORT         GPIOA							// Original: GPIOA					Alt: GPIOB
+#define BNRG_SPI_RESET_CLK_ENABLE()	__GPIOA_CLK_ENABLE()		    // Original __GPIOA_CLK_ENABLE()	Alt: __GPIOB_CLK_ENABLE()
 
 // SCLK: PB.3
-#define BNRG_SPI_SCLK_PIN           GPIO_PIN_5						// Original: GPIO_PIN_3	Alt: GPIO_PIN_5
+#define BNRG_SPI_SCLK_PIN           GPIO_PIN_5						// Original: GPIO_PIN_3				Alt: GPIO_PIN_5
 #define BNRG_SPI_SCLK_MODE          GPIO_MODE_AF_PP
 #define BNRG_SPI_SCLK_PULL          GPIO_PULLDOWN
 #define BNRG_SPI_SCLK_SPEED         GPIO_SPEED_HIGH
@@ -123,22 +123,22 @@
 #define BNRG_SPI_MOSI_CLK_ENABLE()  __GPIOA_CLK_ENABLE()
 
 // NSS/CSN/CS: PA.1
-#define BNRG_SPI_CS_PIN             GPIO_PIN_1
+#define BNRG_SPI_CS_PIN             GPIO_PIN_6					// Original: GPIO_PIN_1				Alt: GPIO_PIN_6
 #define BNRG_SPI_CS_MODE            GPIO_MODE_OUTPUT_PP
 #define BNRG_SPI_CS_PULL            GPIO_PULLUP
 #define BNRG_SPI_CS_SPEED           GPIO_SPEED_HIGH
 #define BNRG_SPI_CS_ALTERNATE       0
-#define BNRG_SPI_CS_PORT            GPIOA
-#define BNRG_SPI_CS_CLK_ENABLE()    __GPIOA_CLK_ENABLE()
+#define BNRG_SPI_CS_PORT            GPIOB						// Original: GPIOA					Alt: GPIOB
+#define BNRG_SPI_CS_CLK_ENABLE()    __GPIOB_CLK_ENABLE()		// Original: __GPIOA_CLK_ENABLE()	Alt: __GPIOB_CLK_ENABLE()
 
 // IRQ: PA.0
-#define BNRG_SPI_IRQ_PIN            GPIO_PIN_0
+#define BNRG_SPI_IRQ_PIN            GPIO_PIN_0					// Original: GPIO_PIN_0				Alt: GPIO_PIN_7
 #define BNRG_SPI_IRQ_MODE           GPIO_MODE_IT_RISING
 #define BNRG_SPI_IRQ_PULL           GPIO_NOPULL
 #define BNRG_SPI_IRQ_SPEED          GPIO_SPEED_HIGH
 #define BNRG_SPI_IRQ_ALTERNATE      0
-#define BNRG_SPI_IRQ_PORT           GPIOA
-#define BNRG_SPI_IRQ_CLK_ENABLE()   __GPIOA_CLK_ENABLE()
+#define BNRG_SPI_IRQ_PORT           GPIOB						// Original: GPIOA					Alt: GPIOC
+#define BNRG_SPI_IRQ_CLK_ENABLE()   __GPIOB_CLK_ENABLE()		// Original: __GPIOA_CLK_ENABLE()	Alt: __GPIOC_CLK_ENABLE()
 
 // EXTI External Interrupt for SPI
 // NOTE: if you change the IRQ pin remember to implement a corresponding handler

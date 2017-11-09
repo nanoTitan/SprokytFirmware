@@ -27,7 +27,7 @@
  *
  */
 
-#ifdef TARGET_STM32F4
+#if defined(STM32F411xE) || defined(STM32F401xE)
 void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef *htim)
 {
     GPIO_InitTypeDef GPIO_InitStruct;
@@ -72,5 +72,15 @@ void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef *htim)
         GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     }
+	else if (htim->Instance == TIM5) { // PA1 PA0
+		__TIM5_CLK_ENABLE();
+		__GPIOA_CLK_ENABLE();
+		GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+		GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+		GPIO_InitStruct.Alternate = GPIO_AF2_TIM5;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
 }
 #endif

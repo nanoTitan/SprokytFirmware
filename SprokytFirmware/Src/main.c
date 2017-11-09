@@ -14,28 +14,32 @@ All Rights Reserved
 #include "error.h"
 #include "debug.h"
 #include "cube_hal.h"
+#include "Encoder.h"
+#include "serial_print.h"
 
 /* Private variables ---------------------------------------------------------*/
-UART_HandleTypeDef huart1;
+char* m_pBuffTx = "Hello World!\r\n";
 
 static void InitUSART();
 void blink();
 
 int main()
 {	
-	PRINTF("***************************\n");
-	PRINTF("Ruka Firmware Version %s\n", FIRMWARE_VERSION_STR);
-	PRINTF("Copyright Sprokyt LLC 2016\n");
-	PRINTF("All Rights Reserved\n");
-	PRINTF("***************************\n");
-	
 	if (HAL_Init() != HAL_OK)
 		Error_Handler(); 
 	
 	// Configure the system clock
 	SystemClock_Config();
 	
-	//InitUSART();
+#ifdef SERIAL_PRINT
+	SerialPrint_Init();
+#endif // SERIAL_PRINT
+	
+	PRINTF("***************************\n");
+	PRINTF("Ruka Firmware Version %s\n", FIRMWARE_VERSION_STR);
+	PRINTF("Copyright Sprokyt LLC 2016\n");
+	PRINTF("All Rights Reserved\n");
+	PRINTF("***************************\n");
 	
 	//LEDMgr_Init();
 	
@@ -50,6 +54,10 @@ int main()
 	
 	// Motor Controller
 	MotorController_init();	
+	
+#if defined(ENCODER_ENABLED)
+	Encoder_Init();
+#endif // ENCODER_ENABLED
 	
 	// IMU and Sensors
 #if defined(IMU_ENABLED)
@@ -73,18 +81,17 @@ int main()
 	
 	// Control Manager
 	ControlMgr_init();
-	ControlMgr_setType(CONTROLLER_STEPPER_CAMERA);
+	ControlMgr_setType(CONTROLLER_ROVER);
 	
 	/* Set Systick Interrupt priority highest to ensure no lock by using HAL_Delay with StSpin220 */
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 	
 	PRINTF("Initialization finished. Running program...\n");
 	
-	//uint8_t buff[4] = {'a', 'b', 'c', 'd'};
-	
 	while (1)
 	{		
-		//HAL_UART_Transmit(&huart1, buff, 4, 100);
+		SerialPrint_Print(m_pBuffTx, strlen(m_pBuffTx));
+		HAL_Delay(500);
 		
 		// IMU and Sensors
 #if defined(IMU_ENABLED)
@@ -108,22 +115,6 @@ int main()
 		ControlMgr_update();
 		
 		//MotorController_UpdateMotorTest();
-	}
-}
-
-void InitUSART()
-{
-	huart1.Instance = USART1;
-	huart1.Init.BaudRate = 9600;
-	huart1.Init.WordLength = UART_WORDLENGTH_8B;
-	huart1.Init.StopBits = UART_STOPBITS_1;
-	huart1.Init.Parity = UART_PARITY_NONE;
-	huart1.Init.Mode = UART_MODE_TX_RX;
-	huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-	huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-	if (HAL_UART_Init(&huart1) != HAL_OK)
-	{
-		Error_Handler();
 	}
 }
 

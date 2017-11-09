@@ -9,59 +9,83 @@
 
 #define FIRMWARE_VERSION_STR "0.2.2"
 
+#define SERIAL_PRINT
 #define BLE_ENABLED
 //#define WIFI_ENABLED
-//#define IMU_ENABLED
-#define STEPPER_ENABLED
+#define IMU_ENABLED
+//#define STEPPER_ENABLED
 //#define SERVO_ENABLED
-#define SONAR_ENABLED
+//#define SONAR_ENABLED
+//#define ENCODER_ENABLED
 
-#define MOTOR_STEPPER
+//#define MOTOR_STEPPER
 //#define MOTOR_SERVO
 //#define MOTOR_TOSHIBA
 //#define MOTOR_STSPIN
 
-#define MC_NUM_MOTORS 4
+//#define MOTOR_1_ENABLED
+//#define MOTOR_2_ENABLED
 
 // Definitions for TOSHIBA motor drivers
-#define MD2_STBY_Pin GPIO_PIN_2
-#define MD2_STBY_GPIO_Port GPIOC
-#define MD2_BIN1_Pin GPIO_PIN_3
-#define MD2_BIN1_GPIO_Port GPIOC
-#define MD1_STBY_Pin GPIO_PIN_4
-#define MD1_STBY_GPIO_Port GPIOA
-#define MD2_PWMA_Pin GPIO_PIN_6
-#define MD2_PWMA_GPIO_Port GPIOC
-#define MD2_BIN2_Pin GPIO_PIN_4
-#define MD2_BIN2_GPIO_Port GPIOC
-#define MD1_AIN2_Pin GPIO_PIN_5
-#define MD1_AIN2_GPIO_Port GPIOC
-#define MD1_PWMB_Pin GPIO_PIN_0
-#define MD1_PWMB_GPIO_Port GPIOB
-#define MD1_PWMA_Pin GPIO_PIN_1
-#define MD1_PWMA_GPIO_Port GPIOB
-#define MD1_AIN1_Pin GPIO_PIN_2
-#define MD1_AIN1_GPIO_Port GPIOB
-#define MD1_BIN1_Pin GPIO_PIN_12
-#define MD1_BIN1_GPIO_Port GPIOB
-#define MD1_BIN2_Pin GPIO_PIN_13
-#define MD1_BIN2_GPIO_Port GPIOB
-#define MD2_AIN2_Pin GPIO_PIN_15
-#define MD2_AIN2_GPIO_Port GPIOB
-#define MD2_AIN1_Pin GPIO_PIN_14
-#define MD2_AIN1_GPIO_Port GPIOB
-#define MD2_PWMB_Pin GPIO_PIN_7
-#define MD2_PWMB_GPIO_Port GPIOC
+#define MD1_TIM					TIM1
+#define MD2_TIM					TIM2
+
+#define MD1_PWMA_Pin			GPIO_PIN_9
+#define MD1_PWMA_GPIO_Port		GPIOA
+#define MD1_PWMA_AF				GPIO_AF1_TIM1
+#define MD1_CHANNEL_A			TIM_CHANNEL_2
+
+#define MD1_PWMB_Pin			GPIO_PIN_10
+#define MD1_PWMB_GPIO_Port		GPIOA
+#define MD1_PWMB_AF				GPIO_AF1_TIM1
+#define MD1_CHANNEL_B			TIM_CHANNEL_3
+
+#define MD1_AIN1_Pin			GPIO_PIN_12
+#define MD1_AIN1_GPIO_Port		GPIOB
+#define MD1_AIN2_Pin			GPIO_PIN_13
+#define MD1_AIN2_GPIO_Port		GPIOB
+#define MD1_BIN1_Pin			GPIO_PIN_14
+#define MD1_BIN1_GPIO_Port		GPIOB
+#define MD1_BIN2_Pin			GPIO_PIN_15
+#define MD1_BIN2_GPIO_Port		GPIOB
+
+#define MD1_STBY_Pin			GPIO_PIN_2
+#define MD1_STBY_GPIO_Port		GPIOB
+
+#define MD2_PWMA_Pin			GPIO_PIN_6
+#define MD2_PWMA_GPIO_Port		GPIOC
+#define MD2_PWMA_AF				GPIO_AF1_TIM2
+#define MD2_CHANNEL_A			TIM_CHANNEL_1
+
+#define MD2_PWMB_Pin			GPIO_PIN_7
+#define MD2_PWMB_GPIO_Port		GPIOC
+#define MD2_PWMB_AF				GPIO_AF1_TIM2
+#define MD2_CHANNEL_B			TIM_CHANNEL_2
+
+#define MD2_AIN1_Pin			GPIO_PIN_14
+#define MD2_AIN1_GPIO_Port		GPIOB
+#define MD2_AIN2_Pin			GPIO_PIN_15
+#define MD2_AIN2_GPIO_Port		GPIOB
+#define MD2_BIN1_Pin			GPIO_PIN_3
+#define MD2_BIN1_GPIO_Port		GPIOC
+#define MD2_BIN2_Pin			GPIO_PIN_4
+#define MD2_BIN2_GPIO_Port		GPIOC
+
+#define MD2_STBY_Pin			GPIO_PIN_2
+#define MD2_STBY_GPIO_Port		GPIOC
+
+#define MD2_RCC_CL_ENABLE		__HAL_RCC_TIM3_CLK_ENABLE
+#define MD1_RCC_CL_ENABLE		__HAL_RCC_TIM1_CLK_ENABLE
 
 // Definitinos for IMU
-#define TIM_IMU			                    TIM3
-#define TIM_IMU_CLK_ENABLE					__TIM3_CLK_ENABLE
-#define TIM_IMU_CLK_DISABLE                 __TIM3_CLK_DISABLE
-#define TIM_SF_IRQn							TIM3_IRQn
-#define TIM_IMU_IRQHandler					TIM3_IRQHandler
-#define TIM_IMU_CHANNEL						TIM_CHANNEL_1
-#define IMU_PWM_Pin							GPIO_PIN_5
-#define IMU_PWM_GPIO_Port GPIOB
+#define TIM_IMU			        TIM3
+#define TIM_IMU_CLK_ENABLE		__TIM3_CLK_ENABLE
+#define TIM_IMU_CLK_DISABLE     __TIM3_CLK_DISABLE
+#define TIM_SF_IRQn				TIM3_IRQn
+#define TIM_IMU_IRQHandler		TIM3_IRQHandler
+#define TIM_IMU_CHANNEL			TIM_CHANNEL_1
+#define IMU_PWM_Pin				GPIO_PIN_5
+#define IMU_PWM_GPIO_Port		GPIOB
 
 /* Definition for Servo clock resources */
 #define TIM_SERVO		                     TIM4
@@ -72,6 +96,16 @@
 #define SERVO1_PWM_PIN						GPIO_PIN_6
 #define SERVO2_PWM_PIN						GPIO_PIN_7
 #define SERVO_GPIO_Port						GPIOB
+
+/* Definition for Encoder clock resources */
+#define TIM_ENCODER1	                    TIM1
+#define TIM_ENCODER1_CLK_ENABLE             __TIM1_CLK_ENABLE
+#define TIM_ENCODER1_CLK_DISABLE            __TIM1_CLK_DISABLE
+#define TIM_ENCODER2	                    TIM2
+#define TIM_ENCODER2_CLK_ENABLE             __TIM2_CLK_ENABLE
+#define TIM_ENCODER2_CLK_DISABLE            __TIM2_CLK_DISABLE
+#define ENCODER_COUNT_PER_REV				450				// 3 tooth encoder * 150:1 gear ratio = 450
+#define ENCODER_ONE_OVER_QUAD_COUNT_PER_REV	0.0005556f		// 1 / (450 * 4) = 1 / 1800
 
 /* Definition for Stepper Motors resources */
 #define STEPPER_MOTOR_1						0

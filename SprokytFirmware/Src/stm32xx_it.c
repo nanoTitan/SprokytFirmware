@@ -133,6 +133,7 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
 	HAL_IncTick();
+	HAL_SYSTICK_IRQHandler();	// <--- Do I need this??? It was generated from CubeMX USART project
 }
 
 

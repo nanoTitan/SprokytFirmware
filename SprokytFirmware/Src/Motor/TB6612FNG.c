@@ -10,6 +10,7 @@
 #define TB6612FNG_PWM_PULSEWIDTH_DEFAULT  (0.50)      // 50% duty cycle
 
 // Private variables
+static TIM_HandleTypeDef hMdTim1;
 static TIM_HandleTypeDef htim3;
 uint16_t maxDutyCycle = 256;
 uint16_t pwmFrequency = 10000;
@@ -30,56 +31,98 @@ void TB_Init()
 
 void TB_Init_GPIO()
 {	
-	/* GPIO Ports Clock Enable */
-	__HAL_RCC_GPIOC_CLK_ENABLE();
+	GPIO_InitTypeDef GPIO_InitStruct;
+	
+#ifdef MOTOR_1_ENABLED
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	
-	// PWM GPIO Pins
-	
-	GPIO_InitTypeDef GPIO_InitStruct;
-	GPIO_InitStruct.Pin = MD2_PWMA_Pin | MD2_PWMB_Pin;
+	/*Configure GPIO pins : PWMA, PWMB */
+	GPIO_InitStruct.Pin = MD1_PWMA_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-	GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-	HAL_GPIO_Init(MD2_PWMA_GPIO_Port, &GPIO_InitStruct);
+	GPIO_InitStruct.Alternate = MD1_PWMA_AF;
+	HAL_GPIO_Init(MD1_PWMA_GPIO_Port, &GPIO_InitStruct);
 	
-	GPIO_InitStruct.Pin = MD1_PWMB_Pin | MD1_PWMA_Pin;
+	GPIO_InitStruct.Pin = MD1_PWMB_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-	GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	GPIO_InitStruct.Alternate = MD1_PWMB_AF;
+	HAL_GPIO_Init(MD1_PWMB_GPIO_Port, &GPIO_InitStruct);
 	
-	// AIN, BIN, and STANDBY pins
-	
-	/*Configure GPIO pins : MD2_STBY_Pin MD2_BIN1_Pin MD2_BIN2_Pin MD1_AIN2_Pin */
-	GPIO_InitStruct.Pin = MD2_STBY_Pin | MD2_BIN1_Pin | MD2_BIN2_Pin | MD1_AIN2_Pin;	// ESP_RESET_Pin
+	/*Configure GPIO pins : AIN1, BIN1, AIN2 BIN2 */
+	GPIO_InitStruct.Pin = MD1_AIN1_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+	HAL_GPIO_Init(MD1_AIN1_GPIO_Port, &GPIO_InitStruct);
 	
-	/*Configure GPIO pins : MD1_STBY_Pin */
+	GPIO_InitStruct.Pin = MD1_AIN2_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(MD1_AIN2_GPIO_Port, &GPIO_InitStruct);
+	
+	GPIO_InitStruct.Pin = MD1_BIN1_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(MD1_BIN1_GPIO_Port, &GPIO_InitStruct);
+	
+	GPIO_InitStruct.Pin = MD1_BIN2_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(MD1_BIN2_GPIO_Port, &GPIO_InitStruct);
+	
+	/*Configure GPIO pins : STBY */
 	GPIO_InitStruct.Pin = MD1_STBY_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(MD1_STBY_GPIO_Port, &GPIO_InitStruct);
+	
+#endif // MOTOR_1_ENABLED
+	
+#ifdef MOTOR_2_ENABLED
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+	
+	/*Configure GPIO pins : PWMA, PWMB */
+	GPIO_InitStruct.Pin = GPIO_PIN_9 | GPIO_PIN_10;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-	/*Configure GPIO pins : MD1_AIN1_Pin MD1_BIN1_Pin MD1_BIN2_Pin MD2_AIN2_Pin MD2_AIN1_Pin */
-	GPIO_InitStruct.Pin = MD1_AIN1_Pin | MD1_BIN1_Pin | MD1_BIN2_Pin | MD2_AIN2_Pin | MD2_AIN1_Pin;
+	
+	/*Configure GPIO pins : AIN1, BIN1, AIN2 BIN2 */
+	GPIO_InitStruct.Pin = GPIO_PIN_12 | GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	
+	/*Configure GPIO pins : STBY */
+	GPIO_InitStruct.Pin = GPIO_PIN_2;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+#endif // MOTOR_2_ENABLED
 }
 
 void TB_INIT_PWM()
 {
-	__HAL_RCC_TIM1_CLK_ENABLE();						// mbed
-	__HAL_RCC_TIM3_CLK_ENABLE();
+#ifdef MOTOR_1_ENABLED
+	MD1_RCC_CL_ENABLE();
+#endif
+	
+#ifdef MOTOR_2_ENABLED
+	MD2_RCC_CL_ENABLE();
+#endif
 	
 	pwmFrequency = 10000;
 	TB_SetPwmFrequency(0.00002f);      // 50KHz default
@@ -90,13 +133,14 @@ void TB_PWM_OutWrite()
 	TIM_MasterConfigTypeDef sMasterConfig;
 	TIM_OC_InitTypeDef sConfigOC;
 	
+#ifdef MOTOR_1_ENABLED
 	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
 	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+	if (HAL_TIMEx_MasterConfigSynchronization(&hMdTim1, &sMasterConfig) != HAL_OK)
 	{
 		Error_Handler();
 	}
-
+	
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	sConfigOC.Pulse = 0;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
@@ -104,30 +148,25 @@ void TB_PWM_OutWrite()
 	sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
 	sConfigOC.OCNPolarity  = TIM_OCNPOLARITY_HIGH;
 	sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;	
-	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+	
+	if (HAL_TIM_PWM_ConfigChannel(&hMdTim1, &sConfigOC, MD1_CHANNEL_A) != HAL_OK)
 	{
 		Error_Handler();
 	}
 	
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);		// mbed: HAL_TIMEx_PWMN_Start(&htim3, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);		// mbed: HAL_TIMEx_PWMN_Start(&htim3, TIM_CHANNEL_4);
+	if (HAL_TIM_PWM_ConfigChannel(&hMdTim1, &sConfigOC, MD1_CHANNEL_B) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	
+	HAL_TIM_PWM_Start(&hMdTim1, MD1_CHANNEL_A);
+	HAL_TIM_PWM_Start(&hMdTim1, MD1_CHANNEL_B);
+	
+#endif	// MOTOR_1_ENABLED
+	
+#ifdef MOTOR_2_ENABLED
+	TODO
+#endif	// MOTOR_1_ENABLED
 }
 
 void TB_SetPwm(int iMotorChannel, uint16_t fFrequency, float fPulsewidth)
@@ -138,16 +177,17 @@ void TB_SetPwm(int iMotorChannel, uint16_t fFrequency, float fPulsewidth)
 
 void TB_SetPwmFrequency(float seconds)
 {		
+#ifdef MOTOR_1_ENABLED
 	int us = seconds * 1000000.0f;
 	
-	htim3.Instance = TIM3;
+	hMdTim1.Instance = MD1_TIM;
 	RCC_ClkInitTypeDef RCC_ClkInitStruct;
 	uint32_t PclkFreq = 0;
 	uint32_t APBxCLKDivider = RCC_HCLK_DIV1;
 	float dc = 0;
 	uint8_t i = 0;
 
-	__HAL_TIM_DISABLE(&htim3);
+	__HAL_TIM_DISABLE(&hMdTim1);
 
 	// Get clock configuration
 	// Note: PclkFreq contains here the Latency (not used after)
@@ -156,12 +196,12 @@ void TB_SetPwmFrequency(float seconds)
 	//PclkFreq = HAL_RCC_GetPCLK2Freq();
 	//APBxCLKDivider = RCC_ClkInitStruct.APB2CLKDivider;
 
-	htim3.Init.Prescaler = (((SystemCoreClock) / 1000000)) - 1; // 1 us tick    // PclkFreq
-	htim3.Init.Period = (us - 1);
-	htim3.Init.ClockDivision = 0;
-	htim3.Init.CounterMode   = TIM_COUNTERMODE_UP;
+	hMdTim1.Init.Prescaler = (((SystemCoreClock) / 1000000)) - 1; // 1 us tick    // PclkFreq
+	hMdTim1.Init.Period = (us - 1);
+	hMdTim1.Init.ClockDivision = 0;
+	hMdTim1.Init.CounterMode   = TIM_COUNTERMODE_UP;
 
-	if (HAL_TIM_PWM_Init(&htim3) != HAL_OK) {
+	if (HAL_TIM_PWM_Init(&hMdTim1) != HAL_OK) {
 		Error_Handler();
 	}
 
@@ -171,10 +211,16 @@ void TB_SetPwmFrequency(float seconds)
 	// Set duty cycle again
 	TB_PWM_OutWrite();
 
-	__HAL_TIM_ENABLE(&htim3);
+	__HAL_TIM_ENABLE(&hMdTim1);
 	
 	//uint32_t autoReload = (SystemCoreClock + pwmFrequency / 2) / pwmFrequency - 1;
 	//__HAL_TIM_SET_AUTORELOAD(&htim3, autoReload);
+	
+#endif // MOTOR_1_ENABLED
+	
+#ifdef MOTOR_2_ENABLED
+	TODO
+#endif	// MOTOR_1_ENABLED
 }
 
 void TB_SetPwmPulsewidth(int tb_channel, float fPulsewidth)
@@ -185,121 +231,106 @@ void TB_SetPwmPulsewidth(int tb_channel, float fPulsewidth)
 		fPulsewidth = 1;
 	
 	int compare = (period * fPulsewidth) / prescaler;
-	int channel = TIM_CHANNEL_1;
 	
-	switch (tb_channel)
-	{
-	case TB_CHANNEL_A1:
-		channel = TIM_CHANNEL_4;
-		break;
-		
-	case TB_CHANNEL_B1:
-		channel = TIM_CHANNEL_3;
-		break;
-		
-	case TB_CHANNEL_A2:
-		channel = TIM_CHANNEL_1;
-		break;
-		
-	case TB_CHANNEL_B2:
-		channel = TIM_CHANNEL_2;
-		break;
-		
-	default:
-		return;
-	}
-
-	__HAL_TIM_SET_COMPARE(&htim3, channel, compare);
+#ifdef MOTOR_1_ENABLED
+	if (tb_channel == MD1_CHANNEL_A || tb_channel == MD1_CHANNEL_B)
+		__HAL_TIM_SET_COMPARE(&hMdTim1, tb_channel, compare);
+#endif // MOTOR_1_ENABLED
+	
+#ifdef MOTOR_2_ENABLED
+	if (tb_channel == MD2_CHANNEL_A || tb_channel == MD2_CHANNEL_B)
+		__HAL_TIM_SET_COMPARE(&hMdTim2, tb_channel, compare);
+#endif // MOTOR_2_ENABLED
 }
 
 void TB_1_Standy()
 {
-	HAL_GPIO_WritePin(GPIOA, MD1_STBY_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD1_STBY_GPIO_Port, MD1_STBY_Pin, GPIO_PIN_RESET);
 }
 
 void TB_1A_Stop()
 {
-	HAL_GPIO_WritePin(GPIOB, MD1_AIN1_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOC, MD1_AIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD1_AIN1_GPIO_Port, MD1_AIN1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD1_AIN2_GPIO_Port, MD1_AIN2_Pin, GPIO_PIN_RESET);
 }
 
 void TB_1A_MotorCW()
 {
-	HAL_GPIO_WritePin(GPIOB, MD1_AIN1_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOC, MD1_AIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, MD1_STBY_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD1_AIN1_GPIO_Port, MD1_AIN1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD1_AIN2_GPIO_Port, MD1_AIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD1_STBY_GPIO_Port, MD1_STBY_Pin, GPIO_PIN_SET);
 }
 
 void TB_1A_MotorCCW()
 {
-	HAL_GPIO_WritePin(GPIOB, MD1_AIN1_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOC, MD1_AIN2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, MD1_STBY_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD1_AIN1_GPIO_Port, MD1_AIN1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD1_AIN2_GPIO_Port, MD1_AIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD1_STBY_GPIO_Port, MD1_STBY_Pin, GPIO_PIN_SET);
 }
 
 void TB_1B_Stop()
 {
-	HAL_GPIO_WritePin(GPIOB, MD1_BIN1_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOB, MD1_BIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD1_BIN1_GPIO_Port, MD1_BIN1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD1_BIN2_GPIO_Port, MD1_BIN2_Pin, GPIO_PIN_RESET);
 }
 
 void TB_1B_MotorCW()
 {
-	HAL_GPIO_WritePin(GPIOB, MD1_BIN1_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOB, MD1_BIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, MD1_STBY_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD1_BIN1_GPIO_Port, MD1_BIN1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD1_BIN2_GPIO_Port, MD1_BIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD1_STBY_GPIO_Port, MD1_STBY_Pin, GPIO_PIN_SET);
 }
 
 void TB_1B_MotorCCW()
 {
-	HAL_GPIO_WritePin(GPIOB, MD1_BIN1_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOB, MD1_BIN2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, MD1_STBY_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD1_BIN1_GPIO_Port, MD1_BIN1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD1_BIN2_GPIO_Port, MD1_BIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD1_STBY_GPIO_Port, MD1_STBY_Pin, GPIO_PIN_SET);
 }
 
 void TB_2_Standy()
 {
-	HAL_GPIO_WritePin(GPIOC, MD2_STBY_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD2_STBY_GPIO_Port, MD2_STBY_Pin, GPIO_PIN_RESET);
 }
 
 void TB_2A_Stop()
 {
-	HAL_GPIO_WritePin(GPIOB, MD2_AIN1_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOB, MD2_AIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD2_AIN1_GPIO_Port, MD2_AIN1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD2_AIN2_GPIO_Port, MD2_AIN2_Pin, GPIO_PIN_RESET);
 }
 
 void TB_2A_MotorCW()
 {
-	HAL_GPIO_WritePin(GPIOB, MD2_AIN1_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOB, MD2_AIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOC, MD2_STBY_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD2_AIN1_GPIO_Port, MD2_AIN1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD2_AIN2_GPIO_Port, MD2_AIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD2_STBY_GPIO_Port, MD2_STBY_Pin, GPIO_PIN_SET);
 }					  
 
 void TB_2A_MotorCCW()
 {
-	HAL_GPIO_WritePin(GPIOB, MD2_AIN1_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOB, MD2_AIN2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOC, MD2_STBY_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD2_AIN1_GPIO_Port, MD2_AIN1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD2_AIN2_GPIO_Port, MD2_AIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD2_STBY_GPIO_Port, MD2_STBY_Pin, GPIO_PIN_SET);
 }				  
 
 void TB_2B_Stop()
 {
-	HAL_GPIO_WritePin(GPIOC, MD2_BIN1_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOC, MD2_BIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD2_BIN1_GPIO_Port, MD2_BIN1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD2_BIN2_GPIO_Port, MD2_BIN2_Pin, GPIO_PIN_RESET);
 }
 
 void TB_2B_MotorCW()
 {
-	HAL_GPIO_WritePin(GPIOC, MD2_BIN1_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOC, MD2_BIN2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOC, MD2_STBY_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD2_BIN1_GPIO_Port, MD2_BIN1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD2_BIN2_GPIO_Port, MD2_BIN2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD2_STBY_GPIO_Port, MD2_STBY_Pin, GPIO_PIN_SET);
 }
 
 void TB_2B_MotorCCW()
 {
-	HAL_GPIO_WritePin(GPIOC, MD2_BIN1_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOC, MD2_BIN2_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOC, MD2_STBY_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD2_BIN1_GPIO_Port, MD2_BIN1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(MD2_BIN2_GPIO_Port, MD2_BIN2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MD2_STBY_GPIO_Port, MD2_STBY_Pin, GPIO_PIN_SET);
 }
 
 void TB_SetWorkMode(int tb_channel, int tb_control_mode)

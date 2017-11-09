@@ -17,10 +17,11 @@ void MotorController_init()
 {
 #if defined(MOTOR_TOSHIBA)
 	TB_Init();
-	TB_SetPwmPulsewidth(TB_CHANNEL_A1, 0);
-	TB_SetPwmPulsewidth(TB_CHANNEL_B1, 0);
-	TB_SetPwmPulsewidth(TB_CHANNEL_A2, 0);
-	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
+	
+	TB_SetPwmPulsewidth(MD1_CHANNEL_A, 0);
+	TB_SetPwmPulsewidth(MD1_CHANNEL_B, 0);
+	TB_SetPwmPulsewidth(MD2_CHANNEL_A, 0);
+	TB_SetPwmPulsewidth(MD2_CHANNEL_B, 0);
 	
 	MotorController_setMotor(MOTOR_ALL, 0, FWD);
 #endif // MOTOR_TOSHIBA
@@ -62,56 +63,56 @@ void MotorController_setMotors_TB6612(uint8_t motorIndxMask, float power, direct
 	if (motorIndxMask & MOTOR_A)
 	{
 		if (power == 0)
-			TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_STOP);
+			TB_SetWorkMode(MD1_CHANNEL_A, TB_ControlMode_STOP);
 		else
 		{
-			TB_SetPwmPulsewidth(TB_CHANNEL_A1, power);
+			TB_SetPwmPulsewidth(MD1_CHANNEL_A, power);
 			if (direction == FWD)
-				TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_CW);
+				TB_SetWorkMode(MD1_CHANNEL_A, TB_ControlMode_CW);
 			else
-				TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_CCW);
+				TB_SetWorkMode(MD1_CHANNEL_A, TB_ControlMode_CCW);
 		}		
 	}
 	
 	if (motorIndxMask & MOTOR_B)
 	{
 		if (power == 0)
-			TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_STOP);
+			TB_SetWorkMode(MD1_CHANNEL_B, TB_ControlMode_STOP);
 		else
 		{
-			TB_SetPwmPulsewidth(TB_CHANNEL_B1, power);
+			TB_SetPwmPulsewidth(MD1_CHANNEL_B, power);
 			if (direction == FWD)
-				TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_CW);
+				TB_SetWorkMode(MD1_CHANNEL_B, TB_ControlMode_CW);
 			else
-				TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_CCW);
+				TB_SetWorkMode(MD1_CHANNEL_B, TB_ControlMode_CCW);
 		}
 	}
 	
 	if (motorIndxMask & MOTOR_C)
 	{
 		if (power == 0)
-			TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_STOP);
+			TB_SetWorkMode(MD2_CHANNEL_A, TB_ControlMode_STOP);
 		else
 		{
-			TB_SetPwmPulsewidth(TB_CHANNEL_A2, power);
+			TB_SetPwmPulsewidth(MD2_CHANNEL_A, power);
 			if (direction == FWD)
-				TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_CW);
+				TB_SetWorkMode(MD2_CHANNEL_A, TB_ControlMode_CW);
 			else
-				TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_CCW);
+				TB_SetWorkMode(MD2_CHANNEL_A, TB_ControlMode_CCW);
 		}
 	}
 	
 	if (motorIndxMask & MOTOR_D)
 	{
 		if (power == 0)
-			TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_STOP);
+			TB_SetWorkMode(MD2_CHANNEL_B, TB_ControlMode_STOP);
 		else
 		{
-			TB_SetPwmPulsewidth(TB_CHANNEL_B2, power);
+			TB_SetPwmPulsewidth(MD2_CHANNEL_B, power);
 			if (direction == FWD)
-				TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_CW);
+				TB_SetWorkMode(MD2_CHANNEL_B, TB_ControlMode_CW);
 			else
-				TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_CCW);
+				TB_SetWorkMode(MD2_CHANNEL_B, TB_ControlMode_CCW);
 		}
 	}
 }
@@ -145,16 +146,16 @@ void MotorController_UpdateMotorTest()
 #define TEST_CHN_B2	// good
 	
 #if defined(TEST_CHN_A1)
-	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_CW);
+	TB_SetWorkMode(MD1_CHANNEL_A, TB_ControlMode_CW);
 #endif
 #if defined(TEST_CHN_B1)
-	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_CW);
+	TB_SetWorkMode(MD1_CHANNEL_B, TB_ControlMode_CW);
 #endif
 #if defined(TEST_CHN_A2)
-	TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_CW);
+	TB_SetWorkMode(MD2_CHANNEL_A, TB_ControlMode_CW);
 #endif
 #if defined(TEST_CHN_B2)
-	TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_CW);
+	TB_SetWorkMode(MD2_CHANNEL_B, TB_ControlMode_CW);
 #endif
 	
 	static float pwm = 0;
@@ -163,82 +164,82 @@ void MotorController_UpdateMotorTest()
 	for (int i = 1; i < 10; ++i)
 	{
 #if defined(TEST_CHN_A1)
-		TB_SetPwmPulsewidth(TB_CHANNEL_A1, pwm);
+		TB_SetPwmPulsewidth(MD1_CHANNEL_A, pwm);
 #endif
 #if defined(TEST_CHN_B1)
-		TB_SetPwmPulsewidth(TB_CHANNEL_B1, pwm);
+		TB_SetPwmPulsewidth(MD1_CHANNEL_B, pwm);
 #endif
 #if defined(TEST_CHN_A2)
-		TB_SetPwmPulsewidth(TB_CHANNEL_A2, pwm);
+		TB_SetPwmPulsewidth(MD2_CHANNEL_A, pwm);
 #endif
 #if defined(TEST_CHN_B2)
-		TB_SetPwmPulsewidth(TB_CHANNEL_B2, pwm);
+		TB_SetPwmPulsewidth(MD2_CHANNEL_B, pwm);
 #endif
 		HAL_Delay(200);
 		pwm += 0.1f;
 	}
 	
 #if defined(TEST_CHN_A1)
-	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_STOP);
+	TB_SetWorkMode(MD1_CHANNEL_A, TB_ControlMode_STOP);
 #endif
 #if defined(TEST_CHN_B1)
-	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_STOP);
+	TB_SetWorkMode(MD1_CHANNEL_B, TB_ControlMode_STOP);
 #endif
 #if defined(TEST_CHN_A2)
-	TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_STOP);
+	TB_SetWorkMode(MD2_CHANNEL_A, TB_ControlMode_STOP);
 #endif
 #if defined(TEST_CHN_B2)
-	TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_STOP);
+	TB_SetWorkMode(MD2_CHANNEL_B, TB_ControlMode_STOP);
 #endif
 	HAL_Delay(2000);
 	
 	pwm = 1;
 #if defined(TEST_CHN_A1)
-	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_CCW);
+	TB_SetWorkMode(MD1_CHANNEL_A, TB_ControlMode_CCW);
 #endif
 #if defined(TEST_CHN_B1)
-	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_CCW);
+	TB_SetWorkMode(MD1_CHANNEL_B, TB_ControlMode_CCW);
 #endif
 #if defined(TEST_CHN_A2)
-	TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_CCW);
+	TB_SetWorkMode(MD2_CHANNEL_A, TB_ControlMode_CCW);
 #endif
 #if defined(TEST_CHN_B2)
-	TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_CCW);
+	TB_SetWorkMode(MD2_CHANNEL_B, TB_ControlMode_CCW);
 #endif
 	
 	for (int i = 1; i < 10; ++i)
 	{
 #if defined(TEST_CHN_A1)
-		TB_SetPwmPulsewidth(TB_CHANNEL_A1, pwm);
+		TB_SetPwmPulsewidth(MD1_CHANNEL_A, pwm);
 #endif
 #if defined(TEST_CHN_B1)
-		TB_SetPwmPulsewidth(TB_CHANNEL_B1, pwm);
+		TB_SetPwmPulsewidth(MD1_CHANNEL_B, pwm);
 #endif
 #if defined(TEST_CHN_A2)
-		TB_SetPwmPulsewidth(TB_CHANNEL_A2, pwm);
+		TB_SetPwmPulsewidth(MD2_CHANNEL_A, pwm);
 #endif
 #if defined(TEST_CHN_B2)
-		TB_SetPwmPulsewidth(TB_CHANNEL_B2, pwm);
+		TB_SetPwmPulsewidth(MD2_CHANNEL_B, pwm);
 #endif
 		HAL_Delay(200);
 		pwm -= 0.1f;
 	}
 	
 #if defined(TEST_CHN_A1)
-	TB_SetWorkMode(TB_CHANNEL_A1, TB_ControlMode_STOP);
-	TB_SetPwmPulsewidth(TB_CHANNEL_A1, 0);
+	TB_SetWorkMode(MD1_CHANNEL_A, TB_ControlMode_STOP);
+	TB_SetPwmPulsewidth(MD1_CHANNEL_A, 0);
 #endif
 #if defined(TEST_CHN_B1)
-	TB_SetWorkMode(TB_CHANNEL_B1, TB_ControlMode_STOP);
-	TB_SetPwmPulsewidth(TB_CHANNEL_B1, 0);
+	TB_SetWorkMode(MD1_CHANNEL_B, TB_ControlMode_STOP);
+	TB_SetPwmPulsewidth(MD1_CHANNEL_B, 0);
 #endif
 #if defined(TEST_CHN_A2)
-	TB_SetWorkMode(TB_CHANNEL_A2, TB_ControlMode_STOP);
-	TB_SetPwmPulsewidth(TB_CHANNEL_A2, 0);
+	TB_SetWorkMode(MD2_CHANNEL_A, TB_ControlMode_STOP);
+	TB_SetPwmPulsewidth(MD2_CHANNEL_A, 0);
 #endif
 #if defined(TEST_CHN_B2)
-	TB_SetWorkMode(TB_CHANNEL_B2, TB_ControlMode_STOP);
-	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
+	TB_SetWorkMode(MD2_CHANNEL_B, TB_ControlMode_STOP);
+	TB_SetPwmPulsewidth(MD2_CHANNEL_B, 0);
 #endif
 	
 
