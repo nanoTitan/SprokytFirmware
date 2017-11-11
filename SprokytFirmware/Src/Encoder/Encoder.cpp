@@ -10,6 +10,7 @@ static TIM_HandleTypeDef  timer1, timer2;
 static uint32_t count1 = 0, count2 = 0;
 static uint32_t m_lastTime = 0;
 static float m_rotation1 = 0, m_rotation2 = 0;
+static float m_deltaRad1 = 0, m_deltaRad2 = 0;		// The difference in radians since the last update
 static float m_angVel1 = 0, m_angVel2 = 0;			// Rotational speed in radian per second
 static int8_t m_dir1 = 0, m_dir2 = 0;				// Rotation direction. 0 for CW and 1 for CCW
 const float Encoder_Rad_Per_Count = 2 * ENCODER_ONE_OVER_QUAD_COUNT_PER_REV;
@@ -72,6 +73,16 @@ float Encoder_GetRot1()
 float Encoder_GetRot2()
 {
 	return m_rotation2;
+}
+
+float Encoder_GetDeltaRad1()
+{
+	return m_deltaRad1;
+}
+
+float Encoder_GetDeltaRad2()
+{
+	return m_deltaRad2;
 }
 
 float Encoder_GetAngVel1()

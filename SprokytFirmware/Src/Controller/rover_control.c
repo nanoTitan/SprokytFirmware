@@ -2,6 +2,7 @@
 #include "control_manager.h"
 #include "motor_controller.h"
 #include "BLE.h"
+#include "differential_drive.h"
 //#include "Wifi.h"
 #include "math_ext.h"
 #include "debug.h"
@@ -19,7 +20,7 @@ static void UpdateDisconnected();
 static void Disarm();
 static void RunMotorTest();
 static void PrintIMU();
-static void ParseTranslate(uint8_t _x, uint8_t _y);
+static void ParseTranslateQuadDrive(uint8_t _x, uint8_t _y);
 
 /* Private functions ---------------------------------------------------------*/
 void RoverControl_init()
@@ -60,8 +61,9 @@ void UpdateConnected()
 	
 	if (m_doUpdate)
 	{
-		ParseTranslate(m_x, m_y);		
+		DiffDrive_ParseTranslate(m_x, m_y);
 		m_doUpdate = FALSE;
+
 		//PRINTF("x: %u, y: %u\r\n", m_x, m_y);
 	}
 }
@@ -95,7 +97,7 @@ void RoverControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 	}
 }
 
-void ParseTranslate(uint8_t _x, uint8_t _y)
+void ParseTranslateQuadDrive(uint8_t _x, uint8_t _y)
 {
 	/*
 	A - B

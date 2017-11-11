@@ -2,16 +2,22 @@
 #include "Encoder.h"
 #include "error.h"
 #include "debug.h"
-#include "stm32f4xx_hal_conf.h"
 #include "math_ext.h"
+#include "stm32f4xx_hal_conf.h"
+#include "stm32f4xx_hal.h"
+#include "constants.h"
+#include "motor_controller.h"
 
 /* Private variables ---------------------------------------------------------*/
 static float m_leftAngVel = 0;
 static float m_rightAngVel = 0;
 static float m_vehicleRotation = 0;
 static float m_vehicleVelocity = 0;
+static float m_angVelocity = 0;
 static uint32_t m_lastTime = 0;
 static Vector2_t m_icc = {0, 0};	// Instantaneous Center of Curvature (ICC). The point which the robot rotates about
+const float DD_Half_Wheel_Base_Length = DD_WHEEL_BASE_LENGTH * 0.5f;
+const float DD_One_Over_Wheel_Base_Length = 1.0f / DD_WHEEL_BASE_LENGTH;
 
 /* Private function prototypes -----------------------------------------------*/
 
@@ -28,12 +34,12 @@ DiffDrive_Update
 w (R + l/2) = Vr
 w (R - l/2) = Vl
 
-R = 1/2 * ((Vl + Vr) / (Vr - Vl))
+R = l/2 * ((Vl + Vr) / (Vr - Vl))
 w = (Vr - Vl) /  l
 
-w - rate of rotation
+w - rate of rotation of the vehicle (angular velocity)
 l - distance between the centers of the two wheels
-Vr, Vl - the right and left wheel velocities along the ground
+Vr, Vl - the right and left wheel translational velocities along the ground
 R - the signed distance from the ICC to the midpoint between the wheels
 *******************************************************************************
 */
@@ -45,7 +51,17 @@ void DiffDrive_Update()
 	float currTime = HAL_GetTick() * 0.001f;
 	
 	// Update wheel velocities
+	float Vl = Encoder_GetDeltaRad1() * DD_WHEEL_RADIUS;
+	float Vr = Encoder_GetDeltaRad2() * DD_WHEEL_RADIUS;
 	
+	float R = 0;
+	float VrMinusVl = Vr - Vl;
+	
+	// Prevent divide by zero, and also know if R is exact center
+	if (VrMinusVl != 0)
+		R = DD_Half_Wheel_Base_Length * ((Vl + Vr) / VrMinusVl);
+	
+	m_angVelocity = VrMinusVl * DD_One_Over_Wheel_Base_Length;
 	
 	m_lastTime = currTime;
 }
@@ -64,4 +80,31 @@ void DiffDrive_SetVehicleRotation(float rot)
 	{
 		m_vehicleRotation -= 360;
 	}
+}
+
+void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
+{
+	// A (left) - B (right)
+	
+	direction_t dirA = FWD;
+	direction_t dirB = FWD;
+	float x = mapf(_x, 0, 255, -1, 1);
+	float y = mapf(_y, 0, 255, -1, 1);
+	
+	if (x < 0)
+	{
+		x = -x;
+		dirA = BWD;
+	}
+	
+	if (y < 0)
+	{
+		y = -y;
+		dirB = BWD;
+	}
+	
+	// TODO: Save the speeds so we can adjust set velocity against measured velocity to compensate for error
+	
+	MotorController_setMotor(MOTOR_A, x, dirA);
+	MotorController_setMotor(MOTOR_B, y, dirB);
 }

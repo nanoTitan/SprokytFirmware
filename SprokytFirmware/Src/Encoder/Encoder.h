@@ -16,6 +16,8 @@ void Encoder_Init();
 void Encoder_Update();
 float Encoder_GetRot1();
 float Encoder_GetRot2();
+float Encoder_GetDeltaRad1();
+float Encoder_GetDeltaRad2();
 float Encoder_GetAngVel1();
 float Encoder_GetAngVel2();
 int8_t Encoder_GetDir1();
