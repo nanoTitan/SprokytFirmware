@@ -37,9 +37,9 @@ int main()
 	
 	PRINTF("***************************\n");
 	PRINTF("Ruka Firmware Version %s\n", FIRMWARE_VERSION_STR);
-	PRINTF("Copyright Sprokyt LLC 2016\n");
+	PRINTF("Copyright Sprokyt LLC 2017\n");
 	PRINTF("All Rights Reserved\n");
-	PRINTF("***************************\n");
+	PRINTF("***************************\n\n");
 	
 	//LEDMgr_Init();
 	
@@ -90,8 +90,10 @@ int main()
 	
 	while (1)
 	{		
-		SerialPrint_Print(m_pBuffTx, strlen(m_pBuffTx));
-		HAL_Delay(500);
+#ifdef SERIAL_PRINT
+//		SerialPrint_Print(m_pBuffTx, strlen(m_pBuffTx));
+//		HAL_Delay(500);
+#endif // SERIAL_PRINT
 		
 		// IMU and Sensors
 #if defined(IMU_ENABLED)

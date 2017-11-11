@@ -156,7 +156,8 @@
     <ClCompile Include="Src\Controller\camera_control.c" />
     <ClCompile Include="Src\cube_hal_f4.c" />
     <ClCompile Include="Src\Distance\sonar.c" />
-    <ClCompile Include="Src\Encoder\EncoderInit.cpp" />
+    <ClCompile Include="Src\Drive\differential_drive.c" />
+    <ClCompile Include="Src\Encoder\Encoder.cpp" />
     <ClCompile Include="Src\Encoder\EncoderMspInitF0.cpp" />
     <ClCompile Include="Src\Encoder\EncoderMspInitF1.cpp" />
     <ClCompile Include="Src\Encoder\EncoderMspInitF3.cpp" />
@@ -342,6 +343,7 @@
     <ClInclude Include="Src\Controller\camera_control.h" />
     <ClInclude Include="Src\cube_hal.h" />
     <ClInclude Include="Src\Distance\sonar.h" />
+    <ClInclude Include="Src\Drive\differential_drive.h" />
     <ClInclude Include="Src\Encoder\Encoder.h" />
     <ClInclude Include="Src\error.h" />
     <ClInclude Include="Src\IMU\imu.h" />

@@ -146,6 +146,9 @@
 #ifndef __cpp_variable_templates
 #define __cpp_variable_templates 201304
 #endif
+#ifndef XDEBUG_DEFAULT_INTERRUPT_HANDLERS
+#define XDEBUG_DEFAULT_INTERRUPT_HANDLERS 1
+#endif
 #ifndef __ARM_FEATURE_UNALIGNED
 #define __ARM_FEATURE_UNALIGNED 1
 #endif
@@ -1209,6 +1212,10 @@
 //Src/Motor
 //Src/Math
 //Src/IMU
+//Src/Distance
+//Src/Drive
+//Src/Encoder
+//Src/Serial
 //X-CUBE-BLE1/Drivers/BSP/STM32F4xx-Nucleo
 //X-CUBE-BLE1/Drivers/BSP/X-NUCLEO-IDB0xA1
 //X-CUBE-BLE1/Middlewares/ST/LowPowerManager/Inc
@@ -1228,6 +1235,10 @@
 //X-CUBE-MEMS1/Drivers/BSP/Components/lsm6ds3
 //X-CUBE-MEMS1/Drivers/BSP/X_NUCLEO_IKS01A1
 //X-CUBE-MEMS1/Middlewares/ST/STM32_MotionFX_Library/Inc
+//X-CUBE-SPN6/Drivers/BSP/Components/Common
+//X-CUBE-SPN6/Drivers/BSP/Components/stspin220
+//X-CUBE-SPN6/Drivers/BSP/MotorControl
+//X-CUBE-SPN6/Drivers/BSP/STM32F4xx-Nucleo
 // --- Include directories end --- //
 
 

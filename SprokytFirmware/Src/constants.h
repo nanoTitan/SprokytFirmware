@@ -12,7 +12,7 @@
 #define SERIAL_PRINT
 #define BLE_ENABLED
 //#define WIFI_ENABLED
-#define IMU_ENABLED
+//#define IMU_ENABLED
 //#define STEPPER_ENABLED
 //#define SERVO_ENABLED
 //#define SONAR_ENABLED
@@ -78,13 +78,13 @@
 #define MD1_RCC_CL_ENABLE		__HAL_RCC_TIM1_CLK_ENABLE
 
 // Definitinos for IMU
-#define TIM_IMU			        TIM3
-#define TIM_IMU_CLK_ENABLE		__TIM3_CLK_ENABLE
-#define TIM_IMU_CLK_DISABLE     __TIM3_CLK_DISABLE
-#define TIM_SF_IRQn				TIM3_IRQn
-#define TIM_IMU_IRQHandler		TIM3_IRQHandler
-#define TIM_IMU_CHANNEL			TIM_CHANNEL_1
-#define IMU_PWM_Pin				GPIO_PIN_5
+#define TIM_IMU			        TIM4
+#define TIM_IMU_CLK_ENABLE		__TIM4_CLK_ENABLE
+#define TIM_IMU_CLK_DISABLE     __TIM4_CLK_DISABLE
+#define TIM_SF_IRQn				TIM4_IRQn
+#define TIM_IMU_IRQHandler		TIM4_IRQHandler
+#define TIM_IMU_CHANNEL			TIM_CHANNEL_2
+#define IMU_PWM_Pin				GPIO_PIN_7
 #define IMU_PWM_GPIO_Port		GPIOB
 
 /* Definition for Servo clock resources */
@@ -98,14 +98,12 @@
 #define SERVO_GPIO_Port						GPIOB
 
 /* Definition for Encoder clock resources */
-#define TIM_ENCODER1	                    TIM1
-#define TIM_ENCODER1_CLK_ENABLE             __TIM1_CLK_ENABLE
-#define TIM_ENCODER1_CLK_DISABLE            __TIM1_CLK_DISABLE
-#define TIM_ENCODER2	                    TIM2
-#define TIM_ENCODER2_CLK_ENABLE             __TIM2_CLK_ENABLE
-#define TIM_ENCODER2_CLK_DISABLE            __TIM2_CLK_DISABLE
-#define ENCODER_COUNT_PER_REV				450				// 3 tooth encoder * 150:1 gear ratio = 450
-#define ENCODER_ONE_OVER_QUAD_COUNT_PER_REV	0.0005556f		// 1 / (450 * 4) = 1 / 1800
+#define TIM_ENCODER1	                    TIM2
+#define TIM_ENCODER1_CLK_ENABLE             __TIM2_CLK_ENABLE
+#define TIM_ENCODER1_CLK_DISABLE            __TIM2_CLK_DISABLE
+#define TIM_ENCODER2	                    TIM3
+#define TIM_ENCODER2_CLK_ENABLE             __TIM3_CLK_ENABLE
+#define TIM_ENCODER2_CLK_DISABLE            __TIM3_CLK_DISABLE
 
 /* Definition for Stepper Motors resources */
 #define STEPPER_MOTOR_1						0

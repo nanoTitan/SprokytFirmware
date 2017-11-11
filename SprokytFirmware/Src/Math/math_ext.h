@@ -23,6 +23,12 @@ typedef struct
 	float z;
 } Quaternion_t;
 
+typedef struct
+{
+	float x;
+	float y;
+} Vector2_t;
+
 static float clampf(float x, float min, float max)
 {
 	if (x < min)	return min;
