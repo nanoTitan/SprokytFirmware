@@ -86,25 +86,71 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 {
 	// A (left) - B (right)
 	
-	direction_t dirA = FWD;
-	direction_t dirB = FWD;
+	// TODO: Save the speeds so we can adjust set velocity against measured velocity to compensate for error
+	
+	direction_t dir = FWD;
 	float x = mapf(_x, 0, 255, -1, 1);
 	float y = mapf(_y, 0, 255, -1, 1);
 	
-	if (x < 0)
+	float e = x;
+	if (fabs(y) > fabs(x))
+		e = y;
+		
+	if (e < 0)
+		e = -e;
+		
+	if (x > 0)
 	{
-		x = -x;
-		dirA = BWD;
+		if (y > 0)
+		{		
+			float d = y - x;
+			if (d < 0)
+			{
+				dir = BWD;
+				d = -d;
+			}	
+				
+			MotorController_setMotor(MOTOR_A, d, dir);
+			MotorController_setMotor(MOTOR_B, e, FWD);
+		}
+		else
+		{
+			float d = x + y;
+			if (d < 0)
+			{
+				dir = BWD;
+				d = -d;
+			}	
+				
+			MotorController_setMotor(MOTOR_A, e, BWD);
+			MotorController_setMotor(MOTOR_B, d, dir);
+		}
 	}
-	
-	if (y < 0)
+	else
 	{
-		y = -y;
-		dirB = BWD;
+		if (y > 0)
+		{
+			float d = x + y;
+			if (d < 0)
+			{
+				dir = BWD;
+				d = -d;
+			}	
+				
+			MotorController_setMotor(MOTOR_A, e, FWD);
+			MotorController_setMotor(MOTOR_B, d, dir);
+		}
+		else
+		{
+			float d = y - x;
+			if (d < 0)
+			{
+				dir = BWD;
+				d = -d;
+			}	
+				
+			MotorController_setMotor(MOTOR_A, d, dir);
+			MotorController_setMotor(MOTOR_B, e, BWD);
+		}
 	}
-	
-	// TODO: Save the speeds so we can adjust set velocity against measured velocity to compensate for error
-	
-	MotorController_setMotor(MOTOR_A, x, dirA);
-	MotorController_setMotor(MOTOR_B, y, dirB);
 }

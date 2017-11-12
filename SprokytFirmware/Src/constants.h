@@ -97,13 +97,22 @@
 #define SERVO2_PWM_PIN						GPIO_PIN_7
 #define SERVO_GPIO_Port						GPIOB
 
-/* Definition for Encoder clock resources */
+/* Definition for Encoder resources */
 #define TIM_ENCODER1	                    TIM2
 #define TIM_ENCODER1_CLK_ENABLE             __TIM2_CLK_ENABLE
 #define TIM_ENCODER1_CLK_DISABLE            __TIM2_CLK_DISABLE
+#define ENCODER_1A_Pin						GPIO_PIN_0
+#define ENCODER_1B_Pin						GPIO_PIN_1
+#define ENCODER_1_Alternate					GPIO_AF1_TIM2
+#define ENCODER_1_Port						GPIOA
+
 #define TIM_ENCODER2	                    TIM3
 #define TIM_ENCODER2_CLK_ENABLE             __TIM3_CLK_ENABLE
 #define TIM_ENCODER2_CLK_DISABLE            __TIM3_CLK_DISABLE
+#define ENCODER_2A_Pin						GPIO_PIN_6
+#define ENCODER_2B_Pin						GPIO_PIN_7
+#define ENCODER_2_Alternate					GPIO_AF2_TIM3
+#define ENCODER_2_Port						GPIOC
 
 /* Definition for Stepper Motors resources */
 #define STEPPER_MOTOR_1						0
