@@ -1,5 +1,4 @@
-#ifndef ENCODER_H
-#define ENCODER_H
+#pragma once
 
 /* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
@@ -11,7 +10,6 @@
 
 /* Exported constants --------------------------------------------------------*/
 
-
 void Encoder_Init();
 void Encoder_Update();
 float Encoder_GetRot1();
@@ -22,5 +20,3 @@ float Encoder_GetAngVel1();
 float Encoder_GetAngVel2();
 int8_t Encoder_GetDir1();
 int8_t Encoder_GetDir2();
-
-#endif

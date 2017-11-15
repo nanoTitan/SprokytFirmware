@@ -233,13 +233,17 @@ void TB_SetPwmPulsewidth(int tb_channel, float fPulsewidth)
 	int compare = (period * fPulsewidth) / prescaler;
 	
 #ifdef MOTOR_1_ENABLED
-	if (tb_channel == MD1_CHANNEL_A || tb_channel == MD1_CHANNEL_B)
-		__HAL_TIM_SET_COMPARE(&hMdTim1, tb_channel, compare);
+	if (tb_channel == TB_CHANNEL_A1)
+		__HAL_TIM_SET_COMPARE(&hMdTim1, MD1_CHANNEL_A, compare);
+	else if (tb_channel == TB_CHANNEL_B1)
+		__HAL_TIM_SET_COMPARE(&hMdTim1, MD1_CHANNEL_B, compare);
 #endif // MOTOR_1_ENABLED
 	
 #ifdef MOTOR_2_ENABLED
-	if (tb_channel == MD2_CHANNEL_A || tb_channel == MD2_CHANNEL_B)
-		__HAL_TIM_SET_COMPARE(&hMdTim2, tb_channel, compare);
+	if (tb_channel == TB_CHANNEL_A2)
+		__HAL_TIM_SET_COMPARE(&hMdTim2, MD2_CHANNEL_A, compare);
+	else if (tb_channel == TB_CHANNEL_B2)
+		__HAL_TIM_SET_COMPARE(&hMdTim2, MD2_CHANNEL_B, compare);
 #endif // MOTOR_2_ENABLED
 }
 

@@ -35,11 +35,13 @@ int main()
 	SerialPrint_Init();
 #endif // SERIAL_PRINT
 	
-	PRINTF("***************************\n");
-	PRINTF("Ruka Firmware Version %s\n", FIRMWARE_VERSION_STR);
+	PRINTF("\n***************************\n");
+	PRINTF("Sprokyt Firmware Version %s\n", FIRMWARE_VERSION_STR);
 	PRINTF("Copyright Sprokyt LLC 2017\n");
 	PRINTF("All Rights Reserved\n");
 	PRINTF("***************************\n\n");
+	
+	PRINTF("Initializing...\n\n");
 	
 	//LEDMgr_Init();
 	
@@ -53,11 +55,7 @@ int main()
 	//blink();
 	
 	// Motor Controller
-	MotorController_init();	
-	
-#if defined(ENCODER_ENABLED)
-	Encoder_Init();
-#endif // ENCODER_ENABLED
+	MotorController_init();
 	
 	// IMU and Sensors
 #if defined(IMU_ENABLED)
@@ -80,13 +78,13 @@ int main()
 #endif // SONAR_ENABLED
 	
 	// Control Manager
-	ControlMgr_init();
+	RoverControl_init();
 	ControlMgr_setType(CONTROLLER_ROVER);
 	
 	/* Set Systick Interrupt priority highest to ensure no lock by using HAL_Delay with StSpin220 */
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 	
-	PRINTF("Initialization finished. Running program...\n");
+	PRINTF("Initialization complete. Running program...\n\n");
 	
 	while (1)
 	{		

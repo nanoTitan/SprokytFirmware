@@ -16,14 +16,14 @@
 //#define STEPPER_ENABLED
 //#define SERVO_ENABLED
 //#define SONAR_ENABLED
-//#define ENCODER_ENABLED
+#define ENCODER_ENABLED
 
 //#define MOTOR_STEPPER
 //#define MOTOR_SERVO
-//#define MOTOR_TOSHIBA
+#define MOTOR_TOSHIBA
 //#define MOTOR_STSPIN
 
-//#define MOTOR_1_ENABLED
+#define MOTOR_1_ENABLED
 //#define MOTOR_2_ENABLED
 
 // Definitions for TOSHIBA motor drivers

@@ -1,12 +1,12 @@
-#include "Encoder.h"
+#include "encoder.h"
 #include "stm32f4xx_hal_conf.h"
 #include "stm32f4xx_hal.h"
 #include "error.h"
 #include "constants.h"
-#include "math_ext.h"
+#include <math.h>
 
 static TIM_HandleTypeDef  timer1, timer2;
-static uint32_t count1 = 0, count2 = 0;
+static uint32_t m_count1 = 0, m_count2 = 0;
 static uint32_t m_lastTime = 0;
 static float m_rotation1 = 0, m_rotation2 = 0;
 static float m_deltaRad1 = 0, m_deltaRad2 = 0;		// The difference in radians since the last update
@@ -20,9 +20,11 @@ void Encoder_Init()
 {
 	// counting on both A&B inputs, 4 ticks per cycle, full 32-bit count
 	EncoderInit(&timer1, TIM_ENCODER1, 0xffffffff, TIM_ENCODERMODE_TI12);
+	PRINTF("Encoder for TIM2 initialized\n");
 
 	// counting on both A&B inputs, 4 ticks per cycle, full 32-bit count
 	EncoderInit(&timer2, TIM_ENCODER2, 0xffffffff, TIM_ENCODERMODE_TI12);
+	PRINTF("Encoder for TIM3 initialized\n");
 }
 
 void Encoder_Update()
@@ -37,31 +39,33 @@ void Encoder_Update()
 	uint32_t currDir2 = __HAL_TIM_IS_TIM_COUNTING_DOWN(&timer2);
 	
 	// Calculate the velocities
-	uint32_t deltaCnt1 = currCount1 - count1;
-	uint32_t deltaCnt2 = currCount2 - count2;
+	uint32_t deltaCnt1 = currCount1 - m_count1;
+	uint32_t deltaCnt2 = currCount2 - m_count2;
 	
 	float currRot1 = currCount1 * Encoder_Rad_Per_Count;
 	float currRot2 = currCount2 * Encoder_Rad_Per_Count;
 	
-	m_angVel1 = abs(currRot1 - m_rotation1) * oneOverDeltaTime;
-	m_angVel2 = abs(currRot2 - m_rotation2) * oneOverDeltaTime;
+	m_angVel1 = fabs(currRot1 - m_rotation1) * oneOverDeltaTime;
+	m_angVel2 = fabs(currRot2 - m_rotation2) * oneOverDeltaTime;
 	
 	// Save the new counts and rotations
-	count1 = currCount1;
-	count2 = currCount2;
+	m_count1 = currCount1;
+	m_count2 = currCount2;
 	m_dir1 = currDir1;
 	m_dir2 = currDir2;
 	
-	while (count1 > ENCODER_COUNT_PER_REV)
-		count1 -= ENCODER_COUNT_PER_REV;
+	while (m_count1 > ENCODER_COUNT_PER_REV)
+		m_count1 -= ENCODER_COUNT_PER_REV;
 	
-	while (count2 > ENCODER_COUNT_PER_REV)
-		count2 -= ENCODER_COUNT_PER_REV;
+	while (m_count2 > ENCODER_COUNT_PER_REV)
+		m_count2 -= ENCODER_COUNT_PER_REV;
 	
 	m_rotation1 = currRot1;
 	m_rotation2 = currRot2;
 	
 	m_lastTime = currTime;
+	
+	PRINTF("cnt1: %u, cnt2:%u, dir1: %u, dir2: %u\n", (unsigned int)m_count1, (unsigned int)m_count2, m_dir1, m_dir2);
 }
 
 float Encoder_GetRot1()
@@ -119,12 +123,12 @@ void EncoderInit(TIM_HandleTypeDef * timer, TIM_TypeDef * TIMx, uint32_t maxcoun
 
 	encoder.IC1Filter = 0x0F;
 	encoder.IC1Polarity = TIM_INPUTCHANNELPOLARITY_RISING;
-	encoder.IC1Prescaler = TIM_ICPSC_DIV4;
+	encoder.IC1Prescaler = TIM_ICPSC_DIV1;						// Orig: TIM_ICPSC_DIV4
 	encoder.IC1Selection = TIM_ICSELECTION_DIRECTTI;
 
 	encoder.IC2Filter = 0x0F;
-	encoder.IC2Polarity = TIM_INPUTCHANNELPOLARITY_FALLING;
-	encoder.IC2Prescaler = TIM_ICPSC_DIV4;
+	encoder.IC2Polarity = TIM_INPUTCHANNELPOLARITY_BOTHEDGE;	// Orig: TIM_INPUTCHANNELPOLARITY_FALLING
+	encoder.IC2Prescaler = TIM_ICPSC_DIV1;						// Orig: TIM_ICPSC_DIV4
 	encoder.IC2Selection = TIM_ICSELECTION_DIRECTTI;
 
     if (HAL_TIM_Encoder_Init(timer, &encoder) != HAL_OK) 
@@ -133,17 +137,19 @@ void EncoderInit(TIM_HandleTypeDef * timer, TIM_TypeDef * TIMx, uint32_t maxcoun
 	    Error_Handler();
     }
 	
-	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(timer, &sMasterConfig) != HAL_OK)
-	{
-		PRINTF("Error: Encoder could not syncronize with master config\r\n");
-	}
+//	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+//	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+//	if (HAL_TIMEx_MasterConfigSynchronization(timer, &sMasterConfig) != HAL_OK)
+//	{
+//		PRINTF("Error: Encoder could not syncronize with master config\r\n");
+//	}
 
 	if (HAL_TIM_Encoder_Start(timer, TIM_CHANNEL_1) != HAL_OK) 
 	{
-		printf("Error: Encoder failed to start\r\n");
+		PRINTF("Error: Encoder failed to start\r\n");
 		Error_Handler();
     }
+	
+	TIMx->EGR = 1;           // Generate an update event
+	TIMx->CR1 = 1;           // Enable the counter
 }
-

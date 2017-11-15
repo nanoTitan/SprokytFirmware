@@ -3,7 +3,7 @@
 //#include "PID.h"
 //#include "user_control.h"
 #include "rover_control.h"
-#include "camera_control.h"
+//#include "camera_control.h"
 //#include "flight_control.h"
 //#include "esc_programmer.h"
 #include "debug.h"
@@ -57,7 +57,8 @@ void ControlMgr_init()
 	ControlMgr_initADC();
 #endif // VBAT_ENABLED
 	
-	CameraControl_init();
+	RoverControl_init();
+	//CameraControl_init();
 	//ServoCameraControl_init();
 	//FlightControl_init();
 	//UserControl_init();
@@ -97,15 +98,7 @@ void ControlMgr_update()
 #endif // BLE_ENABLED
 	}
 	
-	// Jump table to store controller update functions
-	static void(* const pf[])(void) = { RoverControl_update, CameraControl_update /*, UserControl_update, FlightControl_update, NULL, NULL*/ };
-	
-	// Update current controller
-	if (m_currControllerType < sizeof(pf) / sizeof(*pf))
-	{
-		if (pf[m_currControllerType] != NULL )
-			pf[m_currControllerType]();
-	}
+	RoverControl_update();
 }
 
 static void ControlMgr_initADC()
@@ -245,16 +238,7 @@ void ControlMgr_parseInstruction(uint8_t data_length, uint8_t *att_data)
 		return;
 	}
 	
-	// Jump table to store functions for parsing instructions
-	static void(* const pf[])(uint8_t, uint8_t*) = { RoverControl_parseInstruction, CameraControl_parseInstruction, /*, FlightControl_parseInstruction , UserControl_parseInstruction*/ };
-	
-	// Update current controller
-	if (m_currControllerType < sizeof(pf) / sizeof(*pf))
-	{
-		if (pf[m_currControllerType] != NULL)
-			pf[m_currControllerType](data_length, att_data);
-	}
-	
+	RoverControl_parseInstruction(data_length, att_data);
 	ResetPing();
 }
 

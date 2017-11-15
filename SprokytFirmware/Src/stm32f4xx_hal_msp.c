@@ -228,41 +228,6 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 	}
 }
 
-void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef* htim_encoder)
-{
-	GPIO_InitTypeDef GPIO_InitStruct;
-	if (htim_encoder->Instance == TIM_ENCODER1)
-	{
-		TIM_ENCODER1_CLK_ENABLE();
-  
-	    /**TIM2 GPIO Configuration    
-	    PA0-WKUP     ------> TIM2_CH1
-	    PA1     ------> TIM2_CH2 
-	    */
-		GPIO_InitStruct.Pin = ENCODER_1A_Pin | ENCODER_1B_Pin;
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Pull = GPIO_NOPULL;
-		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-		GPIO_InitStruct.Alternate = ENCODER_1_Alternate;
-		HAL_GPIO_Init(ENCODER_1_Port, &GPIO_InitStruct);
-	}
-	else if (htim_encoder->Instance == TIM3)
-	{
-		TIM_ENCODER2_CLK_ENABLE();
-  
-	    /**TIM3 GPIO Configuration    
-	    PC6     ------> TIM3_CH1
-	    PC7     ------> TIM3_CH2 
-	    */
-		GPIO_InitStruct.Pin = ENCODER_2A_Pin | ENCODER_2B_Pin;
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Pull = GPIO_NOPULL;
-		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-		GPIO_InitStruct.Alternate = ENCODER_2_Alternate;
-		HAL_GPIO_Init(ENCODER_2_Port, &GPIO_InitStruct);
-	}
-}
-
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 {
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -387,20 +352,6 @@ void HAL_TIM_OC_MspInit(TIM_HandleTypeDef *htim)
 		
 		HAL_NVIC_EnableIRQ(BSP_MOTOR_CONTROL_BOARD_IRQn_TIM_STCK);
 #endif // STEPPER_ENABLED
-	}
-}
-
-void HAL_TIM_Encoder_MspDeInit(TIM_HandleTypeDef* htim_encoder)
-{
-	if (htim_encoder->Instance == TIM_ENCODER1)
-	{
-		TIM_ENCODER1_CLK_DISABLE();
-		HAL_GPIO_DeInit(ENCODER_1_Port, ENCODER_1A_Pin | ENCODER_1B_Pin);
-	}
-	else if (htim_encoder->Instance == TIM_ENCODER2)
-	{
-		TIM_ENCODER2_CLK_DISABLE();
-		HAL_GPIO_DeInit(ENCODER_2_Port, ENCODER_2A_Pin | ENCODER_2B_Pin);
 	}
 }
 

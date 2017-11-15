@@ -3,6 +3,7 @@
 #include "motor_controller.h"
 #include "BLE.h"
 #include "differential_drive.h"
+
 //#include "Wifi.h"
 #include "math_ext.h"
 #include "debug.h"
@@ -25,6 +26,7 @@ static void ParseTranslateQuadDrive(uint8_t _x, uint8_t _y);
 /* Private functions ---------------------------------------------------------*/
 void RoverControl_init()
 {	
+	DiffDrive_Init();
 }
 
 void RoverControl_update()
@@ -52,6 +54,8 @@ void RoverControl_update()
 	default:
 		break;
 	}
+	
+	DiffDrive_Update();
 }
 
 void UpdateConnected()
@@ -92,7 +96,7 @@ void RoverControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 	{
 		m_x = att_data[1];
 		m_y = att_data[2];
-		//PRINTF("x: %u, y: %u\r\n", m_x, m_y);
+		PRINTF("x: %u, y: %u\n", m_x, m_y);
 		m_doUpdate = TRUE;		
 	}
 }
