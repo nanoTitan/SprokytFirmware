@@ -96,8 +96,8 @@ void RoverControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 	{
 		m_x = att_data[1];
 		m_y = att_data[2];
-		PRINTF("x: %u, y: %u\n", m_x, m_y);
-		m_doUpdate = TRUE;		
+		
+		m_doUpdate = TRUE;
 	}
 }
 

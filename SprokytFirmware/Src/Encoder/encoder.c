@@ -18,12 +18,10 @@ static void EncoderInit(TIM_HandleTypeDef * timer, TIM_TypeDef * TIMx, uint32_t 
 
 void Encoder_Init()
 {
-	// counting on both A&B inputs, 4 ticks per cycle, full 32-bit count
-	EncoderInit(&timer1, TIM_ENCODER1, 0xffffffff, TIM_ENCODERMODE_TI12);
+	EncoderInit(&timer1, TIM_ENCODER1, ENCODER_COUNT_PER_REV+6, TIM_ENCODERMODE_TI12);
 	PRINTF("Encoder for TIM2 initialized\n");
 
-	// counting on both A&B inputs, 4 ticks per cycle, full 32-bit count
-	EncoderInit(&timer2, TIM_ENCODER2, 0xffffffff, TIM_ENCODERMODE_TI12);
+	EncoderInit(&timer2, TIM_ENCODER2, ENCODER_COUNT_PER_REV+6, TIM_ENCODERMODE_TI12);
 	PRINTF("Encoder for TIM3 initialized\n");
 }
 
@@ -33,10 +31,10 @@ void Encoder_Update()
 	float oneOverDeltaTime = 1.0f / (currTime - m_lastTime);
 	
 	uint32_t currCount1 = __HAL_TIM_GET_COUNTER(&timer1);
-	uint32_t currDir1 = __HAL_TIM_IS_TIM_COUNTING_DOWN(&timer1);
+	m_dir1 = __HAL_TIM_IS_TIM_COUNTING_DOWN(&timer1);
 	
 	uint32_t currCount2 = __HAL_TIM_GET_COUNTER(&timer2);
-	uint32_t currDir2 = __HAL_TIM_IS_TIM_COUNTING_DOWN(&timer2);
+	m_dir2 = __HAL_TIM_IS_TIM_COUNTING_DOWN(&timer2);
 	
 	// Calculate the velocities
 	uint32_t deltaCnt1 = currCount1 - m_count1;
@@ -51,21 +49,21 @@ void Encoder_Update()
 	// Save the new counts and rotations
 	m_count1 = currCount1;
 	m_count2 = currCount2;
-	m_dir1 = currDir1;
-	m_dir2 = currDir2;
-	
-	while (m_count1 > ENCODER_COUNT_PER_REV)
-		m_count1 -= ENCODER_COUNT_PER_REV;
-	
-	while (m_count2 > ENCODER_COUNT_PER_REV)
-		m_count2 -= ENCODER_COUNT_PER_REV;
 	
 	m_rotation1 = currRot1;
 	m_rotation2 = currRot2;
 	
 	m_lastTime = currTime;
 	
-	PRINTF("cnt1: %u, cnt2:%u, dir1: %u, dir2: %u\n", (unsigned int)m_count1, (unsigned int)m_count2, m_dir1, m_dir2);
+	static int printCnt = 0;
+	++printCnt;
+	if (printCnt > 100000)
+	{
+		//PRINTF("%u, %u, %u, %u\n", (unsigned int)m_count1, (unsigned int)m_count2, m_dir1, m_dir2);	
+		PRINTF("%2.3f, %2.3f\n", m_rotation1, m_rotation2);	
+		
+		printCnt = 0;
+	}
 }
 
 float Encoder_GetRot1()
@@ -120,15 +118,13 @@ void EncoderInit(TIM_HandleTypeDef * timer, TIM_TypeDef * TIMx, uint32_t maxcoun
     timer->Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 
 	encoder.EncoderMode = encmode;
-
-	encoder.IC1Filter = 0x0F;
+	encoder.IC1Filter = 0x00;									// Orig: 0x0F							Alt: 0x00
 	encoder.IC1Polarity = TIM_INPUTCHANNELPOLARITY_RISING;
-	encoder.IC1Prescaler = TIM_ICPSC_DIV1;						// Orig: TIM_ICPSC_DIV4
+	encoder.IC1Prescaler = TIM_ICPSC_DIV1;						// Orig: TIM_ICPSC_DIV4					Alt: TIM_ICPSC_DIV1
 	encoder.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-
-	encoder.IC2Filter = 0x0F;
-	encoder.IC2Polarity = TIM_INPUTCHANNELPOLARITY_BOTHEDGE;	// Orig: TIM_INPUTCHANNELPOLARITY_FALLING
-	encoder.IC2Prescaler = TIM_ICPSC_DIV1;						// Orig: TIM_ICPSC_DIV4
+	encoder.IC2Filter = 0x00;									// Orig: 0x0F							Alt: 0x00
+	encoder.IC2Polarity = TIM_INPUTCHANNELPOLARITY_RISING;		// Orig: TIM_INPUTCHANNELPOLARITY_FALLING	Alt: TIM_INPUTCHANNELPOLARITY_BOTHEDGE
+	encoder.IC2Prescaler = TIM_ICPSC_DIV1;						// Orig: TIM_ICPSC_DIV4					Alt: TIM_ICPSC_DIV1
 	encoder.IC2Selection = TIM_ICSELECTION_DIRECTTI;
 
     if (HAL_TIM_Encoder_Init(timer, &encoder) != HAL_OK) 
