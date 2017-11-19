@@ -442,6 +442,8 @@ void Magneto_Sensor_Handler()
 				MAG_Offset.AXIS_Y = MAG_OFFSET_Y;
 				MAG_Offset.AXIS_Z = MAG_OFFSET_Z;
 				
+				PRINTF("IMU calibration finished\n\n");
+				
 			} else 
 			// *************************************************
 				
@@ -523,4 +525,29 @@ float IMU_get_roll()
 	}
 	
 	return GYR_Value.AXIS_X;
+}
+
+void IMU_get_yawPitchRoll(float* out_yaw, float* out_pitch, float* out_roll)
+{
+	if (sensor_fusion_active)
+	{
+		if (SF_6X_Enabled)
+		{
+			*out_yaw = mfx_output.rotation_6X[0];
+			*out_pitch = mfx_output.rotation_6X[1];
+			*out_roll = mfx_output.rotation_6X[2];
+		}
+		else
+		{
+			*out_yaw = mfx_output.rotation_9X[0];
+			*out_pitch = mfx_output.rotation_9X[1];
+			*out_roll = mfx_output.rotation_9X[2];
+		}
+	}
+	else
+	{
+		*out_yaw = GYR_Value.AXIS_Z;
+		*out_pitch = GYR_Value.AXIS_Y;
+		*out_roll = GYR_Value.AXIS_X;
+	}
 }

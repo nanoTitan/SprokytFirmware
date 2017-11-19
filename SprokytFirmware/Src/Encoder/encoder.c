@@ -5,11 +5,12 @@
 #include "constants.h"
 #include <math.h>
 
+//#define PRINT_ENCODER
+
 static TIM_HandleTypeDef  timer1, timer2;
-static uint32_t m_count1 = 0, m_count2 = 0;
-static uint32_t m_lastTime = 0;
-static float m_rotation1 = 0, m_rotation2 = 0;
-static float m_deltaRad1 = 0, m_deltaRad2 = 0;		// The difference in radians since the last update
+static int32_t m_lastCount1 = 0, m_lastCount2 = 0;
+static float m_lastTime = 0;
+static float m_lastAngle1 = 0, m_lastAngle2 = 0;
 static float m_angVel1 = 0, m_angVel2 = 0;			// Rotational speed in radian per second
 static int8_t m_dir1 = 0, m_dir2 = 0;				// Rotation direction. 0 for CW and 1 for CCW
 const float Encoder_Rad_Per_Count = 2 * ENCODER_ONE_OVER_QUAD_COUNT_PER_REV;
@@ -18,72 +19,99 @@ static void EncoderInit(TIM_HandleTypeDef * timer, TIM_TypeDef * TIMx, uint32_t 
 
 void Encoder_Init()
 {
-	EncoderInit(&timer1, TIM_ENCODER1, ENCODER_COUNT_PER_REV+6, TIM_ENCODERMODE_TI12);
+	EncoderInit(&timer1, TIM_ENCODER1, ENCODER_COUNT_PER_REV, TIM_ENCODERMODE_TI12);
 	PRINTF("Encoder for TIM2 initialized\n");
 
-	EncoderInit(&timer2, TIM_ENCODER2, ENCODER_COUNT_PER_REV+6, TIM_ENCODERMODE_TI12);
+	EncoderInit(&timer2, TIM_ENCODER2, ENCODER_COUNT_PER_REV, TIM_ENCODERMODE_TI12);
 	PRINTF("Encoder for TIM3 initialized\n");
 }
 
 void Encoder_Update()
 {
 	float currTime = HAL_GetTick() * 0.001f;
-	float oneOverDeltaTime = 1.0f / (currTime - m_lastTime);
+	float deltaTime = currTime - m_lastTime;
 	
-	uint32_t currCount1 = __HAL_TIM_GET_COUNTER(&timer1);
+	// Prevent divide by zero with 1.0 / deltaTime
+	if (deltaTime == 0)
+		return;
+	
+	float oneOverDeltaTime = 1.0f / deltaTime;
+	
+	int32_t currCount1 = __HAL_TIM_GET_COUNTER(&timer1);
 	m_dir1 = __HAL_TIM_IS_TIM_COUNTING_DOWN(&timer1);
 	
-	uint32_t currCount2 = __HAL_TIM_GET_COUNTER(&timer2);
+	int32_t currCount2 = __HAL_TIM_GET_COUNTER(&timer2);
 	m_dir2 = __HAL_TIM_IS_TIM_COUNTING_DOWN(&timer2);
 	
-	// Calculate the velocities
-	uint32_t deltaCnt1 = currCount1 - m_count1;
-	uint32_t deltaCnt2 = currCount2 - m_count2;
+	// Check if our count values are wrapping
+	uint8_t didCntWrap1 = 0;
+	uint8_t didCntWrap2 = 0;
+	if ((currCount1 > ENCODER_COUNT_MAX_WRAP_CHECK && m_lastCount1 < ENCODER_COUNT_MIN_WRAP_CHECK) ||
+		(m_lastCount1 > ENCODER_COUNT_MAX_WRAP_CHECK && currCount1 < ENCODER_COUNT_MIN_WRAP_CHECK))
+		didCntWrap1 = 1;
 	
-	float currRot1 = currCount1 * Encoder_Rad_Per_Count;
-	float currRot2 = currCount2 * Encoder_Rad_Per_Count;
+	if ((currCount2 > ENCODER_COUNT_MAX_WRAP_CHECK && m_lastCount2 < ENCODER_COUNT_MIN_WRAP_CHECK) ||
+		(m_lastCount2 > ENCODER_COUNT_MAX_WRAP_CHECK && currCount2 < ENCODER_COUNT_MIN_WRAP_CHECK))
+		didCntWrap2 = 1;
 	
-	m_angVel1 = fabs(currRot1 - m_rotation1) * oneOverDeltaTime;
-	m_angVel2 = fabs(currRot2 - m_rotation2) * oneOverDeltaTime;
+	float deltaCnt1 = currCount1 - m_lastCount1;
+	float deltaCnt2 = currCount2 - m_lastCount2;
 	
-	// Save the new counts and rotations
-	m_count1 = currCount1;
-	m_count2 = currCount2;
+	if (didCntWrap1)
+	{
+		if (m_dir1 == 0)	// Forward
+			deltaCnt1 = currCount1 + (float)(ENCODER_COUNT_PER_REV - m_lastCount1);
+		else
+			deltaCnt1 = -(m_lastCount1 + ENCODER_COUNT_PER_REV - currCount1);
+	}
 	
-	m_rotation1 = currRot1;
-	m_rotation2 = currRot2;
+	if (didCntWrap2)
+	{
+		if (m_dir2 == 0)	// Forward
+			deltaCnt2 = currCount2 + ENCODER_COUNT_PER_REV - m_lastCount2;
+		else
+			deltaCnt2 = -(m_lastCount2 + ENCODER_COUNT_PER_REV - currCount2);
+	}
 	
+	// Calculate dTheta
+	float deltaAngle1 = deltaCnt1 * Encoder_Rad_Per_Count;
+	float deltaAngle2 = deltaCnt2 * Encoder_Rad_Per_Count;
+	
+	// w = dTheta / dTime
+	m_angVel1 = deltaAngle1 * oneOverDeltaTime;		
+	m_angVel2 = deltaAngle2 * oneOverDeltaTime;
+	
+	// Save the new counts and angles
+	m_lastAngle1 = currCount1 * Encoder_Rad_Per_Count;
+	m_lastAngle2 = currCount2 * Encoder_Rad_Per_Count;
+	m_lastCount1 = currCount1;
+	m_lastCount2 = currCount2;
 	m_lastTime = currTime;
 	
+#ifdef PRINT_ENCODER
 	static int printCnt = 0;
 	++printCnt;
-	if (printCnt > 100000)
+	if (printCnt > 0)
 	{
-		//PRINTF("%u, %u, %u, %u\n", (unsigned int)m_count1, (unsigned int)m_count2, m_dir1, m_dir2);	
-		PRINTF("%2.3f, %2.3f\n", m_rotation1, m_rotation2);	
+		//PRINTF("%u, %u, %u, %u\n", (unsigned int)m_lastCount1, (unsigned int)m_lastCount2, m_dir1, m_dir2);	
+		//PRINTF("%2.3f, %2.3f\n", deltaTime, oneOverDeltaTime);	
+		//PRINTF("%2.3f, %2.3f\n", deltaCnt1, deltaCnt2);	
+		//PRINTF("%2.3f, %2.3f\n", deltaAngle1, deltaAngle2);	
+		PRINTF("%2.3f, %2.3f\n", m_angVel1, m_angVel2);	
 		
 		printCnt = 0;
 	}
+#endif // PRINT_ENCODER
 }
 
-float Encoder_GetRot1()
+float Encoder_GetAngle1()
 {
-	return m_rotation1;
+	return m_lastAngle1;
 }
 
-float Encoder_GetRot2()
+float Encoder_GetAngle2()
 {
-	return m_rotation2;
-}
-
-float Encoder_GetDeltaRad1()
-{
-	return m_deltaRad1;
-}
-
-float Encoder_GetDeltaRad2()
-{
-	return m_deltaRad2;
+	return m_lastAngle2;
 }
 
 float Encoder_GetAngVel1()

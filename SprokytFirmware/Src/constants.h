@@ -78,11 +78,11 @@
 #define MD1_RCC_CL_ENABLE		__HAL_RCC_TIM1_CLK_ENABLE
 
 // Definitinos for IMU
-#define TIM_IMU			        TIM4
-#define TIM_IMU_CLK_ENABLE		__TIM4_CLK_ENABLE
-#define TIM_IMU_CLK_DISABLE     __TIM4_CLK_DISABLE
-#define TIM_SF_IRQn				TIM4_IRQn
-#define TIM_IMU_IRQHandler		TIM4_IRQHandler
+#define TIM_IMU			        TIM3
+#define TIM_IMU_CLK_ENABLE		__TIM3_CLK_ENABLE
+#define TIM_IMU_CLK_DISABLE     __TIM3_CLK_DISABLE
+#define TIM_SF_IRQn				TIM3_IRQn
+#define TIM_IMU_IRQHandler		TIM3_IRQHandler
 #define TIM_IMU_CHANNEL			TIM_CHANNEL_2
 #define IMU_PWM_Pin				GPIO_PIN_7
 #define IMU_PWM_GPIO_Port		GPIOB

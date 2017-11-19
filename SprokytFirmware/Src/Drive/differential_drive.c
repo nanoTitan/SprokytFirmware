@@ -7,6 +7,9 @@
 #include "stm32f4xx_hal.h"
 #include "constants.h"
 #include "motor_controller.h"
+#include "imu.h"
+
+#define PRINT_DIFF_DRIVE
 
 /* Private variables ---------------------------------------------------------*/
 static float m_leftAngVel = 0;
@@ -14,7 +17,8 @@ static float m_rightAngVel = 0;
 static float m_vehicleRotation = 0;
 static float m_vehicleVelocity = 0;
 static float m_angVelocity = 0;
-static uint32_t m_lastTime = 0;
+static float m_angPosition = 0;
+static float m_lastTime = 0;
 static Vector2_t m_icc = {0, 0};	// Instantaneous Center of Curvature (ICC). The point which the robot rotates about
 const float DD_Half_Wheel_Base_Length = DD_WHEEL_BASE_LENGTH * 0.5f;
 const float DD_One_Over_Wheel_Base_Length = 1.0f / DD_WHEEL_BASE_LENGTH;
@@ -24,7 +28,9 @@ const float DD_One_Over_Wheel_Base_Length = 1.0f / DD_WHEEL_BASE_LENGTH;
 
 void DiffDrive_Init()
 {
+#if defined(ENCODER_ENABLED)
 	Encoder_Init();
+#endif // ENCODER_ENABLED
 }
 
 /*
@@ -40,19 +46,29 @@ w = (Vr - Vl) /  l
 w - rate of rotation of the vehicle (angular velocity)
 l - distance between the centers of the two wheels
 Vr, Vl - the right and left wheel translational velocities along the ground
-R - the signed distance from the ICC to the midpoint between the wheels
-*******************************************************************************
+R - the signed distance from the Instantaneous Center of Curvature (ICC) to the midpoint between the wheels
+**********************************************************************************************************************
 */
 void DiffDrive_Update()
 {
+#if defined(ENCODER_ENABLED)
+	
+	float currTime = HAL_GetTick() * 0.001f;
+	float deltaTime = currTime - m_lastTime;
+	
+	// Update once every 100ms
+	if (deltaTime < 0.01f)
+	{
+		return;
+	}
+	
 	// Update the encoders
 	Encoder_Update();
 	
-	float currTime = HAL_GetTick() * 0.001f;
-	
 	// Update wheel velocities
-	float Vl = Encoder_GetDeltaRad1() * DD_WHEEL_RADIUS;
-	float Vr = Encoder_GetDeltaRad2() * DD_WHEEL_RADIUS;
+	// V = wR  translational velocity of wheel center is rotational velocity * wheel radius
+	float Vl = Encoder_GetAngVel1() * DD_WHEEL_RADIUS;
+	float Vr = Encoder_GetAngVel2() * DD_WHEEL_RADIUS;
 	
 	float R = 0;
 	float VrMinusVl = Vr - Vl;
@@ -62,8 +78,34 @@ void DiffDrive_Update()
 		R = DD_Half_Wheel_Base_Length * ((Vl + Vr) / VrMinusVl);
 	
 	m_angVelocity = VrMinusVl * DD_One_Over_Wheel_Base_Length;
+	m_angPosition = m_angPosition + m_angVelocity * deltaTime;
+	
+	// Normalize the angular position between 0-2pi (0° - 360°)
+	if (m_angPosition > M_2PI)
+		m_angPosition -= M_2PI;
+	else if(m_angPosition < 0)
+		m_angPosition += M_2PI;
 	
 	m_lastTime = currTime;
+#endif // ENCODER_ENABLED
+	
+#ifdef PRINT_DIFF_DRIVE
+	// Print IMU values for testing
+	static int printCnt = 0;
+	++printCnt;
+	if (printCnt > 0)
+	{
+#if defined(IMU_ENABLED)
+		float yaw, pitch, roll;
+		IMU_get_yawPitchRoll(&yaw, &pitch, &roll);
+		PRINTF("%3.1f, %3.1f, %3.1f\n", yaw, pitch, roll);		
+#endif // IMU_ENABLED
+		
+		PRINTF("%3.3f, %3.3f\n", m_angVelocity, m_angPosition);	
+		
+		printCnt = 0;
+	}
+#endif // PRINT_DIFF_DRIVE
 }
 
 void DiffDrive_SetVehicleRotation(float rot)
