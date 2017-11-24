@@ -16,6 +16,7 @@ All Rights Reserved
 #include "cube_hal.h"
 #include "Encoder.h"
 #include "serial_print.h"
+#include "rover_control.h"
 
 /* Private variables ---------------------------------------------------------*/
 char* m_pBuffTx = "Hello World!\r\n";
@@ -30,7 +31,7 @@ int main()
 	
 	// Configure the system clock
 	SystemClock_Config();
-	
+	 
 #ifdef SERIAL_PRINT
 	SerialPrint_Init();
 #endif // SERIAL_PRINT

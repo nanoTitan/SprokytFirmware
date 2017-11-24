@@ -56,6 +56,9 @@ void DiffDrive_Update()
 {
 #if defined(ENCODER_ENABLED)
 	
+	// Update the encoders frequently so the counts and velocities are accurate
+	Encoder_Update();
+	
 	float currTime = HAL_GetTick() * 0.001f;
 	float deltaTime = currTime - m_lastTime;
 	
@@ -65,12 +68,10 @@ void DiffDrive_Update()
 		return;
 	}
 	
-	// Update the encoders
-	Encoder_Update();
-	
 	// Update wheel velocities
 	// V = wR  translational velocity of wheel center is rotational velocity * wheel radius
-	float Vl = Encoder_GetAngVel1() * DD_WHEEL_RADIUS;
+	// Vl is negated to account for reversed motor direction (wheel on left spins CCW to go forward)
+	float Vl = -Encoder_GetAngVel1() * DD_WHEEL_RADIUS;
 	float Vr = Encoder_GetAngVel2() * DD_WHEEL_RADIUS;
 	
 	float R = 0;
@@ -124,8 +125,8 @@ void DiffDrive_Update()
 		PRINTF("%3.1f, %3.1f, %3.1f\n", yaw, pitch, roll);		
 #endif // IMU_ENABLED
 		
-		//PRINTF("%1.2f, %1.2f\n", Vl, Vr);	
-		//PRINTF("%1.2f, %1.2f\n", m_angVelocity, m_angPosition);	
+		//PRINTF("%.3f, %.3f\n", Vl, Vr);	
+		PRINTF("%.2f, %.2f\n", m_angVelocity, m_angPosition);	
 		//PRINTF("%.2f, %.2f\n", m_vehiclePosition.x, m_vehiclePosition.y);	
 		
 		printCnt = 0;
@@ -158,7 +159,7 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 	float x = mapf(_x, 0, 255, -1, 1);
 	float y = mapf(_y, 0, 255, -1, 1);
 	
-	PRINTF("%1.2f, %1.2f\n", x, y);	
+	//PRINTF("%1.2f, %1.2f\n", x, y);	
 	
 	float left = 0;
 	float right = 0;

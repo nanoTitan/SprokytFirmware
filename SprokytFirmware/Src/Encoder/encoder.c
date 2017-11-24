@@ -5,10 +5,10 @@
 #include "constants.h"
 #include <math.h>
 
-//#define PRINT_ENCODER
+#define PRINT_ENCODER
 
 static TIM_HandleTypeDef  timer1, timer2;
-static int32_t m_lastCount1 = 0, m_lastCount2 = 0;
+static float m_lastCount1 = 0, m_lastCount2 = 0;
 static float m_lastTime = 0;
 static float m_lastAngle1 = 0, m_lastAngle2 = 0;
 static float m_angVel1 = 0, m_angVel2 = 0;			// Rotational speed in radian per second
@@ -37,10 +37,10 @@ void Encoder_Update()
 	
 	float oneOverDeltaTime = 1.0f / deltaTime;
 	
-	int32_t currCount1 = __HAL_TIM_GET_COUNTER(&timer1);
+	float currCount1 = (float)__HAL_TIM_GET_COUNTER(&timer1);
 	m_dir1 = __HAL_TIM_IS_TIM_COUNTING_DOWN(&timer1);
 	
-	int32_t currCount2 = __HAL_TIM_GET_COUNTER(&timer2);
+	float currCount2 = (float)__HAL_TIM_GET_COUNTER(&timer2);
 	m_dir2 = __HAL_TIM_IS_TIM_COUNTING_DOWN(&timer2);
 	
 	// Check if our count values are wrapping
@@ -59,15 +59,15 @@ void Encoder_Update()
 	
 	if (didCntWrap1)
 	{
-		if (m_dir1 == 0)	// Forward
-			deltaCnt1 = currCount1 + (float)(ENCODER_COUNT_PER_REV - m_lastCount1);
+		if(currCount1 < m_lastCount1)		// (m_dir1 == 0)	// Forward
+			deltaCnt1 = currCount1 + ENCODER_COUNT_PER_REV - m_lastCount1;
 		else
 			deltaCnt1 = -(m_lastCount1 + ENCODER_COUNT_PER_REV - currCount1);
 	}
 	
 	if (didCntWrap2)
 	{
-		if (m_dir2 == 0)	// Forward
+		if(currCount2 < m_lastCount2) // (m_dir2 == 0)	// Forward
 			deltaCnt2 = currCount2 + ENCODER_COUNT_PER_REV - m_lastCount2;
 		else
 			deltaCnt2 = -(m_lastCount2 + ENCODER_COUNT_PER_REV - currCount2);
@@ -91,13 +91,14 @@ void Encoder_Update()
 #ifdef PRINT_ENCODER
 	static int printCnt = 0;
 	++printCnt;
-	if (printCnt > 0)
+	if (printCnt > 5)
 	{
 		//PRINTF("%u, %u, %u, %u\n", (unsigned int)m_lastCount1, (unsigned int)m_lastCount2, m_dir1, m_dir2);	
 		//PRINTF("%2.3f, %2.3f\n", deltaTime, oneOverDeltaTime);	
+		//PRINTF("%d, %d\n", currCount1, currCount2);	
 		//PRINTF("%2.3f, %2.3f\n", deltaCnt1, deltaCnt2);	
 		//PRINTF("%2.3f, %2.3f\n", deltaAngle1, deltaAngle2);	
-		PRINTF("%2.3f, %2.3f\n", m_angVel1, m_angVel2);	
+		//PRINTF("%.3f, %.3f\n", m_angVel1, m_angVel2);	
 		
 		printCnt = 0;
 	}
