@@ -86,15 +86,6 @@ void DiffDrive_Update()
 	// Calculate the instantaneous rotation of the vehicle
 	float theta = m_angVelocity * deltaTime;
 	
-	// Add the instantaneous rotation to our total to update the current angle
-	m_angPosition = m_angPosition + theta;
-	
-	// Normalize the angular position between 0-2pi (0° - 360°)
-	if (m_angPosition > M_2PI)
-		m_angPosition -= M_2PI;
-	else if(m_angPosition < 0)
-		m_angPosition += M_2PI;
-	
 	/*
 	Compute new position
 	
@@ -102,14 +93,26 @@ void DiffDrive_Update()
 	py = sin(theta/2) * (2Rsin(theta/2))
 	*/
 	
-	float thetaOver2 = theta * 0.5f;
-	float cosThetaOver2 = cosf(thetaOver2);
-	float sinThetaOver2 = sinf(thetaOver2);
-	float twoRsinThetaOver2 = 2 * R * sinThetaOver2;
+	float cosTheta = cosf(theta);
+	float sinTheta = sinf(theta);
+	float RsinAng = R * sinf(m_angPosition);
+	float RcosAng = R * cosf(m_angPosition);
 	
-	m_vehiclePosition.x = m_vehiclePosition.x + (cosThetaOver2 * twoRsinThetaOver2);
-	m_vehiclePosition.y = m_vehiclePosition.y + (sinThetaOver2 * twoRsinThetaOver2);
+	m_vehiclePosition.x = m_vehiclePosition.x + cosTheta * RsinAng + sinTheta * RcosAng - RsinAng;
+	m_vehiclePosition.y = m_vehiclePosition.y + sinTheta * RsinAng - cosTheta * RcosAng + RcosAng;
 	
+	/*
+	Compute new angular position
+	Add the instantaneous rotation to our total to update the current angle and normalize
+	*/
+	m_angPosition = m_angPosition + theta;
+	
+	if (m_angPosition > M_2PI)
+		m_angPosition -= M_2PI;
+	else if (m_angPosition < 0)
+		m_angPosition += M_2PI;
+	
+	// Update the time
 	m_lastTime = currTime;
 #endif // ENCODER_ENABLED
 	
