@@ -81,7 +81,7 @@ void DiffDrive_Update()
 	if (VrMinusVl != 0)
 		R = DD_Half_Wheel_Base_Length * ((Vl + Vr) / VrMinusVl);
 	
-	m_angVelocity = VrMinusVl * DD_One_Over_Wheel_Base_Length;
+	m_angVelocity = -VrMinusVl * DD_One_Over_Wheel_Base_Length;		// Use negative so that CW is positive angular velocity
 	
 	// Calculate the instantaneous rotation of the vehicle
 	float theta = m_angVelocity * deltaTime;
@@ -126,8 +126,8 @@ void DiffDrive_Update()
 #endif // IMU_ENABLED
 		
 		//PRINTF("%.3f, %.3f\n", Vl, Vr);	
-		PRINTF("%.2f, %.2f\n", m_angVelocity, m_angPosition);	
-		//PRINTF("%.2f, %.2f\n", m_vehiclePosition.x, m_vehiclePosition.y);	
+		//PRINTF("%.2f, %.2f\n", m_angVelocity, m_angPosition);	
+		PRINTF("%.2f, %.2f\n", m_vehiclePosition.x, m_vehiclePosition.y);	
 		
 		printCnt = 0;
 	}
