@@ -30,6 +30,16 @@ typedef struct
 	float y;
 } Vector2_t;
 
+typedef struct Transform
+{
+	float x;
+	float y;
+	float z;
+	float yaw;
+	float pitch;
+	float roll;
+} Transform_t;
+
 static float clampf(float x, float min, float max)
 {
 	if (x < min)	return min;

@@ -124,7 +124,9 @@ void DistanceUpdate(uint32_t dist)
 		return;
 	
 	m_dist = dist;
-	BLE_DistanceUpdate(dist);	
+	
+	// TODO
+	//BLE_DistanceUpdate(dist);	
 }
 
 void Disarm()

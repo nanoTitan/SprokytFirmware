@@ -7,7 +7,7 @@
 #include "osal.h"
 #include "sm.h"
 #include "debug.h"
-#include "math.h"
+#include "math_ext.h"
 #include "constants.h"
 #include "control_manager.h"
 #include "hci_const.h"
@@ -49,7 +49,7 @@ do {\
 #define COPY_CONTROL_CHAR_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
 #define COPY_INSTRUCTION_CHAR_UUID(uuid_struct)     COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xe5,0x2b)
 #define COPY_IMU_CHAR_UUID(uuid_struct)				COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#define COPY_DISTANCE_CHAR_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x2c)
+#define COPY_POSITION_CHAR_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x2c)
 
 /* Private variables ---------------------------------------------------------*/
 static uint8_t SERVER_BDADDR[] = { 0x12, 0x34, 0x00, 0xE1, 0x80, 0x03 };	
@@ -65,7 +65,7 @@ uint16_t imuServHandle = 0;
 uint16_t controlButtonCharHandle = 0;
 uint16_t instructionButtonCharHandle = 0;
 uint16_t imuCharHandle = 0;
-uint16_t distCharHandle = 0;
+uint16_t posCharHandle = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 static tBleStatus AddControlService(void);
@@ -324,21 +324,21 @@ tBleStatus AddControlService(void)
 	
 	PRINTF("IMU characteristic added\n");	
 	
-	// Distance - uses IMU service with distance characteristic (initialize after IMU)
+	// Position - report the position and orientation information
 	/********************************************************************************************/	
-	COPY_DISTANCE_CHAR_UUID(uuid);
+	COPY_POSITION_CHAR_UUID(uuid);
 	
 	ret =  aci_gatt_add_char(
 		imuServHandle,
 		UUID_TYPE_128,
 		uuid,
-		4,
+		24,
 		CHAR_PROP_NOTIFY | CHAR_PROP_READ | ATTR_PERMISSION_NONE,
 		ATTR_PERMISSION_NONE,
 		GATT_NOTIFY_ATTRIBUTE_WRITE,
 		16,
 		1,
-		&distCharHandle);
+		&posCharHandle);
 	if (ret != BLE_STATUS_SUCCESS) goto fail;  
 	
 	PRINTF("Distance characteristic added\n");	
@@ -346,7 +346,7 @@ tBleStatus AddControlService(void)
 	// Done adding services
 	PRINTF("BLE services added\n");
 	return BLE_STATUS_SUCCESS; 
-  
+	
 fail:
 	PRINTF("Error while adding BLE services: %x.\n", ret);
 	return BLE_STATUS_ERROR;
@@ -609,24 +609,23 @@ tBleStatus BLE_AngularPosUpdate(float yaw, float pitch)
 	return BLE_STATUS_SUCCESS;	
 }
 
-tBleStatus BLE_DistanceUpdate(uint32_t distance)
+tBleStatus BLE_PositionUpdate(Transform_t* pTrans)
 {
-	//static uint8_t buff[4] = {0};
-	unsigned char const * const buff = (unsigned char const *)&distance;
+	unsigned char const * const buff = (unsigned char const *)pTrans;
 	
 	if (!connected)
 		return BLE_STATUS_ERROR;
 	
 	tBleStatus status = aci_gatt_update_char_value(
 		imuServHandle,
-		distCharHandle,
+		posCharHandle,
 		0,
-		sizeof(distance),
+		24,
 		buff);
 	
 	if (status != BLE_STATUS_SUCCESS)
 	{
-		PRINTF("Error while updating IMU characteristic: %x\n", status);
+		PRINTF("Error while updating Position characteristic: %x\n", status);
 		return BLE_STATUS_ERROR;
 	}
 	

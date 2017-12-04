@@ -8,6 +8,7 @@
 #include "constants.h"
 #include "motor_controller.h"
 #include "imu.h"
+#include "BLE.h"
 
 #define PRINT_DIFF_DRIVE
 
@@ -19,6 +20,7 @@ static float m_vehicleVelocity = 0;
 static float m_angVelocity = 0;
 static float m_angPosition = 0;
 static float m_lastTime = 0;
+static Transform_t m_transform = { 0 };
 static Vector2_t m_vehiclePosition = { 0, 0 };
 static Vector2_t m_icc = {0, 0};	// Instantaneous Center of Curvature (ICC). The point which the robot rotates about
 const float DD_Half_Wheel_Base_Length = DD_WHEEL_BASE_LENGTH * 0.5f;
@@ -54,7 +56,9 @@ R - the signed distance from the Instantaneous Center of Curvature (ICC) to the 
 */
 void DiffDrive_Update()
 {
-#if defined(ENCODER_ENABLED)
+#if !defined(ENCODER_ENABLED)
+	return;
+#endif // ENCODER_ENABLED
 	
 	// Update the encoders frequently so the counts and velocities are accurate
 	Encoder_Update();
@@ -81,10 +85,12 @@ void DiffDrive_Update()
 	if (VrMinusVl != 0)
 		R = DD_Half_Wheel_Base_Length * ((Vl + Vr) / VrMinusVl);
 	
-	m_angVelocity = -VrMinusVl * DD_One_Over_Wheel_Base_Length;		// Use negative so that CW is positive angular velocity
+	float angVel = VrMinusVl * DD_One_Over_Wheel_Base_Length;
 	
 	// Calculate the instantaneous rotation of the vehicle
-	float theta = m_angVelocity * deltaTime;
+	float theta = angVel * deltaTime;
+	
+	
 	
 	/*
 	Compute new position
@@ -98,43 +104,57 @@ void DiffDrive_Update()
 	float RsinAng = R * sinf(m_angPosition);
 	float RcosAng = R * cosf(m_angPosition);
 	
-	m_vehiclePosition.x = m_vehiclePosition.x + cosTheta * RsinAng + sinTheta * RcosAng - RsinAng;
-	m_vehiclePosition.y = m_vehiclePosition.y + sinTheta * RsinAng - cosTheta * RcosAng + RcosAng;
+	m_transform.x = m_transform.x + cosTheta * RsinAng + sinTheta * RcosAng - RsinAng;
+	m_transform.y = 0;
+	m_transform.z = m_transform.z + sinTheta * RsinAng - cosTheta * RcosAng + RcosAng;
+	
 	
 	/*
 	Compute new angular position
 	Add the instantaneous rotation to our total to update the current angle and normalize
+	Use negative so that CW is positive angular velocity
 	*/
 	m_angPosition = m_angPosition + theta;
+	m_angVelocity = -angVel;
 	
 	if (m_angPosition > M_2PI)
 		m_angPosition -= M_2PI;
 	else if (m_angPosition < 0)
 		m_angPosition += M_2PI;
 	
+	/*
+	We need to report CW as positive angle. So subtract our current angle from 360 to do that
+	Also, 0 degrees should point towards the positive X-axis. Add 90 degrees to account for 
+	the listener interpreting 0 degrees as positive Z-axis
+	*/
+	m_transform.yaw = 360 - RadiansToDeg(m_angPosition) + 90;	
+	m_transform.pitch = 3.3f;
+	m_transform.roll = 4.4f;
+	
 	// Update the time
 	m_lastTime = currTime;
-#endif // ENCODER_ENABLED
-	
-#ifdef PRINT_DIFF_DRIVE
-	// Print IMU values for testing
+
 	static int printCnt = 0;
 	++printCnt;
 	if (printCnt > 5)
 	{
 #if defined(IMU_ENABLED)
 		float yaw, pitch, roll;
-		IMU_get_yawPitchRoll(&yaw, &pitch, &roll);
-		PRINTF("%3.1f, %3.1f, %3.1f\n", yaw, pitch, roll);		
+		IMU_get_yawPitchRoll(&m_transform.yaw, &m_transform.pitch, &m_transform.roll);
 #endif // IMU_ENABLED
 		
+#ifdef PRINT_DIFF_DRIVE
 		//PRINTF("%.3f, %.3f\n", Vl, Vr);	
 		//PRINTF("%.2f, %.2f\n", m_angVelocity, m_angPosition);	
-		PRINTF("%.2f, %.2f\n", m_vehiclePosition.x, m_vehiclePosition.y);	
+		//PRINTF("%.2f, %.2f, %.2f\n", m_transform.yaw, m_transform.pitch, m_transform.roll);		
+		PRINTF("%.2f, %.2f, %.2f\n", m_transform.x, m_transform.z, m_transform.yaw);
+		//PRINTF("%.2f %.2f %.2f\n", m_transform.x, m_transform.y, m_transform.z);	
+#endif // PRINT_DIFF_DRIVE
+		
+		BLE_PositionUpdate(&m_transform);
 		
 		printCnt = 0;
 	}
-#endif // PRINT_DIFF_DRIVE
 }
 
 void DiffDrive_SetVehicleRotation(float rot)
