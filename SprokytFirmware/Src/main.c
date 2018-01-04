@@ -19,7 +19,6 @@ All Rights Reserved
 #include "rover_control.h"
 
 /* Private variables ---------------------------------------------------------*/
-char* m_pBuffTx = "Hello World!\r\n";
 
 static void InitUSART();
 void blink();
@@ -88,12 +87,7 @@ int main()
 	PRINTF("Initialization complete. Running program...\n\n");
 	
 	while (1)
-	{		
-#ifdef SERIAL_PRINT
-//		SerialPrint_Print(m_pBuffTx, strlen(m_pBuffTx));
-//		HAL_Delay(500);
-#endif // SERIAL_PRINT
-		
+	{	
 		// IMU and Sensors
 #if defined(IMU_ENABLED)
 		IMU_update();

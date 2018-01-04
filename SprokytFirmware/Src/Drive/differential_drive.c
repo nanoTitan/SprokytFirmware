@@ -75,8 +75,8 @@ void DiffDrive_Update()
 	// Update wheel velocities
 	// V = wR  translational velocity of wheel center is rotational velocity * wheel radius
 	// Vl is negated to account for reversed motor direction (wheel on left spins CCW to go forward)
-	float Vl = -Encoder_GetAngVel1() * DD_WHEEL_RADIUS;
-	float Vr = Encoder_GetAngVel2() * DD_WHEEL_RADIUS;
+	float Vl = Encoder_GetAngVel1() * DD_WHEEL_RADIUS;
+	float Vr = -Encoder_GetAngVel2() * DD_WHEEL_RADIUS;
 	
 	float R = 0;
 	float VrMinusVl = Vr - Vl;
@@ -127,7 +127,7 @@ void DiffDrive_Update()
 	Also, 0 degrees should point towards the positive X-axis. Add 90 degrees to account for 
 	the listener interpreting 0 degrees as positive Z-axis
 	*/
-	m_transform.yaw = 360 - RadiansToDeg(m_angPosition) + 90;	
+	m_transform.yaw = RadiansToDeg(m_angPosition);
 	m_transform.pitch = 3.3f;
 	m_transform.roll = 4.4f;
 	
@@ -147,8 +147,8 @@ void DiffDrive_Update()
 		//PRINTF("%.3f, %.3f\n", Vl, Vr);	
 		//PRINTF("%.2f, %.2f\n", m_angVelocity, m_angPosition);	
 		//PRINTF("%.2f, %.2f, %.2f\n", m_transform.yaw, m_transform.pitch, m_transform.roll);		
-		PRINTF("%.2f, %.2f, %.2f\n", m_transform.x, m_transform.z, m_transform.yaw);
-		//PRINTF("%.2f %.2f %.2f\n", m_transform.x, m_transform.y, m_transform.z);	
+		//PRINTF("%.2f, %.2f, %.2f\n", m_transform.x, m_transform.z, m_transform.yaw);
+		PRINTF("%.2f %.2f\n", m_angPosition, m_transform.yaw);	
 #endif // PRINT_DIFF_DRIVE
 		
 		BLE_PositionUpdate(&m_transform);

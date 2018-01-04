@@ -3,7 +3,7 @@
 #include "stm32f4xx_hal.h"
 #include "error.h"
 #include "constants.h"
-#include <math.h>
+#include <math_ext.h>
 
 #define PRINT_ENCODER
 
@@ -13,7 +13,7 @@ static float m_lastTime = 0;
 static float m_lastAngle1 = 0, m_lastAngle2 = 0;
 static float m_angVel1 = 0, m_angVel2 = 0;			// Rotational speed in radian per second
 static int8_t m_dir1 = 0, m_dir2 = 0;				// Rotation direction. 0 for CW and 1 for CCW
-const float Encoder_Rad_Per_Count = 2 * ENCODER_ONE_OVER_QUAD_COUNT_PER_REV;
+const float Encoder_Rad_Per_Count = M_2PI * ENCODER_ONE_OVER_QUAD_COUNT_PER_REV;
 
 static void EncoderInit(TIM_HandleTypeDef * timer, TIM_TypeDef * TIMx, uint32_t maxcount, uint32_t encmode);
 
@@ -93,11 +93,13 @@ void Encoder_Update()
 	++printCnt;
 	if (printCnt > 5)
 	{
+		//PRINTF("%.3f, %.3f\n", deltaTime, m_lastTime);
 		//PRINTF("%u, %u, %u, %u\n", (unsigned int)m_lastCount1, (unsigned int)m_lastCount2, m_dir1, m_dir2);	
 		//PRINTF("%2.3f, %2.3f\n", deltaTime, oneOverDeltaTime);	
-		//PRINTF("%d, %d\n", currCount1, currCount2);	
+		//PRINTF("%.3f, %.3f\n", currCount1, currCount2);	
 		//PRINTF("%2.3f, %2.3f\n", deltaCnt1, deltaCnt2);	
 		//PRINTF("%2.3f, %2.3f\n", deltaAngle1, deltaAngle2);	
+		//PRINTF("%2.3f, %2.3f\n", m_lastAngle1, m_lastAngle2);	
 		//PRINTF("%.3f, %.3f\n", m_angVel1, m_angVel2);	
 		
 		printCnt = 0;
