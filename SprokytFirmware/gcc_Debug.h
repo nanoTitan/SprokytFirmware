@@ -269,9 +269,6 @@
 #ifndef __USER_LABEL_PREFIX__
 #define __USER_LABEL_PREFIX__ 
 #endif
-#ifndef XMOTION_FX_STORE_CALIB_FLASH
-#define XMOTION_FX_STORE_CALIB_FLASH 1
-#endif
 #ifndef __STDC_HOSTED__
 #define __STDC_HOSTED__ 1
 #endif

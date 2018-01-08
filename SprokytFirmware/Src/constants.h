@@ -12,7 +12,7 @@
 /*********************************************************/
 // Component enable macros
 /**********************************************************/
-//#define SERIAL_PRINT
+#define SERIAL_PRINT
 //#define BLE_ENABLED
 //#define WIFI_ENABLED
 #define IMU_ENABLED

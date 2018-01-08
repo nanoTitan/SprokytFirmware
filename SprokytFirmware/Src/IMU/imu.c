@@ -59,7 +59,7 @@ static void *PRESSURE_handle = NULL;
 static uint32_t Sensors_Enabled = 0;
 static uint32_t mag_time_stamp = 0;
 static uint32_t last_imu_send_time = 0;
-static uint8_t SF_6X_Enabled = 1;
+static uint8_t SF_6X_Enabled = 0;
 static uint8_t calibIndex = 0;         // run calibration @ 25Hz
 static uint8_t mag_cal_status = 0;
 static uint8_t sensor_fusion_active = 0;
@@ -82,13 +82,12 @@ void IMU_init()
 	int lib_version_len;
 	
 	memset(&lastImuReadArray, 0, sizeof(MFX_NUM_AXES));
-//	memset(&ACC_Value, 0, sizeof(SensorAxes_t));
-//	memset(&GYR_Value, 0, sizeof(SensorAxes_t));
-//	memset(&MAG_Value, 0, sizeof(SensorAxes_t));
-//	memset(&MAG_Offset, 0, sizeof(SensorAxes_t));
+	memset(&ACC_Value, 0, sizeof(SensorAxes_t));
+	memset(&GYR_Value, 0, sizeof(SensorAxes_t));
+	memset(&MAG_Value, 0, sizeof(SensorAxes_t));
+	memset(&MAG_Offset, 0, sizeof(SensorAxes_t));
 	
 	InitializeSensors();
-	//EnableSensors();
 	
 	MotionFX_manager_init(GYRO_handle);
 	MotionFX_manager_get_version(lib_version, &lib_version_len);
@@ -129,8 +128,11 @@ void IMU_init()
 		MotionFX_manager_start_6X();
 	else
 		MotionFX_manager_start_9X();
-		
+	
 	sensor_fusion_active = 1;
+	EnableSensors();
+	
+	HAL_TIM_Base_Start_IT(&ImuTimHandle);
 }
 
 /**
@@ -248,7 +250,7 @@ static void Imu_Data_Handler()
 		
 		static int printCnt = 0;
 		++printCnt;
-		if (printCnt > 10)
+		if (printCnt > 80)
 		{
 			PRINTF("%.2f %.2f %.2f\n", pRotationData[0], pRotationData[1], pRotationData[2]);	
 			printCnt = 0;
@@ -286,9 +288,6 @@ void IMU_update(void)
 	if (magcal_request)
 	{		
 		magcal_request = 0;
-		
-		EnableSensors();
-		HAL_TIM_Base_Start_IT(&ImuTimHandle);
 		
 //		/* Reset the Compass Calibration */
 //		PRINTF("Starting magnetometer calibration\n");
