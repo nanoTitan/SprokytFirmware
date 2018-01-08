@@ -67,19 +67,54 @@ static void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim);
   * @{
   */
 
+/**
+  * @brief TIM MSP Initialization
+  *        This function configures the hardware resources used in this example:
+  *           - Peripheral's clock enable
+  *           - Peripheral's GPIO Configuration
+  * @param htim: TIM handle pointer
+  * @retval None
+  */
+void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
+{
+#if defined(IMU_ENABLED)
+	if (htim_base->Instance == TIM_IMU)
+	{
+		// IMU Sensor Fusion clock enable
+		TIM_IMU_CLK_ENABLE();
+		HAL_NVIC_SetPriority(TIM_SF_IRQn, 0x0F, 0);	/* Set the TIMx priority */
+		HAL_NVIC_EnableIRQ(TIM_SF_IRQn);			/* Enable the TIMx global Interrupt */
+	}
+#endif // IMU_ENABLED
+}
+
+/**
+  * @brief TIM MSP DeInitialization
+  *        This function configures the hardware resources used in this example:
+  *           - Peripheral's clock enable
+  *           - Peripheral's GPIO Configuration
+  * @param htim: TIM handle pointer
+  * @retval None
+  */
+void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
+{
+#if defined(IMU_ENABLED)
+	if (htim_base->Instance == TIM_IMU)
+	{
+		// IMU Sensor Fusion clock disable
+		TIM_IMU_CLK_DISABLE();
+		HAL_NVIC_DisableIRQ(TIM_SF_IRQn);
+	}
+#endif // IMU_ENABLED
+}
+
 void HAL_MspInit(void)
 {		
 	/* GPIO Ports Clock Enable */
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_GPIOC_CLK_ENABLE();
-	
-#if defined(IMU_ENABLED)
-	// IMU Sensor Fusion clock enable
-	TIM_IMU_CLK_ENABLE();
-	HAL_NVIC_SetPriority(TIM_SF_IRQn, 10, 0);	/* Set the TIMx priority */
-	HAL_NVIC_EnableIRQ(TIM_SF_IRQn);			/* Enable the TIMx global Interrupt */
-#endif // IMU_ENABLED
+
 	
 #if defined(SERVO_ENABLED)
 	// Motor IRQ enable
@@ -117,7 +152,7 @@ void HAL_MspInit(void)
 
 void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 {
-
+#if defined(SERIAL_PRINT)
 	GPIO_InitTypeDef GPIO_InitStruct;
 	if (huart->Instance == USART2)
 	{
@@ -142,7 +177,18 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 
 		/* USER CODE END USART6_MspInit 1 */
 	}
+#endif // SERIAL_PRINT
+}
 
+void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
+{
+#if defined(SERIAL_PRINT)
+	if (huart->Instance == USART2)
+	{
+		__HAL_RCC_USART2_CLK_DISABLE();
+		HAL_GPIO_DeInit(GPIOA, GPIO_PIN_2 | GPIO_PIN_3);
+	}
+#endif // SERIAL_PRINT
 }
 
 /**
@@ -153,11 +199,10 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
  */
 void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 {
-	GPIO_InitTypeDef GPIO_InitStruct;
-
+#if defined(BLE_ENABLED)
 	if(hspi->Instance==BNRG_SPI_INSTANCE)
 	{	
-#if defined(BLE_ENABLED)
+		GPIO_InitTypeDef GPIO_InitStruct;
 		/* Enable peripherals clock */
 
 		/* Enable GPIO Ports Clock */  
@@ -224,14 +269,12 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 		/* Configure the NVIC for SPI */  
 		HAL_NVIC_SetPriority(BNRG_SPI_EXTI_IRQn, 3, 0);    
 		HAL_NVIC_EnableIRQ(BNRG_SPI_EXTI_IRQn);
-#endif // BLE_ENABLED
 	}
+#endif // BLE_ENABLED
 }
 
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
-{
-	GPIO_InitTypeDef GPIO_InitStruct;
-	
+{	
 	if (htim_pwm->Instance == TIM1)
 	{
 		__HAL_RCC_TIM1_CLK_ENABLE();
@@ -240,9 +283,12 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 	{
 		__HAL_RCC_TIM2_CLK_ENABLE();
 	}
+#if defined(STEPPER_ENABLED)
 	else if (htim_pwm->Instance == BSP_MOTOR_CONTROL_BOARD_PWM_REF)
 	{
-#if defined(STEPPER_ENABLED)
+
+		GPIO_InitTypeDef GPIO_InitStruct;
+		
 		/* Peripheral clock enable */
 		__BSP_MOTOR_CONTROL_BOARD_CLCK_ENABLE_PWM_REF();
 		//__HAL_RCC_TIM2_CLK_ENABLE();
@@ -257,9 +303,9 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 		GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
 		GPIO_InitStruct.Alternate = BSP_MOTOR_CONTROL_BOARD_AF_PWM_REF;
 		HAL_GPIO_Init(BSP_MOTOR_CONTROL_BOARD_PORT_PWM_REF, &GPIO_InitStruct);
-#endif // STEPPER_ENABLED
 	}
-	else if (htim_pwm->Instance == TIM_SERVO)
+#endif // STEPPER_ENABLED
+	else if (htim_pwm->Instance == TIM4)
 	{
 		__HAL_RCC_TIM4_CLK_ENABLE();
 	}
@@ -309,15 +355,6 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 	}
 }
 
-void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
-{
-	if (huart->Instance == USART2)
-	{
-		__HAL_RCC_USART2_CLK_DISABLE();
-		HAL_GPIO_DeInit(GPIOA, GPIO_PIN_2 | GPIO_PIN_3);
-	}
-}
-
 /**
 * @ brief TIM MSP Initialization
 * @ param[in] htim TIM handle pointer
@@ -325,11 +362,10 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 */
 void HAL_TIM_OC_MspInit(TIM_HandleTypeDef *htim)
 {
-	GPIO_InitTypeDef GPIO_InitStruct;
-  
+#if defined(STEPPER_ENABLED) 
 	if (htim->Instance == BSP_MOTOR_CONTROL_BOARD_TIM_STCK)
 	{
-#if defined(STEPPER_ENABLED)
+		GPIO_InitTypeDef GPIO_InitStruct;
 		/* Peripheral clock enable -----------------------------------------------*/
 		__BSP_MOTOR_CONTROL_BOARD_CLCK_ENABLE_TIM_STCK();
     
@@ -351,8 +387,8 @@ void HAL_TIM_OC_MspInit(TIM_HandleTypeDef *htim)
 			0);
 		
 		HAL_NVIC_EnableIRQ(BSP_MOTOR_CONTROL_BOARD_IRQn_TIM_STCK);
-#endif // STEPPER_ENABLED
 	}
+#endif // STEPPER_ENABLED
 }
 
 /**
@@ -362,9 +398,9 @@ void HAL_TIM_OC_MspInit(TIM_HandleTypeDef *htim)
   */
 void HAL_TIM_OC_MspDeInit(TIM_HandleTypeDef *htim)
 {
+#if defined(STEPPER_ENABLED)
 	if (htim->Instance == BSP_MOTOR_CONTROL_BOARD_TIM_STCK)
 	{
-#if defined(STEPPER_ENABLED)
 		/* Peripheral clock disable ----------------------------------------------*/
 		__BSP_MOTOR_CONTROL_BOARD_CLCK_DISABLE_TIM_STCK();
     
@@ -376,8 +412,8 @@ void HAL_TIM_OC_MspDeInit(TIM_HandleTypeDef *htim)
       
 		  /* Disable the timer interrupt -------------------------------------------*/
 		HAL_NVIC_DisableIRQ(BSP_MOTOR_CONTROL_BOARD_IRQn_TIM_STCK);
-#endif // STEPPER_ENABLED
 	}
+#endif // STEPPER_ENABLED
 }
 
 /**

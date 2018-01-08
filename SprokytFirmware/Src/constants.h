@@ -9,22 +9,26 @@
 
 #define FIRMWARE_VERSION_STR "0.2.2"
 
-#define SERIAL_PRINT
-#define BLE_ENABLED
+/*********************************************************/
+// Component enable macros
+/**********************************************************/
+//#define SERIAL_PRINT
+//#define BLE_ENABLED
 //#define WIFI_ENABLED
-//#define IMU_ENABLED
+#define IMU_ENABLED
 //#define STEPPER_ENABLED
 //#define SERVO_ENABLED
 //#define SONAR_ENABLED
-#define ENCODER_ENABLED
+//#define ENCODER_ENABLED
 
 //#define MOTOR_STEPPER
 //#define MOTOR_SERVO
-#define MOTOR_TOSHIBA
+//#define MOTOR_TOSHIBA
 //#define MOTOR_STSPIN
 
 #define MOTOR_1_ENABLED
 //#define MOTOR_2_ENABLED
+/*********************************************************/
 
 // Definitions for TOSHIBA motor drivers
 #define MD1_TIM					TIM1
@@ -78,11 +82,11 @@
 #define MD1_RCC_CL_ENABLE		__HAL_RCC_TIM1_CLK_ENABLE
 
 // Definitinos for IMU
-#define TIM_IMU			        TIM3
-#define TIM_IMU_CLK_ENABLE		__TIM3_CLK_ENABLE
-#define TIM_IMU_CLK_DISABLE     __TIM3_CLK_DISABLE
-#define TIM_SF_IRQn				TIM3_IRQn
-#define TIM_IMU_IRQHandler		TIM3_IRQHandler
+#define TIM_IMU			        TIM3						// TIM3 TIM4
+#define TIM_IMU_CLK_ENABLE		__TIM3_CLK_ENABLE			// __TIM3_CLK_ENABLE __TIM4_CLK_ENABLE
+#define TIM_IMU_CLK_DISABLE     __TIM3_CLK_DISABLE			// __TIM3_CLK_DISABLE __TIM4_CLK_DISABLE
+#define TIM_SF_IRQn				TIM3_IRQn					// TIM3_IRQn TIM4_IRQn
+#define TIM_IMU_IRQHandler		TIM3_IRQHandler				// TIM3_IRQHandler TIM4_IRQHandler
 #define TIM_IMU_CHANNEL			TIM_CHANNEL_2
 #define IMU_PWM_Pin				GPIO_PIN_7
 #define IMU_PWM_GPIO_Port		GPIOB
@@ -127,11 +131,11 @@
 #define SONAR_STATUS_SUCCESS				0
 #define SONAR_STATUS_ERROR					1
 
-#define WIFI_PING_TIMEOUT 3600
+#define WIFI_PING_TIMEOUT					3600
 
-#define MAG_OFFSET_X 49
-#define MAG_OFFSET_Y -298
-#define MAG_OFFSET_Z 450
+#define MAG_DEFAULT_OFFSET_X				58
+#define MAG_DEFAULT_OFFSET_Y				-330
+#define MAG_DEFAULT_OFFSET_Z				592
 
 #define MIN_THROTTLE						1000
 #define MAX_THROTTLE						2000

@@ -1059,6 +1059,9 @@
 #ifndef __USACCUM_FBIT__
 #define __USACCUM_FBIT__ 8
 #endif
+#ifndef XMOTION_FX_USE_MAG_DEFAULT
+#define XMOTION_FX_USE_MAG_DEFAULT 1
+#endif
 #ifndef __INT32_TYPE__
 #define __INT32_TYPE__ long int
 #endif

@@ -199,7 +199,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	if (GPIO_Pin == KEY_BUTTON_PIN)
 	{
 		// Tell IMU to begin magnetometer calibration request
-		magcal_request = 1;
+		if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_RESET)
+		{
+			magcal_request = 1;
+		}
 	}
 	
 	

@@ -30,7 +30,13 @@ int main()
 	
 	// Configure the system clock
 	SystemClock_Config();
-	 
+	
+	/* Set Systick Interrupt priority highest to ensure no lock by using HAL_Delay with StSpin220 */
+	//HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+	
+	/* Configure the SysTick IRQ priority - set the second lowest priority */
+	HAL_NVIC_SetPriority(SysTick_IRQn, 0x0E, 0);
+	
 #ifdef SERIAL_PRINT
 	SerialPrint_Init();
 #endif // SERIAL_PRINT
@@ -41,18 +47,17 @@ int main()
 	PRINTF("All Rights Reserved\n");
 	PRINTF("***************************\n\n");
 	
-	PRINTF("Initializing...\n\n");
+	PRINTF("Initialization start...\n\n");
 	
 	//LEDMgr_Init();
 	
-	// Initialize Button
+	// Initialize Button and LED
+	BSP_LED_Init(LED2);
 	BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_EXTI);	// BUTTON_MODE_GPIO
 	
 	__CRC_CLK_ENABLE();		// Enable HAL clock for IMU
 	
 	PRINTF("System Clock set to: %u \n", (unsigned int)SystemCoreClock);
-	
-	//blink();
 	
 	// Motor Controller
 	MotorController_init();
@@ -81,10 +86,9 @@ int main()
 	RoverControl_init();
 	ControlMgr_setType(CONTROLLER_ROVER);
 	
-	/* Set Systick Interrupt priority highest to ensure no lock by using HAL_Delay with StSpin220 */
-	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 	
-	PRINTF("Initialization complete. Running program...\n\n");
+	
+	PRINTF("Initialization done. Running program...\n\n");
 	
 	while (1)
 	{	
