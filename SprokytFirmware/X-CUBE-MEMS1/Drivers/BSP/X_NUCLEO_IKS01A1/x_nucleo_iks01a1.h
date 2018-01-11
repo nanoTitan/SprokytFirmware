@@ -156,7 +156,7 @@ extern "C" {
 #define LSM6DS0_INT1_GPIO_PORT           GPIOB
 #define LSM6DS0_INT1_GPIO_CLK_ENABLE()   __GPIOB_CLK_ENABLE()
 #define LSM6DS0_INT1_GPIO_CLK_DISABLE()  __GPIOB_CLK_DISABLE()
-#define LSM6DS0_INT1_PIN                 GPIO_PIN_5
+#define LSM6DS0_INT1_PIN                 GPIO_PIN_7					// Orig: GPIO_PIN_5
 
 #if ((defined (USE_STM32F4XX_NUCLEO)) || (defined (USE_STM32L1XX_NUCLEO)) || (defined (USE_STM32L4XX_NUCLEO)))
 #define LSM6DS0_INT1_EXTI_IRQn           EXTI9_5_IRQn
