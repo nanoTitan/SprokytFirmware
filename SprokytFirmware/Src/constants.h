@@ -13,17 +13,17 @@
 // Component enable macros
 /**********************************************************/
 #define SERIAL_PRINT
-//#define BLE_ENABLED
+#define BLE_ENABLED
 //#define WIFI_ENABLED
 #define IMU_ENABLED
 //#define STEPPER_ENABLED
 //#define SERVO_ENABLED
 //#define SONAR_ENABLED
-//#define ENCODER_ENABLED
+#define ENCODER_ENABLED
 
-//#define MOTOR_STEPPER
+//#define MOTOR_STEPPER	
 //#define MOTOR_SERVO
-//#define MOTOR_TOSHIBA
+#define MOTOR_TOSHIBA
 //#define MOTOR_STSPIN
 
 #define MOTOR_1_ENABLED
@@ -82,14 +82,11 @@
 #define MD1_RCC_CL_ENABLE		__HAL_RCC_TIM1_CLK_ENABLE
 
 // Definitinos for IMU
-#define TIM_IMU			        TIM3						// TIM3 TIM4
-#define TIM_IMU_CLK_ENABLE		__TIM3_CLK_ENABLE			// __TIM3_CLK_ENABLE __TIM4_CLK_ENABLE
-#define TIM_IMU_CLK_DISABLE     __TIM3_CLK_DISABLE			// __TIM3_CLK_DISABLE __TIM4_CLK_DISABLE
-#define TIM_SF_IRQn				TIM3_IRQn					// TIM3_IRQn TIM4_IRQn
-#define TIM_IMU_IRQHandler		TIM3_IRQHandler				// TIM3_IRQHandler TIM4_IRQHandler
-#define TIM_IMU_CHANNEL			TIM_CHANNEL_2
-#define IMU_PWM_Pin				GPIO_PIN_7
-#define IMU_PWM_GPIO_Port		GPIOB
+#define TIM_IMU			        TIM4						// TIM3 TIM4
+#define TIM_IMU_CLK_ENABLE		__TIM4_CLK_ENABLE			// __TIM3_CLK_ENABLE __TIM4_CLK_ENABLE
+#define TIM_IMU_CLK_DISABLE     __TIM4_CLK_DISABLE			// __TIM3_CLK_DISABLE __TIM4_CLK_DISABLE
+#define TIM_SF_IRQn				TIM4_IRQn					// TIM3_IRQn TIM4_IRQn
+#define TIM_IMU_IRQHandler		TIM4_IRQHandler				// TIM3_IRQHandler TIM4_IRQHandler
 
 /* Definition for Servo clock resources */
 #define TIM_SERVO		                     TIM4

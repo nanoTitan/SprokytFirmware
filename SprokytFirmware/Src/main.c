@@ -59,13 +59,13 @@ int main()
 	
 	PRINTF("System Clock set to: %u \n", (unsigned int)SystemCoreClock);
 	
-	// Motor Controller
-	MotorController_init();
-	
 	// IMU and Sensors
 #if defined(IMU_ENABLED)
 	IMU_init();
 #endif // IMU_ENABLED
+	
+	// Motor Controller
+	MotorController_init();
 	
 	// Communication
 #if defined(WIFI_ENABLED)

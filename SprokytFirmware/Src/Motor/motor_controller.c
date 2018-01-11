@@ -18,10 +18,14 @@ void MotorController_init()
 #if defined(MOTOR_TOSHIBA)
 	TB_Init();
 	
+#if defined(MOTOR_1_ENABLED)
 	TB_SetPwmPulsewidth(TB_CHANNEL_A1, 0);
 	TB_SetPwmPulsewidth(TB_CHANNEL_B1, 0);
+#endif // MOTOR_1_ENABLED
+#if defined(MOTOR_2_ENABLED)
 	TB_SetPwmPulsewidth(TB_CHANNEL_A2, 0);
 	TB_SetPwmPulsewidth(TB_CHANNEL_B2, 0);
+#endif // MOTOR_2_ENABLED
 	
 	MotorController_setMotor(MOTOR_ALL, 0, FWD);
 #endif // MOTOR_TOSHIBA

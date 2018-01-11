@@ -109,6 +109,8 @@ void IMU_init()
 	/* If calibration data are available lood HI coeficients */
 	if (mag_cal_test.cal_quality == MFX_MAGCALGOOD)
 	{
+		PRINTF("Magnetometer offsets loaded\n");
+		
 		MAG_Offset.AXIS_X = (int32_t)(mag_cal_test.hi_bias[0] * FROM_UT50_TO_MGAUSS);
 		MAG_Offset.AXIS_Y = (int32_t)(mag_cal_test.hi_bias[1] * FROM_UT50_TO_MGAUSS);
 		MAG_Offset.AXIS_Z = (int32_t)(mag_cal_test.hi_bias[2] * FROM_UT50_TO_MGAUSS);
@@ -117,6 +119,8 @@ void IMU_init()
 	}
 	else
 	{
+		PRINTF("*** Warning: Magnetometer params not loaded! Loading default offsets\n");
+		
 		MAG_Offset.AXIS_X = MAG_DEFAULT_OFFSET_X;
 		MAG_Offset.AXIS_Y = MAG_DEFAULT_OFFSET_Y;
 		MAG_Offset.AXIS_Z = MAG_DEFAULT_OFFSET_Z;

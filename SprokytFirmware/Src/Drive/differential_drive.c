@@ -140,7 +140,7 @@ void DiffDrive_Update()
 	{
 #if defined(IMU_ENABLED)
 		float yaw, pitch, roll;
-		IMU_get_yawPitchRoll(&m_transform.yaw, &m_transform.pitch, &m_transform.roll);
+		IMU_get_yawPitchRoll(&yaw, &pitch, &roll);
 #endif // IMU_ENABLED
 		
 #ifdef PRINT_DIFF_DRIVE
