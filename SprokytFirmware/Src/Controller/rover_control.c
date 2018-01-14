@@ -3,21 +3,26 @@
 #include "motor_controller.h"
 #include "BLE.h"
 #include "differential_drive.h"
-
+#include "TinyEKF.h"
 //#include "Wifi.h"
 #include "math_ext.h"
 #include "debug.h"
-//#include "imu.h"
+#include "imu.h"
 #include <math.h>
 
 /* Private variables ---------------------------------------------------------*/
-static BOOL m_doUpdate = FALSE;
+static TinyEKF m_ekf;
+static Transform_t m_trans;
 static uint8_t m_x = 0;
 static uint8_t m_y = 0;
+static BOOL m_doUpdate = FALSE;
+static BOOL m_hasSetDiffFromIMU = FALSE;
 
 /* Private function prototypes -----------------------------------------------*/
 static void UpdateConnected();
 static void UpdateDisconnected();
+static void InitSensorFusion();
+static void UpdateSensorFusion();
 static void Disarm();
 static void RunMotorTest();
 static void PrintIMU();
@@ -26,7 +31,15 @@ static void ParseTranslateQuadDrive(uint8_t _x, uint8_t _y);
 /* Private functions ---------------------------------------------------------*/
 void RoverControl_init()
 {	
+	memset(&m_trans, 0, sizeof(Transform_t));
+	
 	DiffDrive_Init();
+	InitSensorFusion();
+}
+
+void InitSensorFusion()
+{
+	TinyEKF_init(&m_ekf);
 }
 
 void RoverControl_update()
@@ -56,6 +69,23 @@ void RoverControl_update()
 	}
 	
 	DiffDrive_Update();
+	
+	uint8_t isStable = IMU_get_sensorFusionStable();
+	if (!isStable)
+		return;
+	
+	// Update the differential drive angular position with the IMU on start
+	if (!m_hasSetDiffFromIMU && isStable)
+	{
+		float yaw = IMU_get_yaw();
+		DiffDrive_SetAngularPosDegree(yaw);
+		m_hasSetDiffFromIMU = TRUE;
+	}
+	
+	UpdateSensorFusion();
+	
+	// Send Transform to BLE
+	BLE_PositionUpdate(&m_trans);
 }
 
 void UpdateConnected()
@@ -77,6 +107,20 @@ void UpdateDisconnected()
 	// TODO: Show flashing LEDs if connection is lost
 	
 	Disarm();
+}
+
+void UpdateSensorFusion()
+{
+	float imu_yaw = IMU_get_yaw();
+	const Transform_t* currTrans = DiffDrive_GetTransform();
+	memcpy((void*)&m_trans, currTrans, sizeof(Transform_t));
+	
+	double z[2] = { imu_yaw, currTrans->yaw };
+	TinyEKF_step(&m_ekf, z);
+	float yawCurr = TinyEKF_getX(&m_ekf, 0);
+	m_trans.yaw = yawCurr;
+	
+	PRINTF("y1: %f, y2: %f, y3: %f\r\n", imu_yaw, currTrans->yaw, m_trans.yaw);
 }
 
 void Disarm()

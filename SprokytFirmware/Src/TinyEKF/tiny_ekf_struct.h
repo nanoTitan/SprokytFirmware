@@ -10,10 +10,10 @@
  */
 
 /* states */
-#define Nsta 8
+#define Nsta 1		// Yaw
 
 /* observables */
-#define Mobs 4
+#define Mobs 2		// IMU, DiffDrive (Encoders)
 
 typedef struct {
 

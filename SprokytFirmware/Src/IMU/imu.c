@@ -18,6 +18,7 @@
 #include "x_nucleo_iks01a1_magneto.h"
 #include "x_nucleo_iks01a1_pressure.h"
 #include "error.h"
+#include "hal_types.h"
 #include <stdlib.h>
 
 
@@ -59,10 +60,11 @@ static void *PRESSURE_handle = NULL;
 static uint32_t Sensors_Enabled = 0;
 static uint32_t mag_time_stamp = 0;
 static uint32_t last_imu_send_time = 0;
-static uint8_t SF_6X_Enabled = 0;
+static uint8_t SF_6X_Enabled = FALSE;
 static uint8_t calibIndex = 0;         // run calibration @ 25Hz
-static uint8_t mag_cal_status = 0;
-static uint8_t sensor_fusion_active = 0;
+static uint8_t mag_cal_status = FALSE;
+static uint8_t sensor_fusion_active = FALSE;
+static uint8_t sensor_fusion_stable = FALSE;
 volatile static uint8_t sensor_read_request     = 0;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -115,7 +117,7 @@ void IMU_init()
 		MAG_Offset.AXIS_Y = (int32_t)(mag_cal_test.hi_bias[1] * FROM_UT50_TO_MGAUSS);
 		MAG_Offset.AXIS_Z = (int32_t)(mag_cal_test.hi_bias[2] * FROM_UT50_TO_MGAUSS);
 
-		mag_cal_status = 1;
+		mag_cal_status = TRUE;
 	}
 	else
 	{
@@ -125,7 +127,7 @@ void IMU_init()
 		MAG_Offset.AXIS_Y = MAG_DEFAULT_OFFSET_Y;
 		MAG_Offset.AXIS_Z = MAG_DEFAULT_OFFSET_Z;
 
-		mag_cal_status = 1;
+		mag_cal_status = TRUE;
 	}
 	
 	if (SF_6X_Enabled)
@@ -133,7 +135,8 @@ void IMU_init()
 	else
 		MotionFX_manager_start_9X();
 	
-	sensor_fusion_active = 1;
+	sensor_fusion_active = TRUE;
+	sensor_fusion_stable = FALSE;
 	EnableSensors();
 	
 	HAL_TIM_Base_Start_IT(&ImuTimHandle);
@@ -252,13 +255,13 @@ static void Imu_Data_Handler()
 			pRotationData = mfx_output.rotation_9X;
 		}
 		
-		static int printCnt = 0;
-		++printCnt;
-		if (printCnt > 80)
-		{
-			PRINTF("%.2f %.2f %.2f\n", pRotationData[0], pRotationData[1], pRotationData[2]);	
-			printCnt = 0;
-		}
+//		static int printCnt = 0;
+//		++printCnt;
+//		if (printCnt > 80)
+//		{
+//			PRINTF("%.2f %.2f %.2f\n", pRotationData[0], pRotationData[1], pRotationData[2]);	
+//			printCnt = 0;
+//		}
 		
 		// IMU Callback
 		if (imuFunc && pRotationData)
@@ -288,6 +291,15 @@ static void Imu_Data_Handler()
 
 void IMU_update(void)
 {	
+	// Allow enough time to elapse for stability of sensor fusion
+	static uint32_t lastTime = 0;
+	if (!sensor_fusion_stable)
+	{
+		uint32_t currTime = HAL_GetTick();
+		if (currTime - lastTime > 3000)
+			sensor_fusion_stable = TRUE;
+	}
+	
 	/* Check if user button was pressed only when Sensor Fusion is active */
 	if (magcal_request)
 	{		
@@ -296,7 +308,7 @@ void IMU_update(void)
 //		/* Reset the Compass Calibration */
 //		PRINTF("Starting magnetometer calibration\n");
 //		
-//		mag_cal_status = 0;
+//		mag_cal_status = FALSE;
 //		
 //      
 //		MAG_Offset.AXIS_X = 0;
@@ -444,10 +456,10 @@ void Magneto_Sensor_Handler()
 			// Trying to save/load calibration with MOTION_FX_STORE_CALIB_FLASH defined causes a hard fault
 			// This hack allows the calibration to run so we can set the magnetometer offset values
 #if defined(MOTION_FX_USE_MAG_DEFAULT)
-			if (mag_cal_status == 0)
+			if (mag_cal_status == FALSE)
 			{
 				MotionFX_manager_MagCal_run(&mag_data_in, &mag_data_out);
-				mag_cal_status = 1;
+				mag_cal_status = TRUE;
 				MotionFX_manager_MagCal_stop(SAMPLE_PERIOD);
 				
 				MAG_Offset.AXIS_X = MAG_DEFAULT_OFFSET_X;
@@ -458,7 +470,7 @@ void Magneto_Sensor_Handler()
 				
 			}
 #else
-			if (mag_cal_status == 0)
+			if (mag_cal_status == FALSE)
 			{
 				mag_data_in.mag[0] = MAG_Value.AXIS_X * FROM_MGAUSS_TO_UT50;
 				mag_data_in.mag[1] = MAG_Value.AXIS_Y * FROM_MGAUSS_TO_UT50;
@@ -470,7 +482,7 @@ void Magneto_Sensor_Handler()
 
 				if (mag_data_out.cal_quality == MFX_MAGCALGOOD)
 				{
-					mag_cal_status = 1;
+					mag_cal_status = TRUE;
 
 					MAG_Offset.AXIS_X = (int32_t)(mag_data_out.hi_bias[0] * FROM_UT50_TO_MGAUSS);
 					MAG_Offset.AXIS_Y = (int32_t)(mag_data_out.hi_bias[1] * FROM_UT50_TO_MGAUSS);
@@ -500,6 +512,11 @@ void Magneto_Sensor_Handler()
 			MAG_Value.AXIS_Z = (int32_t)(MAG_Value.AXIS_Z - MAG_Offset.AXIS_Z);
 		}
 	}
+}
+
+uint8_t IMU_get_sensorFusionStable()
+{
+	return sensor_fusion_stable;
 }
 
 float IMU_get_yaw()

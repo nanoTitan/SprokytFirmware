@@ -4,6 +4,7 @@
 #define _DIFFERENTIAL_DRIVE_H_
 
 /* Includes ------------------------------------------------------------------*/
+#include "math_ext.h"
 #include <stdint.h>
 
 /* Exported types ------------------------------------------------------------*/
@@ -18,7 +19,8 @@
 /* Exported functions ------------------------------------------------------- */
 void DiffDrive_Init();
 void DiffDrive_Update();
-void DiffDrive_SetVehicleRotation(float rot);
+void DiffDrive_SetAngularPosDegree(float angle);
 void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y);
+const Transform_t* DiffDrive_GetTransform(); 
 
 #endif /* _DIFFERENTIAL_DRIVE_H_ */

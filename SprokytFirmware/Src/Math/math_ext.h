@@ -5,7 +5,8 @@
 #include <stdint.h>
 
 #define M_1_255  0.003921568627451
-#define M_180_PI 57.29577951308233
+#define M_180_Over_Pi 57.29577951308233
+#define Pi_Over_180 0.01745329251
 #define M_2PI 6.28318530718
 #define ONE_OVER_SQRT2 0.7071067811865
 
@@ -56,7 +57,12 @@ static int clamp(int x, int min, int max)
 
 static float RadiansToDeg(float radians)
 {
-	return radians * M_180_PI;
+	return radians * M_180_Over_Pi;
+}
+
+static float DegToRadians(float degrees)
+{
+	return degrees * Pi_Over_180;
 }
 
 static int map(int x, int in_min, int in_max, int out_min, int out_max)

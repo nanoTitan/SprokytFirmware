@@ -2,7 +2,6 @@
 #include "Encoder.h"
 #include "error.h"
 #include "debug.h"
-#include "math_ext.h"
 #include "stm32f4xx_hal_conf.h"
 #include "stm32f4xx_hal.h"
 #include "constants.h"
@@ -15,7 +14,6 @@
 /* Private variables ---------------------------------------------------------*/
 static float m_leftAngVel = 0;
 static float m_rightAngVel = 0;
-static float m_vehicleRotation = 0;
 static float m_vehicleVelocity = 0;
 static float m_angVelocity = 0;
 static float m_angPosition = 0;
@@ -90,8 +88,6 @@ void DiffDrive_Update()
 	// Calculate the instantaneous rotation of the vehicle
 	float theta = angVel * deltaTime;
 	
-	
-	
 	/*
 	Compute new position
 	
@@ -107,7 +103,6 @@ void DiffDrive_Update()
 	m_transform.x = m_transform.x + cosTheta * RsinAng + sinTheta * RcosAng - RsinAng;
 	m_transform.y = 0;
 	m_transform.z = m_transform.z + sinTheta * RsinAng - cosTheta * RcosAng + RcosAng;
-	
 	
 	/*
 	Compute new angular position
@@ -148,29 +143,24 @@ void DiffDrive_Update()
 		//PRINTF("%.2f, %.2f\n", m_angVelocity, m_angPosition);	
 		//PRINTF("%.2f, %.2f, %.2f\n", m_transform.yaw, m_transform.pitch, m_transform.roll);		
 		//PRINTF("%.2f, %.2f, %.2f\n", m_transform.x, m_transform.z, m_transform.yaw);
-		PRINTF("%.2f %.2f\n", m_angPosition, m_transform.yaw);	
+		//PRINTF("%.2f %.2f\n", m_angPosition, m_transform.yaw);	
 #endif // PRINT_DIFF_DRIVE
-		
-		BLE_PositionUpdate(&m_transform);
 		
 		printCnt = 0;
 	}
 }
 
-void DiffDrive_SetVehicleRotation(float rot)
+void DiffDrive_SetAngularPosDegree(float angle)
 {
-	m_vehicleRotation = rot;
+	m_angPosition = DegToRadians(angle);
+	m_transform.yaw = angle;
 	
 	// Normalize rotation between 0 and 360 degrees
-	while (m_vehicleRotation < 0)
-	{
-		m_vehicleRotation += 360;
-	}
+	while (m_angPosition < 0)
+		m_angPosition += 360;
 	
-	while (m_vehicleRotation > 360)
-	{
-		m_vehicleRotation -= 360;
-	}
+	while (m_angPosition > 360)
+		m_angPosition -= 360;
 }
 
 void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
@@ -251,4 +241,9 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 			MotorController_setMotor(MOTOR_B, right, dir);
 		}
 	}
+}
+
+const Transform_t* DiffDrive_GetTransform()
+{
+	return &m_transform;
 }

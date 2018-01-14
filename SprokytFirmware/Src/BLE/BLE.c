@@ -609,7 +609,7 @@ tBleStatus BLE_AngularPosUpdate(float yaw, float pitch)
 	return BLE_STATUS_SUCCESS;	
 }
 
-tBleStatus BLE_PositionUpdate(Transform_t* pTrans)
+tBleStatus BLE_PositionUpdate(const Transform_t* pTrans)
 {
 	unsigned char const * const buff = (unsigned char const *)pTrans;
 	
