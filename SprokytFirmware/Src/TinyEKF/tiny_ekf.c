@@ -195,7 +195,9 @@ static void mat_addeye(double * a, int n)
 #include "tiny_ekf.h"
 
 typedef struct {
-
+	int n;
+	int m;
+	
     double * x;    /* state vector */
 
     double * P;  /* prediction error covariance */
@@ -267,6 +269,7 @@ static void unpack(void * v, ekf_t * ekf, int n, int m)
     dptr += m*m;
     ekf->tmp5 = dptr;
   }
+
 
 void ekf_init(void * v, int n, int m)
 {

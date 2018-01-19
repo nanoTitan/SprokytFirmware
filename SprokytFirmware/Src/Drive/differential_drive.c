@@ -73,8 +73,8 @@ void DiffDrive_Update()
 	// Update wheel velocities
 	// V = wR  translational velocity of wheel center is rotational velocity * wheel radius
 	// Vl is negated to account for reversed motor direction (wheel on left spins CCW to go forward)
-	float Vl = Encoder_GetAngVel1() * DD_WHEEL_RADIUS;
-	float Vr = -Encoder_GetAngVel2() * DD_WHEEL_RADIUS;
+	float Vl = -Encoder_GetAngVel1() * DD_WHEEL_RADIUS;
+	float Vr = Encoder_GetAngVel2() * DD_WHEEL_RADIUS;
 	
 	float R = 0;
 	float VrMinusVl = Vr - Vl;
@@ -131,13 +131,8 @@ void DiffDrive_Update()
 
 	static int printCnt = 0;
 	++printCnt;
-	if (printCnt > 5)
-	{
-#if defined(IMU_ENABLED)
-		float yaw, pitch, roll;
-		IMU_get_yawPitchRoll(&yaw, &pitch, &roll);
-#endif // IMU_ENABLED
-		
+	if (printCnt > 100)
+	{		
 #ifdef PRINT_DIFF_DRIVE
 		//PRINTF("%.3f, %.3f\n", Vl, Vr);	
 		//PRINTF("%.2f, %.2f\n", m_angVelocity, m_angPosition);	

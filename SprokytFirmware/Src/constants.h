@@ -191,6 +191,9 @@
 //#define MOTOR_C 0x02
 //#define MOTOR_ALL 0xFF
 
+#define Nsta 1		// Staties - Yaw
+#define Mobs 2		// Observables - IMU, DiffDrive (Encoders)
+
 // Debugging
 #define DEBUG_FLIGHT_CONTROL_NO_CONNECT
 

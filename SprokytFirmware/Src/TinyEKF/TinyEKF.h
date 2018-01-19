@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tiny_ekf_struct.h"
+#include "debug.h"
+#include "constants.h"
 
 /**
  * A header-only class for the Extended Kalman Filter.  Your implementing class should #define the constant N and 
@@ -20,6 +22,7 @@ typedef struct TinyEKF_vtbl TinyEKF_vtbl;
 
 void ekf_init(void *, int, int);
 int ekf_step(void *, double *);
+void TinyEKF_print(TinyEKF* self);
 void TinyEKF_init_local(TinyEKF* self);
 void TinyEKF_model(TinyEKF* self, double fx[Nsta], double F[Nsta][Nsta], double hx[Mobs], double H[Mobs][Nsta]);
 void TinyEKF_setP(TinyEKF* self, int i, int j, double value);
@@ -37,7 +40,7 @@ struct TinyEKF_vtbl {
 struct TinyEKF
 {
 	ekf_t ekf;
-	double * x;
+	double* x;
 };
 
 
@@ -46,9 +49,10 @@ struct TinyEKF
 */
 void TinyEKF_init(TinyEKF* self) 
 { 
-    ekf_init(&self->ekf, Nsta, Mobs); 
+    ekf_init(&self->ekf, Nsta, Mobs); 	
+	
 	TinyEKF_init_local(self);
-	self->x = self->ekf.x; 
+	self->x = self->ekf.x;
 }
 
 /**
@@ -60,8 +64,8 @@ void TinyEKF_init_local(TinyEKF* self)
 	// initial covariances of state noise, measurement noise
 	double P_imu = 1;
 	double P_dd = 1;
-	double R_imu = 10;		// 10 degree or 3% accuracy in IMU
-	double R_dd = 0.5;		// 2 degree or 0.556% accuracy in Diff Drive
+	double R_imu = 12.96;		// 3.6 degree or 1% accuracy (standard dev) in IMU. variance = 3.6^2
+	double R_dd = 4;		// 2 degree or 0.556% accuracy (standard dev)  in Diff Drive. variance = 2^2
 	
 	int i;
 	
@@ -101,7 +105,7 @@ void TinyEKF_init_local(TinyEKF* self)
 	//   hx[1] = 1.005 * this->x[1];
 	//   hx[2] = .9987 * this->x[1] + .001;
 	hx[0] = self->x[0]; // IMU heading from previous state
-	hx[1] = self->x[1]; // Diff Drive heading from previous state
+	hx[1] = self->x[0]; // Diff Drive heading from previous state
 
 	// process model Jacobian is identity matrix
 	H[0][0] = 1;
@@ -172,5 +176,73 @@ uint8_t TinyEKF_step(TinyEKF* self, double * z)
 { 
 	TinyEKF_model(self, self->ekf.fx, self->ekf.F, self->ekf.hx, self->ekf.H); 
 
-	return ekf_step(&self->ekf, z) ? 0 : 1;
+	int result = ekf_step(&self->ekf, z) ? 0 : 1;
+	return result;
+}
+
+void TinyEKF_print(TinyEKF* self)
+{
+	ekf_t* ekf = &self->ekf;
+	int i, j;
+	double* curr;
+	PRINTF("m: %d, n: %d\n", ekf->m, ekf->n);
+	
+	PRINTF("\nx: ");
+	for (i = 0; i < Nsta; ++i)
+		PRINTF("%f, ", ekf->x[i]);
+	
+	PRINTF("\nP: ");
+	for (i = 0; i < Nsta; ++i)
+		for (j = 0; j < Nsta; ++j)
+			PRINTF("%f, ", ekf->P[i][j]);
+	
+	PRINTF("\nQ: ");
+	for (i = 0; i < Nsta; ++i)
+		for (j = 0; j < Nsta; ++j)
+			PRINTF("%f, ", **(ekf->Q + i));
+	
+	PRINTF("\nR: ");
+	for (i = 0; i < Mobs; ++i)
+		for (j = 0; j < Mobs; ++j)
+			PRINTF("%f, ", ekf->R[i][j]);
+	
+	PRINTF("\nG: ");
+	for (i = 0; i < Nsta; ++i)
+		for (j = 0; j < Mobs; ++j)
+			PRINTF("%f, ", ekf->G[i][j]);
+	
+	PRINTF("\nF: ");
+	for (i = 0; i < Nsta; ++i)
+		for (j = 0; j < Nsta; ++j)
+			PRINTF("%f, ", ekf->F[i][j]);
+	
+	PRINTF("\nH: ");
+	for (i = 0; i < Mobs; ++i)
+		for (j = 0; j < Nsta; ++j)
+			PRINTF("%f, ", ekf->H[i][j]);
+	
+	PRINTF("\nHt: ");
+	for (i = 0; i < Nsta; ++i)
+		for (j = 0; j < Mobs; ++j)
+			PRINTF("%f, ", ekf->Ht[i][j]);
+	
+	PRINTF("\nFt: ");
+	for (i = 0; i < Nsta; ++i)
+		for (j = 0; j < Nsta; ++j)
+			PRINTF("%f, ", ekf->Ft[i][j]);
+	
+	PRINTF("\nPp: ");
+	for (i = 0; i < Nsta; ++i)
+		for (j = 0; j < Nsta; ++j)
+			PRINTF("%f, ", ekf->Pp[i][j]);
+	
+	PRINTF("\nfx: ");
+	for (i = 0; i < Nsta; ++i)
+		PRINTF("%f, ", ekf->fx[i]);
+	
+	PRINTF("\nhx: ");
+	for (i = 0; i < Mobs; ++i)
+		PRINTF("%f, ", ekf->hx[i]);
+	
+	PRINTF("\n\n");
 }

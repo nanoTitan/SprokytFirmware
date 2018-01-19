@@ -9,10 +9,13 @@
 #include "debug.h"
 #include "imu.h"
 #include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 /* Private variables ---------------------------------------------------------*/
 static TinyEKF m_ekf;
 static Transform_t m_trans;
+static Transform_t m_lastTrans;
 static uint8_t m_x = 0;
 static uint8_t m_y = 0;
 static BOOL m_doUpdate = FALSE;
@@ -32,6 +35,7 @@ static void ParseTranslateQuadDrive(uint8_t _x, uint8_t _y);
 void RoverControl_init()
 {	
 	memset(&m_trans, 0, sizeof(Transform_t));
+	memset(&m_lastTrans, 0, sizeof(Transform_t));
 	
 	DiffDrive_Init();
 	InitSensorFusion();
@@ -40,6 +44,7 @@ void RoverControl_init()
 void InitSensorFusion()
 {
 	TinyEKF_init(&m_ekf);
+	TinyEKF_print(&m_ekf);
 }
 
 void RoverControl_update()
@@ -79,13 +84,24 @@ void RoverControl_update()
 	{
 		float yaw = IMU_get_yaw();
 		DiffDrive_SetAngularPosDegree(yaw);
+		TinyEKF_setX(&m_ekf, 0, yaw);
+		TinyEKF_setX(&m_ekf, 1, yaw);
+		
 		m_hasSetDiffFromIMU = TRUE;
 	}
 	
 	UpdateSensorFusion();
 	
 	// Send Transform to BLE
-	BLE_PositionUpdate(&m_trans);
+	static int i = 0;
+	++i;
+	if (m_trans.yaw != m_lastTrans.yaw && i > 10)
+	{
+		BLE_PositionUpdate(&m_trans);	
+		memcpy(&m_lastTrans, &m_trans, sizeof(Transform_t));
+		
+		i = 0;
+	}
 }
 
 void UpdateConnected()
@@ -115,12 +131,25 @@ void UpdateSensorFusion()
 	const Transform_t* currTrans = DiffDrive_GetTransform();
 	memcpy((void*)&m_trans, currTrans, sizeof(Transform_t));
 	
-	double z[2] = { imu_yaw, currTrans->yaw };
-	TinyEKF_step(&m_ekf, z);
-	float yawCurr = TinyEKF_getX(&m_ekf, 0);
-	m_trans.yaw = yawCurr;
+	static uint32_t lastTime = 0;
+	uint32_t currTime = HAL_GetTick();
+	if (currTime - lastTime > 100)
+	{
+		double z[2] = { imu_yaw, currTrans->yaw };
+		TinyEKF_step(&m_ekf, z);
+		float yawCurr = TinyEKF_getX(&m_ekf, 0);
+		m_trans.yaw = yawCurr;	
+		
+		lastTime = currTime;
+	}
 	
-	PRINTF("y1: %f, y2: %f, y3: %f\r\n", imu_yaw, currTrans->yaw, m_trans.yaw);
+	static int i = 0;
+	++i;
+	if (i > 7000)
+	{
+		PRINTF("SF imu: %.1f dd: %.1f sf: %.1f\r\n", imu_yaw, currTrans->yaw, m_trans.yaw);
+		i = 0;
+	}
 }
 
 void Disarm()

@@ -6,6 +6,7 @@
  * MIT License
  */
 
+struct ekf_t;
 
 /**
   * Initializes an EKF structure.

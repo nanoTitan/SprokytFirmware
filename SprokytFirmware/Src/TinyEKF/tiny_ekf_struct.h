@@ -9,21 +9,17 @@
  * MIT License
  */
 
-/* states */
-#define Nsta 1		// Yaw
-
-/* observables */
-#define Mobs 2		// IMU, DiffDrive (Encoders)
+#include "constants.h"
 
 typedef struct {
 
     int n;          /* number of state values */
     int m;          /* number of observables */
 
-    double x[Nsta];    /* state vector */
+    double x[Nsta];    /* state vector													x_k	*/
 
     double P[Nsta][Nsta];  /* prediction error covariance */
-    double Q[Nsta][Nsta];  /* process noise covariance */
+    double Q[Nsta][Nsta];  /* process noise covariance									w_k */
     double R[Mobs][Mobs];  /* measurement error covariance */
 
     double G[Nsta][Mobs];  /* Kalman gain; a.k.a. K */
@@ -33,10 +29,10 @@ typedef struct {
 
     double Ht[Nsta][Mobs]; /* transpose of measurement Jacobian */
     double Ft[Nsta][Nsta]; /* transpose of process Jacobian */
-    double Pp[Nsta][Nsta]; /* P, post-prediction, pre-update */
+    double Pp[Nsta][Nsta]; /* P, post-prediction, pre-update							P_k	*/
 
-    double fx[Nsta];   /* output of user defined f() state-transition function */
-    double hx[Mobs];   /* output of user defined h() measurement function */
+    double fx[Nsta];   /* output of user defined f() state-transition function			fx	*/
+    double hx[Mobs];   /* output of user defined h() measurement function				hx	*/
 
     /* temporary storage */
     double tmp0[Nsta][Nsta];

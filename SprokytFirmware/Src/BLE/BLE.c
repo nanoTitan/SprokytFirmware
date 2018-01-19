@@ -625,7 +625,7 @@ tBleStatus BLE_PositionUpdate(const Transform_t* pTrans)
 	
 	if (status != BLE_STATUS_SUCCESS)
 	{
-		PRINTF("Error while updating Position characteristic: %x\n", status);
+		PRINTF("BLE Error: 0x%x\n", status);
 		return BLE_STATUS_ERROR;
 	}
 	
