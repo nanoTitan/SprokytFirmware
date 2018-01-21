@@ -58,17 +58,17 @@ void DiffDrive_Update()
 	return;
 #endif // ENCODER_ENABLED
 	
-	// Update the encoders frequently so the counts and velocities are accurate
-	Encoder_Update();
-	
 	float currTime = HAL_GetTick() * 0.001f;
 	float deltaTime = currTime - m_lastTime;
 	
-	// Update once every 10ms
-	if (deltaTime < 0.01f)
+	// Update once every 25ms
+	if (deltaTime < 0.025f)
 	{
 		return;
 	}
+	
+	// Update the encoders frequently so the counts and velocities are accurate
+	Encoder_Update();
 	
 	// Update wheel velocities
 	// V = wR  translational velocity of wheel center is rotational velocity * wheel radius

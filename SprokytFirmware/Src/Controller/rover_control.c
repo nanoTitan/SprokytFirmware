@@ -12,20 +12,26 @@
 #include <stdio.h>
 #include <string.h>
 
+/* Definitions ---------------------------------------------------------*/
+#define YAW_DIFF_MAX	10
+
 /* Private variables ---------------------------------------------------------*/
 static TinyEKF m_ekf;
 static Transform_t m_trans;
 static Transform_t m_lastTrans;
+static const Transform_t* m_ddTrans;
+static float m_currImuYaw = 0;
 static uint8_t m_x = 0;
 static uint8_t m_y = 0;
 static BOOL m_doUpdate = FALSE;
-static BOOL m_hasSetDiffFromIMU = FALSE;
+static BOOL m_hasSetInitialStates = FALSE;
 
 /* Private function prototypes -----------------------------------------------*/
 static void UpdateConnected();
 static void UpdateDisconnected();
 static void InitSensorFusion();
 static void UpdateSensorFusion();
+static uint8_t UpdateTrackingError();
 static void Disarm();
 static void RunMotorTest();
 static void PrintIMU();
@@ -76,26 +82,35 @@ void RoverControl_update()
 	DiffDrive_Update();
 	
 	uint8_t isStable = IMU_get_sensorFusionStable();
-	if (!isStable)
-		return;
 	
 	// Update the differential drive angular position with the IMU on start
-	if (!m_hasSetDiffFromIMU && isStable)
+	if (!m_hasSetInitialStates && isStable)
 	{
-		float yaw = IMU_get_yaw();
-		DiffDrive_SetAngularPosDegree(yaw);
-		TinyEKF_setX(&m_ekf, 0, yaw);
-		TinyEKF_setX(&m_ekf, 1, yaw);
+		m_currImuYaw = IMU_get_yaw();
+		m_ddTrans = DiffDrive_GetTransform();
+		DiffDrive_SetAngularPosDegree(m_currImuYaw);
 		
-		m_hasSetDiffFromIMU = TRUE;
+		TinyEKF_setX(&m_ekf, 0, m_ddTrans->x);			// Initial state x
+		TinyEKF_setX(&m_ekf, 1, m_ddTrans->z);			// Initial state y
+		TinyEKF_setX(&m_ekf, 2, m_currImuYaw);			// Initial state yaw
+		
+		m_hasSetInitialStates = TRUE;
 	}
 	
+	// Don't update sensor fusion if we're not stable or states haven't been set
+	if (!m_hasSetInitialStates || !isStable)	
+		return;
+	
 	UpdateSensorFusion();
+	UpdateTrackingError();
 	
 	// Send Transform to BLE
 	static int i = 0;
 	++i;
-	if (m_trans.yaw != m_lastTrans.yaw && i > 10)
+	if ( i > 10 && 
+		(m_trans.x != m_lastTrans.x ||
+		m_trans.z != m_lastTrans.z ||
+		m_trans.yaw != m_lastTrans.yaw) )
 	{
 		BLE_PositionUpdate(&m_trans);	
 		memcpy(&m_lastTrans, &m_trans, sizeof(Transform_t));
@@ -127,29 +142,43 @@ void UpdateDisconnected()
 
 void UpdateSensorFusion()
 {
-	float imu_yaw = IMU_get_yaw();
-	const Transform_t* currTrans = DiffDrive_GetTransform();
-	memcpy((void*)&m_trans, currTrans, sizeof(Transform_t));
+	double uwb_x = 10;
+	double uwb_z = 10;
+	m_currImuYaw = IMU_get_yaw();
 	
 	static uint32_t lastTime = 0;
 	uint32_t currTime = HAL_GetTick();
 	if (currTime - lastTime > 100)
 	{
-		double z[2] = { imu_yaw, currTrans->yaw };
+		double z[6] = { uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, m_currImuYaw, m_ddTrans->yaw };
 		TinyEKF_step(&m_ekf, z);
-		float yawCurr = TinyEKF_getX(&m_ekf, 0);
-		m_trans.yaw = yawCurr;	
+		
+		// EKF Output
+		m_trans.x = TinyEKF_getX(&m_ekf, 0);
+		m_trans.z = TinyEKF_getX(&m_ekf, 1);
+		m_trans.yaw = TinyEKF_getX(&m_ekf, 2);
 		
 		lastTime = currTime;
 	}
 	
 	static int i = 0;
 	++i;
-	if (i > 7000)
+	if (i > 40000)
 	{
-		PRINTF("SF imu: %.1f dd: %.1f sf: %.1f\r\n", imu_yaw, currTrans->yaw, m_trans.yaw);
+		//PRINTF("SF imu: %.1f dd: %.1f sf: %.1f\r\n", m_currImuYaw, m_ddTrans->yaw, m_trans.yaw);
+		PRINTF("SF ux %.2f, uz %.2f, ddx %.2f, ddz: %.2f, sf_x %.1f, sf_z %.1f\r\n", uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, m_trans.x, m_trans.z);
 		i = 0;
 	}
+}
+
+uint8_t UpdateTrackingError()
+{
+//	float yawDiff = m_currImuYaw - m_ddTrans->yaw;
+//	float absYaw = fabsf(yawDiff);
+//	if (absYaw > YAW_DIFF_MAX)
+//	{
+//		DiffDrive_SetAngularPosDegree(m_currImuYaw);
+//	}
 }
 
 void Disarm()

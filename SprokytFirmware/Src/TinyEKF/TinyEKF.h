@@ -62,15 +62,17 @@ void TinyEKF_init(TinyEKF* self)
 void TinyEKF_init_local(TinyEKF* self)
 {
 	// initial covariances of state noise, measurement noise
-	double P_imu = 1;
-	double P_dd = 1;
-	double R_imu = 12.96;		// 3.6 degree or 1% accuracy (standard dev) in IMU. variance = 3.6^2
-	double R_dd = 4;		// 2 degree or 0.556% accuracy (standard dev)  in Diff Drive. variance = 2^2
+	double P_posx = 1;
+	double P_posz = 1;
+	double P_yaw = 1;
+	double R_uwb_x = .1;		// TODO: UWB error (variance) of 10cm or .01^2
+	double R_uwb_z =.1;		// TODO: UWB error (variance) of 10cm or .01^2
+	double R_dd_x =.1;			// TODO: DD error (variance) of 10cm or .1^2
+	double R_dd_z =.1;			// TODO: DD error (variance) of 10cm or .1^2
+	double R_imu_yaw = 12.96;	// 3.6 degree or 1% accuracy (standard dev) in IMU. variance = 3.6^2
+	double R_dd_yaw = 4;		// 2 degree or 0.556% accuracy (standard dev)  in Diff Drive. variance = 2^2
 	
 	int i;
-	
-//	self->ekf.P[0][0] = P_imu;
-//	self->ekf.P[1][1] = P_dd;
 	
 	// Set the initial states
 	for (i = 0; i < Nsta; ++i)
@@ -78,10 +80,16 @@ void TinyEKF_init_local(TinyEKF* self)
 	
 	// Approximate the process noise using a small constant
 	TinyEKF_setQ(self, 0, 0, .0001);
+	TinyEKF_setQ(self, 1, 1, .0001);
+	TinyEKF_setQ(self, 2, 2, .0001);
 
 	// Approximate the measurement noise
-	TinyEKF_setR(self, 0, 0, R_imu);
-	TinyEKF_setR(self, 1, 1, R_dd);
+	TinyEKF_setR(self, 0, 0, R_uwb_x);
+	TinyEKF_setR(self, 1, 1, R_uwb_z);
+	TinyEKF_setR(self, 2, 2, R_dd_x);
+	TinyEKF_setR(self, 3, 3, R_dd_z);
+	TinyEKF_setR(self, 4, 4, R_imu_yaw);
+	TinyEKF_setR(self, 5, 5, R_dd_yaw);
 }
 
 /**
@@ -95,21 +103,33 @@ void TinyEKF_init_local(TinyEKF* self)
 {
 	// Process model is f(x) = x
 	fx[0] = self->x[0];
+	fx[1] = self->x[1];
+	fx[2] = self->x[2];
 
 	// process model Jacobian is identity matrix
 	F[0][0] = 1;
-
+	F[1][1] = 1;
+	F[2][2] = 1;
+	
 	// Measurement function simplifies the relationship between state and sensor readings for convenience.
 	// A more realistic measurement function would distinguish between state value and measured value; e.g.:
 	//   hx[0] = pow(this->x[0], 1.03);
 	//   hx[1] = 1.005 * this->x[1];
 	//   hx[2] = .9987 * this->x[1] + .001;
-	hx[0] = self->x[0]; // IMU heading from previous state
-	hx[1] = self->x[0]; // Diff Drive heading from previous state
+	hx[0] = self->x[0]; // uwb x from previous state
+	hx[1] = self->x[1]; // uwb y from previous state
+	hx[2] = self->x[0]; // dd x from previous state
+	hx[3] = self->x[1]; // dd y from previous state
+	hx[4] = self->x[2]; // IMU heading from previous state
+	hx[5] = self->x[2]; // Diff Drive heading from previous state
 
 	// process model Jacobian is identity matrix
 	H[0][0] = 1;
-	H[1][0] = 1;
+	H[1][1] = 1;
+	H[2][0] = 1;
+	H[3][1] = 1;
+	H[4][2] = 1;
+	H[5][2] = 1;
 }
 
 /**
@@ -164,6 +184,8 @@ double TinyEKF_getX(TinyEKF* self, int i)
 */
 void TinyEKF_setX(TinyEKF* self, int i, double value) 
 { 
+	if(i >= Nsta)
+		
 	self->ekf.x[i] = value; 
 }
 

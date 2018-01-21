@@ -11,7 +11,7 @@
 
 /* Exported macro ------------------------------------------------------------*/
 // *** All measurements are in SI units *** 
-#define DD_WHEEL_BASE_LENGTH	0.148f
+#define DD_WHEEL_BASE_LENGTH	0.1524f
 #define DD_WHEEL_RADIUS			.055f
 
 /* Exported constants --------------------------------------------------------*/

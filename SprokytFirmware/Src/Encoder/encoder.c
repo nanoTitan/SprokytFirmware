@@ -91,7 +91,7 @@ void Encoder_Update()
 #ifdef PRINT_ENCODER
 	static int printCnt = 0;
 	++printCnt;
-	if (printCnt > 5)
+	if (printCnt > 1)
 	{
 		//PRINTF("%.3f, %.3f\n", deltaTime, m_lastTime);
 		//PRINTF("%u, %u, %u, %u\n", (unsigned int)m_lastCount1, (unsigned int)m_lastCount2, m_dir1, m_dir2);	
@@ -100,7 +100,7 @@ void Encoder_Update()
 		//PRINTF("%2.3f, %2.3f\n", deltaCnt1, deltaCnt2);	
 		//PRINTF("%2.3f, %2.3f\n", deltaAngle1, deltaAngle2);	
 		//PRINTF("%2.3f, %2.3f\n", m_lastAngle1, m_lastAngle2);	
-		//PRINTF("%.3f, %.3f\n", m_angVel1, m_angVel2);	
+		//PRINTF("%.4f, %.4f\n", m_angVel1, m_angVel2);	
 		
 		printCnt = 0;
 	}
