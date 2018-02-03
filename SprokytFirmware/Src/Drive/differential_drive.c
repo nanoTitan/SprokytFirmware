@@ -131,7 +131,7 @@ void DiffDrive_Update()
 
 	static int printCnt = 0;
 	++printCnt;
-	if (printCnt > 100)
+	if (printCnt > 10)
 	{		
 #ifdef PRINT_DIFF_DRIVE
 		//PRINTF("%.3f, %.3f\n", Vl, Vr);	

@@ -45,6 +45,8 @@ void RoverControl_init()
 	memset(&m_lastTrans, 0, sizeof(Transform_t));
 	
 	DiffDrive_Init();
+	m_ddTrans = DiffDrive_GetTransform();
+	
 	InitSensorFusion();
 }
 
@@ -82,13 +84,14 @@ void RoverControl_update()
 	
 	DiffDrive_Update();
 	
+#if defined(IMU_ENABLED)
 	uint8_t isStable = IMU_get_sensorFusionStable();
 	
 	// Update the differential drive angular position with the IMU on start
 	if (!m_hasSetInitialStates && isStable)
 	{
 		m_currImuYaw = IMU_get_yaw();
-		m_ddTrans = DiffDrive_GetTransform();
+		
 		DiffDrive_SetAngularPosDegree(m_currImuYaw);
 		
 		TinyEKF_setX(&m_ekf, 0, m_ddTrans->x);			// Initial state x
@@ -101,6 +104,7 @@ void RoverControl_update()
 	// Don't update sensor fusion if we're not stable or states haven't been set
 	if (!m_hasSetInitialStates || !isStable)	
 		return;
+#endif // IMU_ENABLED
 	
 	UpdateSensorFusion();
 	UpdateTrackingError();
@@ -146,7 +150,11 @@ void UpdateSensorFusion()
 	double uwb_x = 10;
 	double uwb_z = 10;
 	float imuYaw, ddYaw;
+	float posScale = 10.0f;
+	
+#if defined(IMU_ENABLED)
 	m_currImuYaw = IMU_get_yaw();
+#endif // IMU_ENABLED
 	
 	static uint32_t lastTime = 0;
 	uint32_t currTime = HAL_GetTick();
@@ -157,18 +165,21 @@ void UpdateSensorFusion()
 		double z[6] = { uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, imuYaw, ddYaw };
 		TinyEKF_step(&m_ekf, z);
 		
-		// EKF Output
+		// Switch and negate x,z coordinates so they show up correctly in app coordinates
 #if defined(UWB_ENABLED)
-		m_trans.x = TinyEKF_getX(&m_ekf, 0);
-		m_trans.z = TinyEKF_getX(&m_ekf, 1);
+		m_trans.x = -TinyEKF_getX(&m_ekf, 1) * posScale;
+		m_trans.z = -TinyEKF_getX(&m_ekf, 0) * posScale;
 #else
-		m_trans.x = m_ddTrans->x;
-		m_trans.z = m_ddTrans->z;
+		m_trans.x = -m_ddTrans->z * posScale;
+		m_trans.z = -m_ddTrans->x * posScale;
 #endif	// UWB_ENABLED
 		
-		//m_trans.yaw = TinyEKF_getX(&m_ekf, 2);
-		m_trans.yaw = imuYaw * 0.1f + ddYaw * 0.9f;
-		
+#if defined(IMU_ENABLED)
+		m_trans.yaw = TinyEKF_getX(&m_ekf, 2);
+		//m_trans.yaw = imuYaw * 0.1f + ddYaw * 0.9f;
+#else
+		m_trans.yaw = m_ddTrans->yaw;
+#endif	// IMU_ENABLED
 		
 		static uint32_t printTime = 0;
 		printTime += currTime - lastTime;
