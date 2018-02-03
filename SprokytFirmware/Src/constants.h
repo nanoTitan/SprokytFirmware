@@ -14,6 +14,7 @@
 /**********************************************************/
 #define SERIAL_PRINT
 #define BLE_ENABLED
+//#define UWB_ENABLED
 //#define WIFI_ENABLED
 #define IMU_ENABLED
 //#define STEPPER_ENABLED
@@ -81,14 +82,14 @@
 #define MD2_RCC_CL_ENABLE		__HAL_RCC_TIM3_CLK_ENABLE
 #define MD1_RCC_CL_ENABLE		__HAL_RCC_TIM1_CLK_ENABLE
 
-// Definitinos for IMU
+// Definitions for IMU
 #define TIM_IMU			        TIM4						// TIM3 TIM4
 #define TIM_IMU_CLK_ENABLE		__TIM4_CLK_ENABLE			// __TIM3_CLK_ENABLE __TIM4_CLK_ENABLE
 #define TIM_IMU_CLK_DISABLE     __TIM4_CLK_DISABLE			// __TIM3_CLK_DISABLE __TIM4_CLK_DISABLE
 #define TIM_SF_IRQn				TIM4_IRQn					// TIM3_IRQn TIM4_IRQn
 #define TIM_IMU_IRQHandler		TIM4_IRQHandler				// TIM3_IRQHandler TIM4_IRQHandler
 
-/* Definition for Servo clock resources */
+/* Definitions for Servo clock resources */
 #define TIM_SERVO		                     TIM4
 #define TIM_SERVO_CLK_ENABLE                 __TIM4_CLK_ENABLE
 #define TIM_SERVO_CLK_DISABLE                __TIM4_CLK_DISABLE
@@ -97,6 +98,29 @@
 #define SERVO1_PWM_PIN						GPIO_PIN_6
 #define SERVO2_PWM_PIN						GPIO_PIN_7
 #define SERVO_GPIO_Port						GPIOB
+
+/* Definitions for UWB resources */
+#define UWB_SPIx                             SPI3
+#define UWB_SPIx_CLK_ENABLE                  __SPI3_CLK_ENABLE
+#define UWB_SPIx_CLK_DISABLE                 __SPI3_CLK_DISABLE
+#define UWB_SPIx_SCK_GPIO_CLK_ENABLE	     __GPIOB_CLK_ENABLE
+#define UWB_SPIx_MISO_GPIO_CLK_ENABLE        __GPIOB_CLK_ENABLE
+#define UWB_SPIx_MOSI_GPIO_CLK_ENABLE		 __GPIOB_CLK_ENABLE
+#define UWB_SPIx_NSS_GPIO_CLK_ENABLE		 __GPIOA_CLK_ENABLE
+#define UWB_SPIx_FORCE_RESET                 __SPI3_FORCE_RESET
+#define UWB_SPIx_RELEASE_RESET               __SPI3_RELEASE_RESET
+#define UWB_SPIx_SCK_PIN                     GPIO_PIN_10
+#define UWB_SPIx_SCK_GPIO_PORT               GPIOC
+#define UWB_SPIx_NSS_PORT	                 GPIOA
+#define UWB_SPIx_NSS_PIN                     GPIO_PIN_15
+#define UWB_SPIx_NSS_AF                      GPIO_AF6_SPI3
+#define UWB_SPIx_SCK_AF                      GPIO_AF6_SPI3
+#define UWB_SPIx_MISO_PIN                    GPIO_PIN_11
+#define UWB_SPIx_MISO_GPIO_PORT              GPIOC
+#define UWB_SPIx_MISO_AF                     GPIO_AF6_SPI3
+#define UWB_SPIx_MOSI_PIN                    GPIO_PIN_12
+#define UWB_SPIx_MOSI_GPIO_PORT              GPIOC
+#define UWB_SPIx_MOSI_AF                     GPIO_AF6_SPI3  
 
 /* Definition for Encoder resources */
 #define TIM_ENCODER1	                    TIM2

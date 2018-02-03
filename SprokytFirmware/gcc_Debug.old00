@@ -269,9 +269,6 @@
 #ifndef __USER_LABEL_PREFIX__
 #define __USER_LABEL_PREFIX__ 
 #endif
-#ifndef XMOTION_FX_STORE_CALIB_FLASH
-#define XMOTION_FX_STORE_CALIB_FLASH 1
-#endif
 #ifndef __STDC_HOSTED__
 #define __STDC_HOSTED__ 1
 #endif
@@ -1059,6 +1056,9 @@
 #ifndef __USACCUM_FBIT__
 #define __USACCUM_FBIT__ 8
 #endif
+#ifndef XMOTION_FX_USE_MAG_DEFAULT
+#define XMOTION_FX_USE_MAG_DEFAULT 1
+#endif
 #ifndef __INT32_TYPE__
 #define __INT32_TYPE__ long int
 #endif
@@ -1208,14 +1208,19 @@
 //c:\sysgcc\arm-eabi\bin\../lib/gcc/arm-eabi/6.2.0/../../../../arm-eabi/include
 //Src
 //Src/BLE
+//Src/UWB
+//Src/UWB/dwm_driver/dwm_api
+//Src/UWB/dwm_driver/lmh
+//Src/UWB/include
 //Src/Controller
 //Src/Motor
 //Src/Math
 //Src/IMU
 //Src/Distance
-//Src/Drive
 //Src/Encoder
+//Src/Drive
 //Src/Serial
+//Src/TinyEKF
 //X-CUBE-BLE1/Drivers/BSP/STM32F4xx-Nucleo
 //X-CUBE-BLE1/Drivers/BSP/X-NUCLEO-IDB0xA1
 //X-CUBE-BLE1/Middlewares/ST/LowPowerManager/Inc

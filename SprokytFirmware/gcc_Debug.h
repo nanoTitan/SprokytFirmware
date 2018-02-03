@@ -1208,6 +1208,10 @@
 //c:\sysgcc\arm-eabi\bin\../lib/gcc/arm-eabi/6.2.0/../../../../arm-eabi/include
 //Src
 //Src/BLE
+//Src/UWB
+//Src/UWB/dwm_driver/dwm_api
+//Src/UWB/dwm_driver/lmh
+//Src/UWB/include
 //Src/Controller
 //Src/Motor
 //Src/Math

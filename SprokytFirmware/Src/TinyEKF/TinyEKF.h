@@ -11,6 +11,7 @@
 #include "tiny_ekf_struct.h"
 #include "debug.h"
 #include "constants.h"
+#include <assert.h>
 
 /**
  * A header-only class for the Extended Kalman Filter.  Your implementing class should #define the constant N and 
@@ -69,8 +70,8 @@ void TinyEKF_init_local(TinyEKF* self)
 	double R_uwb_z =.1;		// TODO: UWB error (variance) of 10cm or .01^2
 	double R_dd_x =.1;			// TODO: DD error (variance) of 10cm or .1^2
 	double R_dd_z =.1;			// TODO: DD error (variance) of 10cm or .1^2
-	double R_imu_yaw = 12.96;	// 3.6 degree or 1% accuracy (standard dev) in IMU. variance = 3.6^2
-	double R_dd_yaw = 4;		// 2 degree or 0.556% accuracy (standard dev)  in Diff Drive. variance = 2^2
+	double R_imu_yaw = 1.296;	// 3.6 degree or 1% accuracy (standard dev) in IMU. variance = 3.6^2
+	double R_dd_yaw = 0.4;		// 2 degree or 0.556% accuracy (standard dev)  in Diff Drive. variance = 2^2
 	
 	int i;
 	
@@ -140,6 +141,7 @@ void TinyEKF_init_local(TinyEKF* self)
 */
 void TinyEKF_setP(TinyEKF* self, int i, int j, double value) 
 { 
+	assert(i < Nsta && i > -1 && j < Nsta && j > -1);
 	self->ekf.P[i][j] = value; 
 }
 
@@ -151,6 +153,7 @@ void TinyEKF_setP(TinyEKF* self, int i, int j, double value)
 */
 void TinyEKF_setQ(TinyEKF* self, int i, int j, double value) 
 { 
+	assert(i < Nsta && i > -1 && j < Nsta && j > -1);
 	self->ekf.Q[i][j] = value; 
 }
 
@@ -162,6 +165,7 @@ void TinyEKF_setQ(TinyEKF* self, int i, int j, double value)
 */
 void TinyEKF_setR(TinyEKF* self, int i, int j, double value) 
 { 
+	assert(i < Mobs && i > -1 && j < Mobs && j > -1);
 	self->ekf.R[i][j] = value; 
 }
 
@@ -174,6 +178,7 @@ void TinyEKF_setR(TinyEKF* self, int i, int j, double value)
 */
 double TinyEKF_getX(TinyEKF* self, int i) 
 { 
+	assert(i < Nsta && i > -1);
     return self->ekf.x[i]; 
 }
 
@@ -184,8 +189,7 @@ double TinyEKF_getX(TinyEKF* self, int i)
 */
 void TinyEKF_setX(TinyEKF* self, int i, double value) 
 { 
-	if(i >= Nsta)
-		
+	assert(i < Nsta && i > -1);
 	self->ekf.x[i] = value; 
 }
 

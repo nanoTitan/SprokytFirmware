@@ -31,6 +31,7 @@ static void UpdateConnected();
 static void UpdateDisconnected();
 static void InitSensorFusion();
 static void UpdateSensorFusion();
+static void UpdateOrientationRounding(float* out_imuYaw, float* out_ddYaw);
 static uint8_t UpdateTrackingError();
 static void Disarm();
 static void RunMotorTest();
@@ -50,7 +51,7 @@ void RoverControl_init()
 void InitSensorFusion()
 {
 	TinyEKF_init(&m_ekf);
-	TinyEKF_print(&m_ekf);
+	//TinyEKF_print(&m_ekf);
 }
 
 void RoverControl_update()
@@ -144,30 +145,75 @@ void UpdateSensorFusion()
 {
 	double uwb_x = 10;
 	double uwb_z = 10;
+	float imuYaw, ddYaw;
 	m_currImuYaw = IMU_get_yaw();
 	
 	static uint32_t lastTime = 0;
 	uint32_t currTime = HAL_GetTick();
-	if (currTime - lastTime > 100)
+	if (currTime - lastTime > 5)
 	{
-		double z[6] = { uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, m_currImuYaw, m_ddTrans->yaw };
+		UpdateOrientationRounding(&imuYaw, &ddYaw);
+		
+		double z[6] = { uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, imuYaw, ddYaw };
 		TinyEKF_step(&m_ekf, z);
 		
 		// EKF Output
+#if defined(UWB_ENABLED)
 		m_trans.x = TinyEKF_getX(&m_ekf, 0);
 		m_trans.z = TinyEKF_getX(&m_ekf, 1);
-		m_trans.yaw = TinyEKF_getX(&m_ekf, 2);
+#else
+		m_trans.x = m_ddTrans->x;
+		m_trans.z = m_ddTrans->z;
+#endif	// UWB_ENABLED
+		
+		//m_trans.yaw = TinyEKF_getX(&m_ekf, 2);
+		m_trans.yaw = imuYaw * 0.1f + ddYaw * 0.9f;
+		
+		
+		static uint32_t printTime = 0;
+		printTime += currTime - lastTime;
+		if (printTime > 50)
+		{
+#if defined(UWB_ENABLED)
+			//PRINTF("SF ux %.2f, uz %.2f, ddx %.2f, ddz: %.2f, sf_x %.1f, sf_z %.1f\r\n", uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, m_trans.x, m_trans.z);
+#endif
+			//PRINTF("SF imu: %.1f dd: %.1f sf: %.1f x: %.1f z: %.1f\r\n", m_currImuYaw, m_ddTrans->yaw, m_trans.yaw, m_ddTrans->x, m_ddTrans->z);
+			//PRINTF("imu: %.1f dd: %.1f curr: %.1f\n", imuYaw, ddYaw, m_trans.yaw);
+			PRINTF("x: %.1f y: %.1f z: %.1f yaw: %.1f\n", m_trans.x, m_trans.y, m_trans.z, m_trans.yaw);
+			printTime = 0;
+		}
 		
 		lastTime = currTime;
 	}
+}
+
+void UpdateOrientationRounding(float* out_imuYaw, float* out_ddYaw)
+{
+	float currYaw = TinyEKF_getX(&m_ekf, 2);
 	
-	static int i = 0;
-	++i;
-	if (i > 40000)
+	if (m_currImuYaw > -1 && m_currImuYaw < 90 && m_ddTrans->yaw < 361 && m_ddTrans->yaw > 270)
 	{
-		//PRINTF("SF imu: %.1f dd: %.1f sf: %.1f\r\n", m_currImuYaw, m_ddTrans->yaw, m_trans.yaw);
-		PRINTF("SF ux %.2f, uz %.2f, ddx %.2f, ddz: %.2f, sf_x %.1f, sf_z %.1f\r\n", uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, m_trans.x, m_trans.z);
-		i = 0;
+		*out_imuYaw = m_currImuYaw + 360;
+		*out_ddYaw = m_ddTrans->yaw;
+		
+		if (currYaw < 90)
+			TinyEKF_setX(&m_ekf, 2, currYaw + 360);
+	}
+	else if (m_ddTrans->yaw > -1 && m_ddTrans->yaw < 90 && m_currImuYaw < 361 && m_currImuYaw > 270)
+	{
+		*out_ddYaw = m_ddTrans->yaw + 360;
+		*out_imuYaw = m_currImuYaw;
+		
+		if (currYaw < 90)
+			TinyEKF_setX(&m_ekf, 2, currYaw + 360);
+	}
+	else
+	{
+		*out_imuYaw = m_currImuYaw;
+		*out_ddYaw = m_ddTrans->yaw;
+		
+		if (currYaw > 360)
+			TinyEKF_setX(&m_ekf, 2, currYaw - 360);
 	}
 }
 

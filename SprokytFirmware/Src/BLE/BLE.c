@@ -332,7 +332,7 @@ tBleStatus AddControlService(void)
 		imuServHandle,
 		UUID_TYPE_128,
 		uuid,
-		24,
+		32,
 		CHAR_PROP_NOTIFY | CHAR_PROP_READ | ATTR_PERMISSION_NONE,
 		ATTR_PERMISSION_NONE,
 		GATT_NOTIFY_ATTRIBUTE_WRITE,
@@ -620,12 +620,12 @@ tBleStatus BLE_PositionUpdate(const Transform_t* pTrans)
 		imuServHandle,
 		posCharHandle,
 		0,
-		24,
+		32,
 		buff);
 	
 	if (status != BLE_STATUS_SUCCESS)
 	{
-		PRINTF("BLE Error: 0x%x\n", status);
+		//PRINTF("BLE Error: 0x%x\n", status);
 		return BLE_STATUS_ERROR;
 	}
 	

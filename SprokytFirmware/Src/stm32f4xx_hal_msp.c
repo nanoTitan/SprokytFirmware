@@ -271,6 +271,62 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 		HAL_NVIC_EnableIRQ(BNRG_SPI_EXTI_IRQn);
 	}
 #endif // BLE_ENABLED
+	
+#if defined(UWB_ENABLED)
+	if (hspi->Instance == UWB_SPIx)
+	{
+		GPIO_InitTypeDef GPIO_InitStruct;
+
+		/* Enable GPIO Ports Clock */  
+		UWB_SPIx_SCK_GPIO_CLK_ENABLE();
+		UWB_SPIx_MISO_GPIO_CLK_ENABLE();
+		UWB_SPIx_MOSI_GPIO_CLK_ENABLE();
+		UWB_SPIx_NSS_GPIO_CLK_ENABLE();
+
+		/* Enable SPI clock */
+		UWB_SPIx_CLK_ENABLE();
+  
+	    /**SPI3 GPIO Configuration    
+	    PA15     ------> SPI3_NSS
+	    PC10     ------> SPI3_SCK
+	    PC11     ------> SPI3_MISO
+	    PC12     ------> SPI3_MOSI 
+	    */
+		
+		GPIO_InitStruct.Pin = UWB_SPIx_NSS_PIN;
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		GPIO_InitStruct.Pull = GPIO_PULLUP;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+		GPIO_InitStruct.Alternate = UWB_SPIx_NSS_AF;
+		HAL_GPIO_Init(UWB_SPIx_NSS_PORT, &GPIO_InitStruct);
+		
+		GPIO_InitStruct.Pin = UWB_SPIx_SCK_PIN | UWB_SPIx_MISO_PIN | UWB_SPIx_MOSI_PIN;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+		GPIO_InitStruct.Alternate = UWB_SPIx_SCK_AF;
+		HAL_GPIO_Init(UWB_SPIx_SCK_GPIO_PORT, &GPIO_InitStruct);
+	}
+#endif // UWB_ENABLED
+}
+
+void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
+{
+#if defined(UWB_ENABLED)
+	if (hspi->Instance == UWB_SPIx)
+	{
+		UWB_SPIx_CLK_DISABLE();
+  
+	    /**SPI3 GPIO Configuration    
+	    PA15     ------> SPI3_NSS
+	    PC10     ------> SPI3_SCK
+	    PC11     ------> SPI3_MISO
+	    PC12     ------> SPI3_MOSI 
+	    */
+		HAL_GPIO_DeInit(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN);
+		HAL_GPIO_DeInit(UWB_SPIx_SCK_GPIO_PORT, UWB_SPIx_SCK_PIN | UWB_SPIx_MISO_PIN | UWB_SPIx_MOSI_PIN);
+	}
+#endif // UWB_ENABLED
 }
 
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)

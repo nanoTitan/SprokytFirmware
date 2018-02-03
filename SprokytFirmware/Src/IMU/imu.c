@@ -296,7 +296,7 @@ void IMU_update(void)
 	if (!sensor_fusion_stable)
 	{
 		uint32_t currTime = HAL_GetTick();
-		if (currTime - lastTime > 3000)
+		if (currTime - lastTime > 5000)
 			sensor_fusion_stable = TRUE;
 	}
 	

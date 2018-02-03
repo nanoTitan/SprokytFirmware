@@ -7,6 +7,8 @@ All Rights Reserved
 #include "constants.h"
 #include "control_manager.h"
 #include "BLE.h"
+#include "dwm_constants.h"
+#include "uwb.h"
 #include "motor_controller.h"
 #include "imu.h"
 //#include "LED/LEDManager.h"
@@ -77,6 +79,10 @@ int main()
 		Error_Handler();
 #endif // BLE_ENABLED
 	
+#if defined(UWB_ENABLED)
+ 	if (UWB_Init() != UWB_STATUS_SUCCESS)
+#endif // UWB_ENABLED
+	
 #if defined(SONAR_ENABLED)
 	if (Sonar_init() != SONAR_STATUS_SUCCESS)
 		Error_Handler();
@@ -85,7 +91,6 @@ int main()
 	// Control Manager
 	RoverControl_init();
 	ControlMgr_setType(CONTROLLER_ROVER);
-	
 	
 	
 	PRINTF("Initialization done. Running program...\n\n");
@@ -109,6 +114,10 @@ int main()
 #if defined(BLE_ENABLED)
 		BLE_Update();
 #endif // BLE_ENABLED
+		
+#if defined(UWB_ENABLED)
+		UWB_Update();
+#endif // UWB_ENABLED
 		
 		MotorController_update();
 		ControlMgr_update();
