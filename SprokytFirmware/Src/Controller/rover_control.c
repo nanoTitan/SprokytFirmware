@@ -150,7 +150,9 @@ void UpdateSensorFusion()
 	double uwb_x = 10;
 	double uwb_z = 10;
 	float imuYaw, ddYaw;
-	float posScale = 10.0f;
+	
+	// Application scaling offset
+	float posScale = 30.0f;
 	
 #if defined(IMU_ENABLED)
 	m_currImuYaw = IMU_get_yaw();
@@ -162,8 +164,8 @@ void UpdateSensorFusion()
 	{
 		UpdateOrientationRounding(&imuYaw, &ddYaw);
 		
-		double z[6] = { uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, imuYaw, ddYaw };
-		TinyEKF_step(&m_ekf, z);
+		//double z[6] = { uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, imuYaw, ddYaw };
+		//TinyEKF_step(&m_ekf, z);
 		
 		// Switch and negate x,z coordinates so they show up correctly in app coordinates
 #if defined(UWB_ENABLED)
@@ -175,8 +177,8 @@ void UpdateSensorFusion()
 #endif	// UWB_ENABLED
 		
 #if defined(IMU_ENABLED)
-		m_trans.yaw = TinyEKF_getX(&m_ekf, 2);
-		//m_trans.yaw = imuYaw * 0.1f + ddYaw * 0.9f;
+		//m_trans.yaw = TinyEKF_getX(&m_ekf, 2);
+		m_trans.yaw = imuYaw * 0.1f + ddYaw * 0.9f;
 #else
 		m_trans.yaw = m_ddTrans->yaw;
 #endif	// IMU_ENABLED
@@ -230,12 +232,14 @@ void UpdateOrientationRounding(float* out_imuYaw, float* out_ddYaw)
 
 uint8_t UpdateTrackingError()
 {
-//	float yawDiff = m_currImuYaw - m_ddTrans->yaw;
-//	float absYaw = fabsf(yawDiff);
-//	if (absYaw > YAW_DIFF_MAX)
-//	{
-//		DiffDrive_SetAngularPosDegree(m_currImuYaw);
-//	}
+#if defined(IMU_ENABLED)
+	float yawDiff = m_currImuYaw - m_ddTrans->yaw;
+	float absYaw = fabsf(yawDiff);
+	if (absYaw > YAW_DIFF_MAX)
+	{
+		DiffDrive_SetAngularPosDegree(m_currImuYaw);
+	}
+#endif // IMU_ENABLED
 }
 
 void Disarm()
