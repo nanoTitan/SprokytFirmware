@@ -1,7 +1,6 @@
 #include "uwb.h"
 #include "dwm_constants.h"
 #include "constants.h"
-#include "dwm_api.h"
 #include "lmh.h"
 #include "stm32f4xx_hal.h"
 #include "error.h"
@@ -11,6 +10,7 @@ static dwm_cfg_tag_t m_cfg_tag;
 static dwm_cfg_t m_cfg_node;
 static dwm_loc_data_t m_loc;
 static dwm_pos_t m_pos;
+static bool m_hasPos = false;
 
 int UWB_Init()
 {
@@ -21,10 +21,10 @@ int UWB_Init()
 	m_uwbSpi.Init.Mode = SPI_MODE_MASTER;
 	m_uwbSpi.Init.Direction = SPI_DIRECTION_2LINES;
 	m_uwbSpi.Init.DataSize = SPI_DATASIZE_8BIT;
-	m_uwbSpi.Init.CLKPolarity = SPI_POLARITY_HIGH;
-	m_uwbSpi.Init.CLKPhase = SPI_PHASE_2EDGE;
+	m_uwbSpi.Init.CLKPolarity = SPI_POLARITY_LOW;
+	m_uwbSpi.Init.CLKPhase = SPI_PHASE_1EDGE;
 	m_uwbSpi.Init.NSS = SPI_NSS_SOFT;
-	m_uwbSpi.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;	//SPI_BAUDRATEPRESCALER_32
+	m_uwbSpi.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;	//SPI_BAUDRATEPRESCALER_32
 	m_uwbSpi.Init.FirstBit = SPI_FIRSTBIT_MSB;
 	m_uwbSpi.Init.TIMode = SPI_TIMODE_DISABLE;
 	m_uwbSpi.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -33,6 +33,10 @@ int UWB_Init()
 		Error_Handler();
 	}
 	
+	HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_SET); /**< Put chip select line High */
+	
+	// Wait 2 seconds for node to reset
+	HAL_Delay(1000);
 	LMH_Init(&m_uwbSpi);
 	
 	PRINTF("\tDW: Setting module to tag.\n");
@@ -43,6 +47,7 @@ int UWB_Init()
 	m_cfg_tag.common.ble_en = 1;
 	m_cfg_tag.common.uwb_mode = DWM_UWB_MODE_ACTIVE;
 	m_cfg_tag.common.fw_update_en = 0;
+	
 	dwm_cfg_tag_set(&m_uwbSpi, &m_cfg_tag);
     
 	// Wait 2 seconds for node to reset
@@ -83,6 +88,8 @@ void UWB_Update()
 	PRINTF("dwm_loc_get(&loc):\n");
 	if (dwm_loc_get(&m_uwbSpi, &m_loc) == RV_OK)
 	{
+		m_hasPos = true;
+		
 		PRINTF("\t[%d,%d,%d,%u]\n",
 			m_loc.p_pos->x,
 			m_loc.p_pos->y,
@@ -111,4 +118,16 @@ void UWB_Send(uint8_t address, uint8_t data)
 //	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
 //	HAL_SPI_Transmit(&spi, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
 //	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+}
+
+bool UWB_HasPosition()
+{
+	return m_hasPos;
+}
+
+void UWB_GetPosition(float* out_x, float* out_y, float* out_z)
+{
+	*out_x = m_pos.x;
+	*out_y = m_pos.y;
+	*out_z = m_pos.z;
 }

@@ -81,6 +81,7 @@ int main()
 	
 #if defined(UWB_ENABLED)
  	if (UWB_Init() != UWB_STATUS_SUCCESS)
+		Error_Handler();
 #endif // UWB_ENABLED
 	
 #if defined(SONAR_ENABLED)

@@ -14,7 +14,7 @@
 /**********************************************************/
 #define SERIAL_PRINT
 #define BLE_ENABLED
-//#define UWB_ENABLED
+#define UWB_ENABLED
 //#define WIFI_ENABLED
 //#define IMU_ENABLED
 //#define STEPPER_ENABLED
@@ -103,9 +103,9 @@
 #define UWB_SPIx                             SPI3
 #define UWB_SPIx_CLK_ENABLE                  __SPI3_CLK_ENABLE
 #define UWB_SPIx_CLK_DISABLE                 __SPI3_CLK_DISABLE
-#define UWB_SPIx_SCK_GPIO_CLK_ENABLE	     __GPIOB_CLK_ENABLE
-#define UWB_SPIx_MISO_GPIO_CLK_ENABLE        __GPIOB_CLK_ENABLE
-#define UWB_SPIx_MOSI_GPIO_CLK_ENABLE		 __GPIOB_CLK_ENABLE
+#define UWB_SPIx_SCK_GPIO_CLK_ENABLE	     __GPIOC_CLK_ENABLE
+#define UWB_SPIx_MISO_GPIO_CLK_ENABLE        __GPIOC_CLK_ENABLE
+#define UWB_SPIx_MOSI_GPIO_CLK_ENABLE		 __GPIOC_CLK_ENABLE
 #define UWB_SPIx_NSS_GPIO_CLK_ENABLE		 __GPIOA_CLK_ENABLE
 #define UWB_SPIx_FORCE_RESET                 __SPI3_FORCE_RESET
 #define UWB_SPIx_RELEASE_RESET               __SPI3_RELEASE_RESET

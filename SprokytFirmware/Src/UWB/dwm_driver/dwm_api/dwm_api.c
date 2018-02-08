@@ -114,7 +114,7 @@ int dwm_upd_rate_get(SPI_HandleTypeDef* spiHandle, uint16_t *ur, uint16_t *ur_st
 
 int dwm_cfg_tag_set(SPI_HandleTypeDef* spiHandle, dwm_cfg_tag_t* cfg)
 {
-	uint8_t tx_data[DWM1001_TLV_MAX_SIZE] = { 0 };
+	uint8_t tx_data[4] = { 0 };
 	uint8_t rx_data[DWM1001_TLV_MAX_SIZE] = { 0 };
 	uint16_t rx_len = 3;
 	tx_len = 0;
@@ -130,39 +130,21 @@ int dwm_cfg_tag_set(SPI_HandleTypeDef* spiHandle, dwm_cfg_tag_t* cfg)
 	tx_data[tx_len++] = (cfg->accel_en ?            (1<<2):0)
 						+ (((cfg->meas_mode)       &  0x03)<<0);
 	
-	HAL_Delay(1000);
-	
-	uint8_t testTx[2] = { 0x15, 0x00 };
-	uint8_t dummy = 0x00;
-	uint8_t length = 0;
-	
-	HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_RESET); /**< Put chip select line low */
-	
-	HAL_StatusTypeDef result = HAL_SPI_TransmitReceive(spiHandle, testTx, rx_data, 2, 100);
-	//HAL_StatusTypeDef result = HAL_SPI_Transmit(spiHandle, testTx, 2, 100);
-	HAL_Delay(200);
-	
-	while (length == 0 || length == 0xff)
+	int result = LMH_ERR;
+	while (result == LMH_ERR)
 	{
-		//result = HAL_SPI_TransmitReceive(spiHandle, &dummy, &length, 1, 100);
-		result = HAL_SPI_Receive(spiHandle, &length, 1, 100);
-		HAL_Delay(200);	
+		HAL_Delay(100);
+		HAL_StatusTypeDef txResult = LMH_Tx(spiHandle, tx_data, &tx_len);
+		if (txResult != HAL_OK)
+		{
+			PRINTF("\tDW: ERROR: module failed to set tag\n"); 
+			return RV_ERR;
+		}
+	
+		result = LMH_WaitForRx(spiHandle, rx_data, &rx_len, 3);   
 	}
 	
-	memset(tx_data, 0xFF, (size_t)length);
-	result = HAL_SPI_TransmitReceive(spiHandle, tx_data, rx_data, length, 100);
-	
-	HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_SET); /**< Put chip select line low */
-	
-	
-//	HAL_StatusTypeDef result = LMH_Tx(spiHandle, tx_data, &tx_len);
-//	if (result != HAL_OK)
-//	{
-//		PRINTF("\tDW: ERROR: module failed to set tag\n"); 
-//		return RV_ERR;
-//	}
-//	
-//	return LMH_WaitForRx(spiHandle, rx_data, &rx_len, 3);   
+	return result;
 }
 
 int dwm_cfg_anchor_set(SPI_HandleTypeDef* spiHandle, dwm_cfg_anchor_t* cfg)
@@ -186,8 +168,8 @@ int dwm_cfg_anchor_set(SPI_HandleTypeDef* spiHandle, dwm_cfg_anchor_t* cfg)
 
 int dwm_cfg_get(SPI_HandleTypeDef* spiHandle, dwm_cfg_t* cfg)
 {
-	uint8_t tx_data[DWM1001_TLV_MAX_SIZE];
-	uint8_t rx_data[DWM1001_TLV_MAX_SIZE];
+	uint8_t tx_data[2];
+	uint8_t rx_data[7] = { 0 };
 	uint16_t rx_len;
 	tx_len = 0;
 	tx_data[tx_len++] = DWM1001_TLV_TYPE_CMD_CFG_GET;

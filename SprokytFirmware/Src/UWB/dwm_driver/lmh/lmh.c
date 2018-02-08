@@ -60,6 +60,13 @@ HAL_StatusTypeDef LMH_Tx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* 
 	return result;
 }
 
+HAL_StatusTypeDef  LMH_TxRx(SPI_HandleTypeDef* spiHandle, uint8_t* txData, uint8_t* rxData, uint16_t* length)
+{
+	HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_RESET); /**< Put chip select line low */
+	HAL_StatusTypeDef result = HAL_SPI_TransmitReceive(spiHandle, txData, rxData, *length, DWM_SPI_TIMEOUT);
+	HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_SET); /**< Put chip select line high */
+}
+
 /** 
  * @brief wait for response data over defined interface
  *       note: this function is blocking 

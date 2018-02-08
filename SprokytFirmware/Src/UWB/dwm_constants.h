@@ -6,12 +6,12 @@
 
 #define HAL_SPI_MAX_LENGTH           255
 #define HAL_SPI_MAX_PRINT_LENGTH     HAL_SPI_MAX_LENGTH*3
-#define HAL_SPI_WAIT_PERIOD          200
+#define HAL_SPI_WAIT_PERIOD          10
 
 #define HAL_SPI_DEV0 0
 #define HAL_SPI_DEV1 1
 
-#define DWM_SPI_TIMEOUT	5000
+#define DWM_SPI_TIMEOUT	1000
 
 #define INTERFACE_NUMBER					1		// DW Interface mode: 0 - USART, 1 - SPI, 2 - SPI Interrupt Ready
 #if INTERFACE_NUMBER == 0

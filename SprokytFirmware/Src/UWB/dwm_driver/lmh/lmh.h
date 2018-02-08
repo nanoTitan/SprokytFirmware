@@ -55,6 +55,17 @@ void LMH_Init(SPI_HandleTypeDef* spiHandle);
 HAL_StatusTypeDef  LMH_Tx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* length);
 
 /** 
+ * @brief transmit and receive data over defined interface
+ *
+ * @param [in] txData: pointer to the Tx data buffer
+ * @param [in] rxData: pointer to the Rx data buffer
+ * @param [in] length: length of data to be received
+ *
+ * @return Error code
+ */
+HAL_StatusTypeDef  LMH_TxRx(SPI_HandleTypeDef* spiHandle, uint8_t* txData, uint8_t* rxData, uint16_t* length);
+
+/** 
  * @brief wait for response data over defined interface
  *       note: this function is blocking 
  *

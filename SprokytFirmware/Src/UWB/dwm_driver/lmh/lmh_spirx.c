@@ -68,21 +68,23 @@ int LMH_SPIRX_SetToIdle(SPI_HandleTypeDef* spiHandle)
 	
 	// Sending three 0xFF dummy bytes, each in a single transmission, sets the state to IDLE
 	PRINTF("\tDW: Reseting DWM1001 to SPI:IDLE \n"); 
-	HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_RESET); /**< Put chip select line low */
+	
 	
 	while (i-- > 0)
 	{
+		HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_RESET); /**< Put chip select line low */
 		HAL_StatusTypeDef txResult = HAL_SPI_Transmit(spiHandle, &dummy, 1, lmh_spirx_timeout);
+		HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_SET); /**< Put chip select line high */
 		HAL_Delay(lmh_spirx_wait);
 		if (txResult != HAL_OK)
 		{
-			HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_SET); /**< Put chip select line high */
 			PRINTF("\tDW: ERROR: module failed to be set to idle\n"); 
 			return LMH_ERR;
 		}
 	}
 	
 	// The response data will become all dummy bytes of value 0xFF to indicate it is in IDLE
+	HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_RESET); /**< Put chip select line low */
 	HAL_StatusTypeDef rxResult = HAL_SPI_Receive(spiHandle, rxBuff, 16, lmh_spirx_timeout);
 	HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_SET); /**< Put chip select line high */
 	
@@ -138,6 +140,7 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 	uint16_t len_header = LMH_SPIRX_HEADER_LENGTH;
 	uint16_t rxLen = 0;
 	uint8_t sizenum[LMH_SPIRX_HEADER_LENGTH];
+	uint8_t dummy[LMH_SPIRX_HEADER_LENGTH] = { 0 };
 	int timeout = lmh_spirx_timeout;
 
 	if(exp_length < DWM1001_TLV_RET_VAL_MIN_SIZE)
@@ -150,19 +153,18 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 	HAL_StatusTypeDef result = HAL_OK;
 	memset(sizenum, 0, LMH_SPIRX_HEADER_LENGTH);
 	
-	HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_RESET); /**< Put chip select line low */
-	
 	while (result == HAL_OK && sizenum[LMH_SPIRX_SIZE_OFFSET] == 0 && timeout >= 0)
 	{
 		HAL_Delay(lmh_spirx_wait);
 		timeout -= lmh_spirx_wait;
 		
+		HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_RESET); /**< Put chip select line low */
 		result = HAL_SPI_Receive(spiHandle, sizenum, len_header, lmh_spirx_timeout);
+		//result = HAL_SPI_TransmitReceive(spiHandle, dummy, sizenum, len_header, lmh_spirx_timeout);
+		HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_SET); /**< Put chip select line high */
 	}
-	
-	HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_SET); /**< Put chip select line high */
     
-	if (timeout < 0 && sizenum[LMH_SPIRX_SIZE_OFFSET] == 0)
+	if (timeout < 0 || sizenum[LMH_SPIRX_SIZE_OFFSET] == 0 || sizenum[LMH_SPIRX_SIZE_OFFSET] == 0Xff)
 	{
 		PRINTF("\tDW: Read SIZE timed out after %d ms... >>>>>> TIMED OUT <<<<<< \n", lmh_spirx_timeout);  
 		return LMH_ERR;
@@ -181,6 +183,7 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 		
 		HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_RESET); /**< Put chip select line low */
 		result = HAL_SPI_Receive(spiHandle, data, sizenum[LMH_SPIRX_SIZE_OFFSET], lmh_spirx_timeout);
+		//result = HAL_SPI_TransmitReceive(spiHandle, dummy, data, sizenum[LMH_SPIRX_SIZE_OFFSET], lmh_spirx_timeout);
 		HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_SET); /**< Put chip select line high */
 		
 		if (result == HAL_TIMEOUT)
@@ -192,7 +195,7 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 		*length += sizenum[LMH_SPIRX_SIZE_OFFSET];
 	}
 	
-	HAL_Delay(lmh_spirx_wait*10);
+	HAL_Delay(lmh_spirx_wait);
 	PRINTF("\tDW: Wait %d ms...\n", lmh_spirx_wait); 
    
 	if(LMH_CheckRetVal(data) != LMH_OK)
