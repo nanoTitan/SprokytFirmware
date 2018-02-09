@@ -158,6 +158,12 @@ void DiffDrive_SetAngularPosDegree(float angle)
 		m_angPosition -= 360;
 }
 
+void DiffDrive_SetPos(float x, float z)
+{
+	m_transform.x = x;
+	m_transform.z = z;
+}
+
 void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 {
 	// A (left) - B (right)

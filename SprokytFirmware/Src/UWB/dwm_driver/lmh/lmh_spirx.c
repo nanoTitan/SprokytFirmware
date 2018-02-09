@@ -149,7 +149,7 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 		return LMH_ERR;
 	}
     
-	PRINTF("\tDW: Rx reading header: \n");
+	//PRINTF("\tDW: Rx reading header: \n");
 	HAL_StatusTypeDef result = HAL_OK;
 	memset(sizenum, 0, LMH_SPIRX_HEADER_LENGTH);
 	
@@ -170,7 +170,7 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 		return LMH_ERR;
 	}
 	
-	PRINTF("\tDW: Receive TLV message: \n");
+	//PRINTF("\tDW: Receive TLV message: \n");
 	*length = 0;
    
 #if LMH_SPIRX_HEADER_LENGTH == 2
@@ -196,7 +196,7 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 	}
 	
 	HAL_Delay(lmh_spirx_wait);
-	PRINTF("\tDW: Wait %d ms...\n", lmh_spirx_wait); 
+	//PRINTF("\tDW: Wait %d ms...\n", lmh_spirx_wait); 
    
 	if(LMH_CheckRetVal(data) != LMH_OK)
 	{
@@ -209,7 +209,7 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 		return LMH_ERR;
 	}
    
-	PRINTF("\tDW: Received %d bytes, in %d ms \t OK\n", *length, lmh_spirx_timeout-timeout);
+	//PRINTF("\tDW: Received %d bytes, in %d ms \t OK\n", *length, lmh_spirx_timeout-timeout);
 	return LMH_OK;      
 }
 

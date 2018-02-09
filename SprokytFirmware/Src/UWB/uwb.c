@@ -85,31 +85,32 @@ void UWB_Update()
 {
 	int i;
 	
-	PRINTF("dwm_loc_get(&loc):\n");
+	//PRINTF("dwm_loc_get(&loc):\n");
 	if (dwm_loc_get(&m_uwbSpi, &m_loc) == RV_OK)
 	{
 		m_hasPos = true;
 		
-		PRINTF("\t[%d,%d,%d,%u]\n",
-			m_loc.p_pos->x,
-			m_loc.p_pos->y,
-			m_loc.p_pos->z,
-			m_loc.p_pos->qf);
+		// Print tag position
+		//PRINTF("\t[%d,%d,%d,%u]\n", m_loc.p_pos->x, m_loc.p_pos->y, m_loc.p_pos->z, m_loc.p_pos->qf);
 
+		/*
+		// Print anchor positions
 		for (i = 0; i < m_loc.anchors.dist.cnt; ++i) 
 		{
 			PRINTF("\t%u)", i);
 			PRINTF("0x%llx", m_loc.anchors.dist.addr[i]);
 			if (i < m_loc.anchors.an_pos.cnt) 
 			{
-				PRINTF("[%d,%d,%d,%u]",
-					m_loc.anchors.an_pos.pos[i].x,
-					m_loc.anchors.an_pos.pos[i].y,
-					m_loc.anchors.an_pos.pos[i].z,
-					m_loc.anchors.an_pos.pos[i].qf);
+				PRINTF("[%d,%d,%d,%u]", m_loc.anchors.an_pos.pos[i].x, m_loc.anchors.an_pos.pos[i].y, m_loc.anchors.an_pos.pos[i].z, m_loc.anchors.an_pos.pos[i].qf);
 			}
+			
 			PRINTF("=%u,%u\n", (uint32_t)m_loc.anchors.dist.dist[i], m_loc.anchors.dist.qf[i]);
 		}
+		*/
+	}
+	else
+	{
+		m_hasPos = false;
 	}
 }
 

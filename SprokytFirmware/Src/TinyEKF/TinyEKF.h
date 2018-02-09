@@ -67,7 +67,7 @@ void TinyEKF_init_local(TinyEKF* self)
 	double P_posz = 1;
 	double P_yaw = 1;
 	double R_uwb_x = .1;		// TODO: UWB error (variance) of 10cm or .01^2
-	double R_uwb_z =.1;		// TODO: UWB error (variance) of 10cm or .01^2
+	double R_uwb_z =.1;			// TODO: UWB error (variance) of 10cm or .01^2
 	double R_dd_x =.1;			// TODO: DD error (variance) of 10cm or .1^2
 	double R_dd_z =.1;			// TODO: DD error (variance) of 10cm or .1^2
 	double R_imu_yaw = 1.296;	// 3.6 degree or 1% accuracy (standard dev) in IMU. variance = 3.6^2

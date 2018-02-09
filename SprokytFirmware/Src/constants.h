@@ -16,11 +16,12 @@
 #define BLE_ENABLED
 #define UWB_ENABLED
 //#define WIFI_ENABLED
-//#define IMU_ENABLED
+#define IMU_ENABLED
 //#define STEPPER_ENABLED
 //#define SERVO_ENABLED
 //#define SONAR_ENABLED
 #define ENCODER_ENABLED
+#define SENSOR_FUSION_ENABLED
 
 //#define MOTOR_STEPPER	
 //#define MOTOR_SERVO

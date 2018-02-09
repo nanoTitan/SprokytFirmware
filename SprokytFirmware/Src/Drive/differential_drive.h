@@ -20,6 +20,7 @@
 void DiffDrive_Init();
 void DiffDrive_Update();
 void DiffDrive_SetAngularPosDegree(float angle);
+void DiffDrive_SetPos(float x, float z);
 void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y);
 const Transform_t* DiffDrive_GetTransform(); 
 

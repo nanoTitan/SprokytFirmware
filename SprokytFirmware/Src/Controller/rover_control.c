@@ -86,14 +86,18 @@ void RoverControl_update()
 	DiffDrive_Update();
 	
 #if defined(IMU_ENABLED)
-	uint8_t isStable = IMU_get_sensorFusionStable();
+	bool isStable = IMU_get_sensorFusionStable();
+	isStable &= UWB_HasPosition();
 	
 	// Update the differential drive angular position with the IMU on start
 	if (!m_hasSetInitialStates && isStable)
 	{
+		float x, y, z;
 		m_currImuYaw = IMU_get_yaw();
+		UWB_GetPosition(&x, &y, &z);
 		
 		DiffDrive_SetAngularPosDegree(m_currImuYaw);
+		DiffDrive_SetPos(x, z);
 		
 		TinyEKF_setX(&m_ekf, 0, m_ddTrans->x);			// Initial state x
 		TinyEKF_setX(&m_ekf, 1, m_ddTrans->z);			// Initial state y
@@ -107,8 +111,11 @@ void RoverControl_update()
 		return;
 #endif // IMU_ENABLED
 	
+#if defined(SENSOR_FUSION_ENABLED) && defined(UWB_ENABLED) && defined(IMU_ENABLED)
 	UpdateSensorFusion();
-	UpdateTrackingError();
+#else
+	UpdateTransform();
+#endif // SENSOR_FUSION_ENABLED
 	
 	// Send Transform to BLE
 	static int i = 0;
@@ -148,25 +155,30 @@ void UpdateDisconnected()
 
 void UpdateSensorFusion()
 {
-	double uwb_x = 10;
-	double uwb_z = 10;
+	uint32_t currTime = HAL_GetTick();
+	float uwb_x, uwb_y, uwb_z;
 	float imuYaw, ddYaw;
 	
 	// Application scaling offset
 	float posScale = 30.0f;
+	
+#if defined(UWB_ENABLED)
+	UWB_GetPosition(&uwb_x, &uwb_y, &uwb_z);
+#else
+	uwb_x = uwb_y = uwb_z = 0;
+#endif
 	
 #if defined(IMU_ENABLED)
 	m_currImuYaw = IMU_get_yaw();
 #endif // IMU_ENABLED
 	
 	static uint32_t lastTime = 0;
-	uint32_t currTime = HAL_GetTick();
 	if (currTime - lastTime > 5)
 	{
 		UpdateOrientationRounding(&imuYaw, &ddYaw);
 		
-		//double z[6] = { uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, imuYaw, ddYaw };
-		//TinyEKF_step(&m_ekf, z);
+		double z[6] = { uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, imuYaw, ddYaw };
+		TinyEKF_step(&m_ekf, z);
 		
 		// Switch and negate x,z coordinates so they show up correctly in app coordinates
 #if defined(UWB_ENABLED)
@@ -199,6 +211,15 @@ void UpdateSensorFusion()
 		
 		lastTime = currTime;
 	}
+}
+
+void UpdateTransform()
+{
+	float posScale = 30.0f;
+	m_trans.x = -m_ddTrans->x * posScale;
+	m_trans.y = 0;
+	m_trans.z = -m_ddTrans->z * posScale;
+	m_trans.yaw = m_ddTrans->yaw;
 }
 
 void UpdateOrientationRounding(float* out_imuYaw, float* out_ddYaw)
