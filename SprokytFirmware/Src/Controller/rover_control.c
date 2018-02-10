@@ -25,13 +25,14 @@ static float m_currImuYaw = 0;
 static uint8_t m_x = 0;
 static uint8_t m_y = 0;
 static BOOL m_doUpdate = FALSE;
-static BOOL m_hasSetInitialStates = FALSE;
+static bool m_hasSetInitialStates = false;
 
 /* Private function prototypes -----------------------------------------------*/
 static void UpdateConnected();
 static void UpdateDisconnected();
-static void InitSensorFusion();
+static bool InitSensorFusion();
 static void UpdateSensorFusion();
+static void UpdateTransform();
 static void UpdateOrientationRounding(float* out_imuYaw, float* out_ddYaw);
 static uint8_t UpdateTrackingError();
 static void Disarm();
@@ -48,13 +49,43 @@ void RoverControl_init()
 	DiffDrive_Init();
 	m_ddTrans = DiffDrive_GetTransform();
 	
-	InitSensorFusion();
-}
-
-void InitSensorFusion()
-{
+#if defined(SENSOR_FUSION_ENABLED)
 	TinyEKF_init(&m_ekf);
 	//TinyEKF_print(&m_ekf);
+#endif // SENSOR_FUSION_ENABLED
+}
+
+bool InitSensorFusion()
+{
+#if defined(SENSOR_FUSION_ENABLED)	
+	bool imuStable = true;
+	bool uwbStable = true;
+	
+#if defined(IMU_ENABLED)
+	m_currImuYaw = IMU_get_yaw();
+	imuStable = IMU_get_sensorFusionStable();
+#endif //IMU_ENABLED
+	
+#if defined(UWB_ENABLED)	
+	float x, y, z;
+	UWB_GetPosition(&x, &y, &z);
+	uwbStable = UWB_HasPosition();
+#endif //UWB_ENABLED
+	
+	// Don't update sensor fusion if we're not stable or states haven't been set
+	if (!imuStable || !uwbStable)	
+		return false;
+	
+	// Update the differential drive angular position with the IMU on start
+	DiffDrive_SetAngularPosDegree(m_currImuYaw);
+	DiffDrive_SetPos(x, z);
+	
+	TinyEKF_setX(&m_ekf, 0, m_ddTrans->x);			// Initial state x
+	TinyEKF_setX(&m_ekf, 1, m_ddTrans->z);			// Initial state y
+	TinyEKF_setX(&m_ekf, 2, m_currImuYaw);			// Initial state yaw	
+#endif // SENSOR_FUSION_ENABLED
+	
+	return true;
 }
 
 void RoverControl_update()
@@ -85,33 +116,13 @@ void RoverControl_update()
 	
 	DiffDrive_Update();
 	
-#if defined(IMU_ENABLED)
-	bool isStable = IMU_get_sensorFusionStable();
-	isStable &= UWB_HasPosition();
-	
-	// Update the differential drive angular position with the IMU on start
-	if (!m_hasSetInitialStates && isStable)
+	if (!m_hasSetInitialStates)
 	{
-		float x, y, z;
-		m_currImuYaw = IMU_get_yaw();
-		UWB_GetPosition(&x, &y, &z);
-		
-		DiffDrive_SetAngularPosDegree(m_currImuYaw);
-		DiffDrive_SetPos(x, z);
-		
-		TinyEKF_setX(&m_ekf, 0, m_ddTrans->x);			// Initial state x
-		TinyEKF_setX(&m_ekf, 1, m_ddTrans->z);			// Initial state y
-		TinyEKF_setX(&m_ekf, 2, m_currImuYaw);			// Initial state yaw
-		
-		m_hasSetInitialStates = TRUE;
+		m_hasSetInitialStates = InitSensorFusion();
+		return;
 	}
 	
-	// Don't update sensor fusion if we're not stable or states haven't been set
-	if (!m_hasSetInitialStates || !isStable)	
-		return;
-#endif // IMU_ENABLED
-	
-#if defined(SENSOR_FUSION_ENABLED) && defined(UWB_ENABLED) && defined(IMU_ENABLED)
+#if defined(SENSOR_FUSION_ENABLED)
 	UpdateSensorFusion();
 #else
 	UpdateTransform();
@@ -158,67 +169,77 @@ void UpdateSensorFusion()
 	uint32_t currTime = HAL_GetTick();
 	float uwb_x, uwb_y, uwb_z;
 	float imuYaw, ddYaw;
-	
-	// Application scaling offset
-	float posScale = 30.0f;
+		
+	static uint32_t lastTime = 0;
+	if (currTime - lastTime < 5)
+	{
+		return;
+	}
 	
 #if defined(UWB_ENABLED)
 	UWB_GetPosition(&uwb_x, &uwb_y, &uwb_z);
 #else
-	uwb_x = uwb_y = uwb_z = 0;
+	uwb_x = m_ddTrans->x;
+	uwb_y = 0;
+	uwb_z = m_ddTrans->z;
 #endif
 	
 #if defined(IMU_ENABLED)
 	m_currImuYaw = IMU_get_yaw();
+	UpdateOrientationRounding(&imuYaw, &ddYaw);
+#else
+	imuYaw = ddYaw = m_ddTrans->yaw;
 #endif // IMU_ENABLED
 	
-	static uint32_t lastTime = 0;
-	if (currTime - lastTime > 5)
-	{
-		UpdateOrientationRounding(&imuYaw, &ddYaw);
-		
-		double z[6] = { uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, imuYaw, ddYaw };
-		TinyEKF_step(&m_ekf, z);
-		
-		// Switch and negate x,z coordinates so they show up correctly in app coordinates
+	// EKF Step
+	double z[6] = { uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, imuYaw, ddYaw };
+	TinyEKF_step(&m_ekf, z);
+	
+	// Switch, negate, and scale x,z coordinates so they show up correctly in app coordinates	
 #if defined(UWB_ENABLED)
-		m_trans.x = -TinyEKF_getX(&m_ekf, 1) * posScale;
-		m_trans.z = -TinyEKF_getX(&m_ekf, 0) * posScale;
+	m_trans.x = -TinyEKF_getX(&m_ekf, 1) * APP_POS_SCALE;
+	m_trans.z = -TinyEKF_getX(&m_ekf, 0) * APP_POS_SCALE;
 #else
-		m_trans.x = -m_ddTrans->z * posScale;
-		m_trans.z = -m_ddTrans->x * posScale;
+	m_trans.x = -m_ddTrans->z * posScale;
+	m_trans.z = -m_ddTrans->x * posScale;
 #endif	// UWB_ENABLED
-		
+	
 #if defined(IMU_ENABLED)
-		//m_trans.yaw = TinyEKF_getX(&m_ekf, 2);
-		m_trans.yaw = imuYaw * 0.1f + ddYaw * 0.9f;
+	//m_trans.yaw = TinyEKF_getX(&m_ekf, 2);
+	m_trans.yaw = imuYaw * 0.1f + ddYaw * 0.9f;
 #else
-		m_trans.yaw = m_ddTrans->yaw;
+	m_trans.yaw = m_ddTrans->yaw;
 #endif	// IMU_ENABLED
-		
-		static uint32_t printTime = 0;
-		printTime += currTime - lastTime;
-		if (printTime > 50)
-		{
+	
+	static uint32_t printTime = 0;
+	printTime += currTime - lastTime;
+	if (printTime > 50)
+	{
+		float x_curr, y_curr, z_curr;
 #if defined(UWB_ENABLED)
-			//PRINTF("SF ux %.2f, uz %.2f, ddx %.2f, ddz: %.2f, sf_x %.1f, sf_z %.1f\r\n", uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, m_trans.x, m_trans.z);
+		x_curr = TinyEKF_getX(&m_ekf, 0);
+		y_curr = 0;
+		z_curr = TinyEKF_getX(&m_ekf, 1);
+		//PRINTF("SF ux %.2f, uz %.2f, ddx %.2f, ddz: %.2f, sf_x %.1f, sf_z %.1f\r\n", uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, m_trans.x, m_trans.z);
+#else
+		x_curr = m_ddTrans->x;
+		y_curr = 0;
+		z_curr = m_ddTrans->z;
 #endif
-			//PRINTF("SF imu: %.1f dd: %.1f sf: %.1f x: %.1f z: %.1f\r\n", m_currImuYaw, m_ddTrans->yaw, m_trans.yaw, m_ddTrans->x, m_ddTrans->z);
-			//PRINTF("imu: %.1f dd: %.1f curr: %.1f\n", imuYaw, ddYaw, m_trans.yaw);
-			PRINTF("x: %.1f y: %.1f z: %.1f yaw: %.1f\n", m_trans.x, m_trans.y, m_trans.z, m_trans.yaw);
-			printTime = 0;
-		}
-		
-		lastTime = currTime;
+		//PRINTF("SF imu: %.1f dd: %.1f sf: %.1f x: %.1f z: %.1f\r\n", m_currImuYaw, m_ddTrans->yaw, m_trans.yaw, x_curr, z_curr);
+		//PRINTF("imu: %.1f dd: %.1f curr: %.1f\n", imuYaw, ddYaw, m_trans.yaw);
+		PRINTF("x: %.1f y: %.1f z: %.1f yaw: %.1f\n", x_curr, y_curr, z_curr, m_trans.yaw);
+		printTime = 0;
 	}
+	
+	lastTime = currTime;
 }
 
 void UpdateTransform()
 {
-	float posScale = 30.0f;
-	m_trans.x = -m_ddTrans->x * posScale;
+	m_trans.x = -m_ddTrans->x * APP_POS_SCALE;
 	m_trans.y = 0;
-	m_trans.z = -m_ddTrans->z * posScale;
+	m_trans.z = -m_ddTrans->z * APP_POS_SCALE;
 	m_trans.yaw = m_ddTrans->yaw;
 }
 

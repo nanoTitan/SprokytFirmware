@@ -11,12 +11,12 @@
 
 /*********************************************************/
 // Component enable macros
-/**********************************************************/
+/*********************************************************/
 #define SERIAL_PRINT
 #define BLE_ENABLED
 #define UWB_ENABLED
 //#define WIFI_ENABLED
-#define IMU_ENABLED
+//#define IMU_ENABLED
 //#define STEPPER_ENABLED
 //#define SERVO_ENABLED
 //#define SONAR_ENABLED
@@ -30,6 +30,15 @@
 
 #define MOTOR_1_ENABLED
 //#define MOTOR_2_ENABLED
+
+/*********************************************************/
+// Application Macros
+/*********************************************************/
+#define APP_POS_SCALE 30.0f		// Application scaling offset
+
+
+/*********************************************************/
+// 
 /*********************************************************/
 
 // Definitions for TOSHIBA motor drivers
