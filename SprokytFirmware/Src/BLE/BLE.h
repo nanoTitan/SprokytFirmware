@@ -32,6 +32,7 @@ void GAP_DisconnectionComplete_CB(void);
 void HCI_Event_CB(void *pckt);
 tBleStatus BLE_AngularPosUpdate(float yaw, float pitch);
 tBleStatus BLE_PositionUpdate(const Transform_t* pTrans);
+tBleStatus BLE_SetTagInfo(float tagInfo[16]);
 
 /** @addtogroup SPROKYT_BLE_Exported_Functions
 *  @{

@@ -20,12 +20,15 @@
 static TinyEKF m_ekf;
 static Transform_t m_trans;
 static Transform_t m_lastTrans;
-static const Transform_t* m_ddTrans;
+static const Transform_t m_ddTrans;
 static float m_currImuYaw = 0;
 static uint8_t m_x = 0;
 static uint8_t m_y = 0;
 static BOOL m_doUpdate = FALSE;
 static bool m_hasSetInitialStates = false;
+static bool m_hasImuUpdate = false;
+static bool m_hasDiffDriveUpdate = false;
+static bool m_hasSetTagInfo = false;
 
 /* Private function prototypes -----------------------------------------------*/
 static void UpdateConnected();
@@ -34,11 +37,15 @@ static bool InitSensorFusion();
 static void UpdateSensorFusion();
 static void UpdateTransform();
 static void UpdateOrientationRounding(float* out_imuYaw, float* out_ddYaw);
-static uint8_t UpdateTrackingError();
+static bool UpdateTrackingError();
 static void Disarm();
 static void RunMotorTest();
 static void PrintIMU();
 static void ParseTranslateQuadDrive(uint8_t _x, uint8_t _y);
+static void IMU_Callback(float yaw);
+static void DiffDrive_Callback(const Transform_t* transform);
+
+static void PrintSensorFusion(uint32_t deltaTime);
 
 /* Private functions ---------------------------------------------------------*/
 void RoverControl_init()
@@ -47,7 +54,12 @@ void RoverControl_init()
 	memset(&m_lastTrans, 0, sizeof(Transform_t));
 	
 	DiffDrive_Init();
-	m_ddTrans = DiffDrive_GetTransform();
+	
+#if defined(IMU_ENABLED)
+	IMU_RegisterAngularPosCallback(IMU_Callback);
+#endif // IMU_ENABLED
+	
+	DiffDrive_RegisterCallback(DiffDrive_Callback);
 	
 #if defined(SENSOR_FUSION_ENABLED)
 	TinyEKF_init(&m_ekf);
@@ -59,31 +71,51 @@ bool InitSensorFusion()
 {
 #if defined(SENSOR_FUSION_ENABLED)	
 	bool imuStable = true;
-	bool uwbStable = true;
+	bool uwbIsReady = true;
 	
 #if defined(IMU_ENABLED)
-	m_currImuYaw = IMU_get_yaw();
 	imuStable = IMU_get_sensorFusionStable();
+	if (!imuStable ||  !m_hasImuUpdate)
+		return false;
 #endif //IMU_ENABLED
 	
 #if defined(UWB_ENABLED)	
 	float x, y, z;
 	UWB_GetPosition(&x, &y, &z);
-	uwbStable = UWB_HasPosition();
+	uwbIsReady = UWB_IsReady();
+	if (!uwbIsReady)
+		return false;
 #endif //UWB_ENABLED
 	
 	// Don't update sensor fusion if we're not stable or states haven't been set
-	if (!imuStable || !uwbStable)	
+	if (!m_hasDiffDriveUpdate)	
 		return false;
 	
 	// Update the differential drive angular position with the IMU on start
 	DiffDrive_SetAngularPosDegree(m_currImuYaw);
 	DiffDrive_SetPos(x, z);
 	
-	TinyEKF_setX(&m_ekf, 0, m_ddTrans->x);			// Initial state x
-	TinyEKF_setX(&m_ekf, 1, m_ddTrans->z);			// Initial state y
+	TinyEKF_setX(&m_ekf, 0, x);						// Initial state x
+	TinyEKF_setX(&m_ekf, 1, z);						// Initial state y
 	TinyEKF_setX(&m_ekf, 2, m_currImuYaw);			// Initial state yaw	
 #endif // SENSOR_FUSION_ENABLED
+	
+	return true;
+}
+
+static bool SetTagInfo()
+{
+#if defined(UWB_ENABLED)
+	float tagInfo[16];
+	if (!UWB_GetModuleData(tagInfo))
+		return false;
+	
+	tBleStatus result = BLE_SetTagInfo(tagInfo);
+	if (result != BLE_STATUS_SUCCESS)
+	{
+		return false;
+	}
+#endif // UWB_ENABLED
 	
 	return true;
 }
@@ -115,6 +147,11 @@ void RoverControl_update()
 	}
 	
 	DiffDrive_Update();
+	
+	if (!m_hasSetTagInfo)
+	{
+		m_hasSetTagInfo = SetTagInfo();
+	}
 	
 	if (!m_hasSetInitialStates)
 	{
@@ -166,15 +203,30 @@ void UpdateDisconnected()
 
 void UpdateSensorFusion()
 {
-	uint32_t currTime = HAL_GetTick();
 	float uwb_x, uwb_y, uwb_z;
 	float imuYaw, ddYaw;
 		
 	static uint32_t lastTime = 0;
-	if (currTime - lastTime < 5)
+	uint32_t currTime = HAL_GetTick();
+	uint32_t deltaTime = currTime - lastTime;
+	if (deltaTime < 5)
 	{
 		return;
 	}
+	
+	// Only update SensorFusion when new states ready
+	// TODO: Is this right? We may need to update more frequently
+	if (!m_hasDiffDriveUpdate)
+		return;
+	
+#if defined(IMU_ENABLED)
+	if (!m_hasImuUpdate)
+		return;
+	
+	m_hasImuUpdate = false;
+#endif	// IMU_ENABLED
+	
+	m_hasDiffDriveUpdate = false;
 	
 #if defined(UWB_ENABLED)
 	UWB_GetPosition(&uwb_x, &uwb_y, &uwb_z);
@@ -185,79 +237,59 @@ void UpdateSensorFusion()
 #endif
 	
 #if defined(IMU_ENABLED)
-	m_currImuYaw = IMU_get_yaw();
 	UpdateOrientationRounding(&imuYaw, &ddYaw);
 #else
-	imuYaw = ddYaw = m_ddTrans->yaw;
+	imuYaw = ddYaw = m_ddTrans.yaw;
 #endif // IMU_ENABLED
 	
 	// EKF Step
-	double z[6] = { uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, imuYaw, ddYaw };
+	double z[6] = { uwb_x, uwb_z, m_ddTrans.x, m_ddTrans.z, imuYaw, ddYaw };
 	TinyEKF_step(&m_ekf, z);
 	
 	// Switch, negate, and scale x,z coordinates so they show up correctly in app coordinates	
 #if defined(UWB_ENABLED)
-	m_trans.x = -TinyEKF_getX(&m_ekf, 1) * APP_POS_SCALE;
-	m_trans.z = -TinyEKF_getX(&m_ekf, 0) * APP_POS_SCALE;
+	m_trans.x = TinyEKF_getX(&m_ekf, 0);
+	m_trans.z = TinyEKF_getX(&m_ekf, 1);
 #else
-	m_trans.x = -m_ddTrans->z * posScale;
-	m_trans.z = -m_ddTrans->x * posScale;
+	m_trans.x = m_ddTrans->x;
+	m_trans.z = m_ddTrans->z;
 #endif	// UWB_ENABLED
 	
 #if defined(IMU_ENABLED)
 	//m_trans.yaw = TinyEKF_getX(&m_ekf, 2);
 	m_trans.yaw = imuYaw * 0.1f + ddYaw * 0.9f;
 #else
-	m_trans.yaw = m_ddTrans->yaw;
+	m_trans.yaw = m_ddTrans.yaw;
 #endif	// IMU_ENABLED
 	
-	static uint32_t printTime = 0;
-	printTime += currTime - lastTime;
-	if (printTime > 50)
-	{
-		float x_curr, y_curr, z_curr;
-#if defined(UWB_ENABLED)
-		x_curr = TinyEKF_getX(&m_ekf, 0);
-		y_curr = 0;
-		z_curr = TinyEKF_getX(&m_ekf, 1);
-		//PRINTF("SF ux %.2f, uz %.2f, ddx %.2f, ddz: %.2f, sf_x %.1f, sf_z %.1f\r\n", uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, m_trans.x, m_trans.z);
-#else
-		x_curr = m_ddTrans->x;
-		y_curr = 0;
-		z_curr = m_ddTrans->z;
-#endif
-		//PRINTF("SF imu: %.1f dd: %.1f sf: %.1f x: %.1f z: %.1f\r\n", m_currImuYaw, m_ddTrans->yaw, m_trans.yaw, x_curr, z_curr);
-		//PRINTF("imu: %.1f dd: %.1f curr: %.1f\n", imuYaw, ddYaw, m_trans.yaw);
-		PRINTF("x: %.1f y: %.1f z: %.1f yaw: %.1f\n", x_curr, y_curr, z_curr, m_trans.yaw);
-		printTime = 0;
-	}
+	PrintSensorFusion(deltaTime);
 	
 	lastTime = currTime;
 }
 
 void UpdateTransform()
 {
-	m_trans.x = -m_ddTrans->x * APP_POS_SCALE;
+	m_trans.x = m_ddTrans.x;
 	m_trans.y = 0;
-	m_trans.z = -m_ddTrans->z * APP_POS_SCALE;
-	m_trans.yaw = m_ddTrans->yaw;
+	m_trans.z = m_ddTrans.z;
+	m_trans.yaw = m_ddTrans.yaw;
 }
 
 void UpdateOrientationRounding(float* out_imuYaw, float* out_ddYaw)
 {
 	float currYaw = TinyEKF_getX(&m_ekf, 2);
 	
-	if (m_currImuYaw > -1 && m_currImuYaw < 90 && m_ddTrans->yaw < 361 && m_ddTrans->yaw > 270)
+	if (m_currImuYaw > -1 && m_currImuYaw < 90 && m_ddTrans.yaw < 361 && m_ddTrans.yaw > 270)
 	{
 		*out_imuYaw = m_currImuYaw + 360;
-		*out_ddYaw = m_ddTrans->yaw;
+		*out_ddYaw = m_ddTrans.yaw;
 		
 		if (currYaw < 90)
 			TinyEKF_setX(&m_ekf, 2, currYaw + 360);
 	}
-	else if (m_ddTrans->yaw > -1 && m_ddTrans->yaw < 90 && m_currImuYaw < 361 && m_currImuYaw > 270)
+	else if (m_ddTrans.yaw > -1 && m_ddTrans.yaw < 90 && m_currImuYaw < 361 && m_currImuYaw > 270)
 	{
-		*out_ddYaw = m_ddTrans->yaw + 360;
+		*out_ddYaw = m_ddTrans.yaw + 360;
 		*out_imuYaw = m_currImuYaw;
 		
 		if (currYaw < 90)
@@ -266,14 +298,14 @@ void UpdateOrientationRounding(float* out_imuYaw, float* out_ddYaw)
 	else
 	{
 		*out_imuYaw = m_currImuYaw;
-		*out_ddYaw = m_ddTrans->yaw;
+		*out_ddYaw = m_ddTrans.yaw;
 		
 		if (currYaw > 360)
 			TinyEKF_setX(&m_ekf, 2, currYaw - 360);
 	}
 }
 
-uint8_t UpdateTrackingError()
+bool UpdateTrackingError()
 {
 #if defined(IMU_ENABLED)
 	float yawDiff = m_currImuYaw - m_ddTrans->yaw;
@@ -282,7 +314,25 @@ uint8_t UpdateTrackingError()
 	{
 		DiffDrive_SetAngularPosDegree(m_currImuYaw);
 	}
+	return true;
 #endif // IMU_ENABLED
+	
+	return false;
+}
+
+void IMU_Callback(float yaw)
+{
+	if (m_trans.yaw == yaw)
+		return;
+	
+	m_currImuYaw = yaw;
+	m_hasImuUpdate = true;
+}
+
+void DiffDrive_Callback(const Transform_t* transform)
+{	
+	memcpy((void*)&m_ddTrans, transform, sizeof(Transform_t));
+	m_hasDiffDriveUpdate = true;
 }
 
 void Disarm()
@@ -305,6 +355,32 @@ void RoverControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 		
 		m_doUpdate = TRUE;
 	}
+}
+
+void PrintSensorFusion(uint32_t deltaTime)
+{
+#if defined(DEBUG)
+	static uint32_t printTime = 0;
+	printTime += deltaTime;
+	if (printTime > 50)
+	{
+		float x_curr, y_curr, z_curr;
+#if defined(UWB_ENABLED)
+		x_curr = TinyEKF_getX(&m_ekf, 0);
+		y_curr = 0;
+		z_curr = TinyEKF_getX(&m_ekf, 1);
+		//PRINTF("SF ux %.2f, uz %.2f, ddx %.2f, ddz: %.2f, sf_x %.1f, sf_z %.1f\r\n", uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, m_trans.x, m_trans.z);
+#else
+		x_curr = m_ddTrans->x;
+		y_curr = 0;
+		z_curr = m_ddTrans->z;
+#endif
+		//PRINTF("SF imu: %.1f dd: %.1f sf: %.1f x: %.1f z: %.1f\r\n", m_currImuYaw, m_ddTrans->yaw, m_trans.yaw, x_curr, z_curr);
+		//PRINTF("imu: %.1f dd: %.1f curr: %.1f\n", imuYaw, ddYaw, m_trans.yaw);
+		PRINTF("x: %.1f y: %.1f z: %.1f yaw: %.1f\n", x_curr, y_curr, z_curr, m_trans.yaw);
+		printTime = 0;
+	}
+#endif // DEBUG
 }
 
 void ParseTranslateQuadDrive(uint8_t _x, uint8_t _y)

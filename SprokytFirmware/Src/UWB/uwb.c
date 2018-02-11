@@ -10,10 +10,13 @@ static dwm_cfg_tag_t m_cfg_tag;
 static dwm_cfg_t m_cfg_node;
 static dwm_loc_data_t m_loc;
 static dwm_pos_t m_pos;
-static bool m_hasPos = false;
+static uint32_t m_lastTime = 0;
+static bool m_isReady = false;
 
 int UWB_Init()
 {
+	m_isReady = false;
+		
 	/* GPIO Ports Clock Enable */
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 	
@@ -85,10 +88,18 @@ void UWB_Update()
 {
 	int i;
 	
-	//PRINTF("dwm_loc_get(&loc):\n");
-	if (dwm_loc_get(&m_uwbSpi, &m_loc) == RV_OK)
+	uint32_t currTime = HAL_GetTick();
+	if (currTime - m_lastTime > UWB_UPDATE_TIME)
 	{
-		m_hasPos = true;
+		m_lastTime = currTime;	// Reset retry time
+		
+		int result = dwm_loc_get(&m_uwbSpi, &m_loc);
+		if (result != RV_OK)
+		{
+			return;
+		}
+		
+		m_isReady = true;
 		
 		// Print tag position
 		//PRINTF("\t[%d,%d,%d,%u]\n", m_loc.p_pos->x, m_loc.p_pos->y, m_loc.p_pos->z, m_loc.p_pos->qf);
@@ -108,22 +119,11 @@ void UWB_Update()
 		}
 		*/
 	}
-	else
-	{
-		m_hasPos = false;
-	}
 }
 
-void UWB_Send(uint8_t address, uint8_t data)
+bool UWB_IsReady()
 {
-//	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-//	HAL_SPI_Transmit(&spi, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
-//	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
-}
-
-bool UWB_HasPosition()
-{
-	return m_hasPos;
+	return m_isReady;
 }
 
 void UWB_GetPosition(float* out_x, float* out_y, float* out_z)
@@ -131,4 +131,28 @@ void UWB_GetPosition(float* out_x, float* out_y, float* out_z)
 	*out_x = m_pos.x;
 	*out_y = m_pos.y;
 	*out_z = m_pos.z;
+}
+
+bool UWB_GetModuleData(float moduleData[16])
+{
+	int indx = 0;
+	
+	if (!m_isReady)
+		return false;
+	
+	moduleData[indx++] = m_loc.p_pos->x;
+	moduleData[indx++] = m_loc.p_pos->y;
+	moduleData[indx++] = m_loc.p_pos->z;
+	
+	for (int i = 0; i < m_loc.anchors.dist.cnt; ++i) 
+	{
+		if (i < m_loc.anchors.an_pos.cnt) 
+		{
+			moduleData[indx++] = m_loc.anchors.an_pos.pos[i].x;
+			moduleData[indx++] = m_loc.anchors.an_pos.pos[i].y;
+			moduleData[indx++] = m_loc.anchors.an_pos.pos[i].z;
+		}
+	}
+	
+	return true;
 }

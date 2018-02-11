@@ -21,6 +21,7 @@ static float m_lastTime = 0;
 static Transform_t m_transform = { 0 };
 static Vector2_t m_vehiclePosition = { 0, 0 };
 static Vector2_t m_icc = {0, 0};	// Instantaneous Center of Curvature (ICC). The point which the robot rotates about
+static DiffDriveCallback m_ddFuncCallback = NULL;
 const float DD_Half_Wheel_Base_Length = DD_WHEEL_BASE_LENGTH * 0.5f;
 const float DD_One_Over_Wheel_Base_Length = 1.0f / DD_WHEEL_BASE_LENGTH;
 
@@ -126,6 +127,10 @@ void DiffDrive_Update()
 	m_transform.pitch = 3.3f;
 	m_transform.roll = 4.4f;
 	
+	// Update the registered callback
+	if (m_ddFuncCallback)
+		m_ddFuncCallback(&m_transform);
+	
 	// Update the time
 	m_lastTime = currTime;
 
@@ -143,6 +148,11 @@ void DiffDrive_Update()
 		
 		printCnt = 0;
 	}
+}
+
+void DiffDrive_RegisterCallback(DiffDriveCallback callback)
+{
+	m_ddFuncCallback = callback;
 }
 
 void DiffDrive_SetAngularPosDegree(float angle)
@@ -177,7 +187,7 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 	
 	float left = 0;
 	float right = 0;
-		
+	
 	if (x > 0)
 	{
 		if (y > 0)

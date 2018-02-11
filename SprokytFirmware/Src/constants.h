@@ -31,15 +31,11 @@
 #define MOTOR_1_ENABLED
 //#define MOTOR_2_ENABLED
 
-/*********************************************************/
-// Application Macros
-/*********************************************************/
-#define APP_POS_SCALE 30.0f		// Application scaling offset
-
 
 /*********************************************************/
-// 
+// Timings
 /*********************************************************/
+#define UWB_UPDATE_TIME			300		// in milliseconds
 
 // Definitions for TOSHIBA motor drivers
 #define MD1_TIM					TIM1

@@ -39,7 +39,7 @@ do {\
 								   (buf[2] =  (int)val>>16 & 0xFF ) , \
 								   (buf[3] =  (int)val>>24 & 0xFF ) )
 
-	
+
 // Control Service
 #define COPY_CONTROL_SERVICE_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0d,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
 #define COPY_IMU_SERVICE_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1c)
@@ -50,6 +50,7 @@ do {\
 #define COPY_INSTRUCTION_CHAR_UUID(uuid_struct)     COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xe5,0x2b)
 #define COPY_IMU_CHAR_UUID(uuid_struct)				COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_POSITION_CHAR_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x2c)
+#define COPY_TAG_CHAR_UUID(uuid_struct)				COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x3e)
 
 /* Private variables ---------------------------------------------------------*/
 static uint8_t SERVER_BDADDR[] = { 0x12, 0x34, 0x00, 0xE1, 0x80, 0x03 };	
@@ -66,6 +67,7 @@ uint16_t controlButtonCharHandle = 0;
 uint16_t instructionButtonCharHandle = 0;
 uint16_t imuCharHandle = 0;
 uint16_t posCharHandle = 0;
+uint16_t tagCharHandle = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 static tBleStatus AddControlService(void);
@@ -305,24 +307,24 @@ tBleStatus AddControlService(void)
 		PRIMARY_SERVICE,
 		7,
 		&imuServHandle);
-	if (ret != BLE_STATUS_SUCCESS) goto fail;    
+	if (ret != BLE_STATUS_SUCCESS) goto fail;
 	
-	COPY_IMU_CHAR_UUID(uuid);
+	// Tag - report the tag and each anchor's position
+	/********************************************************************************************/	
+	COPY_TAG_CHAR_UUID(uuid);
 	
 	ret =  aci_gatt_add_char(
 		imuServHandle,
 		UUID_TYPE_128,
 		uuid,
-		8,
+		128,
 		CHAR_PROP_NOTIFY | CHAR_PROP_READ | ATTR_PERMISSION_NONE,
 		ATTR_PERMISSION_NONE,
 		GATT_NOTIFY_ATTRIBUTE_WRITE,
 		16,
 		1,
-		&imuCharHandle);
-	if (ret != BLE_STATUS_SUCCESS) goto fail;  
-	
-	PRINTF("IMU characteristic added\n");	
+		&tagCharHandle);
+	if (ret != BLE_STATUS_SUCCESS) goto fail;
 	
 	// Position - report the position and orientation information
 	/********************************************************************************************/	
@@ -340,6 +342,10 @@ tBleStatus AddControlService(void)
 		1,
 		&posCharHandle);
 	if (ret != BLE_STATUS_SUCCESS) goto fail;  
+	
+	PRINTF("Distance characteristic added\n");	
+	
+	//********************************************************************************************/  
 	
 	PRINTF("Distance characteristic added\n");	
 	
@@ -461,8 +467,8 @@ uint8_t GetExpansionBoard()
  */
 void Read_Request_CB(uint16_t handle)
 {  
-	if (handle == imuCharHandle + 1) {		
-	} 
+//	if (handle == imuCharHandle + 1) {		
+//	} 
   
 	//EXIT:
 	if (service_connection_handle != 0)
@@ -619,6 +625,35 @@ tBleStatus BLE_PositionUpdate(const Transform_t* pTrans)
 	tBleStatus status = aci_gatt_update_char_value(
 		imuServHandle,
 		posCharHandle,
+		0,
+		32,
+		buff);
+	
+	if (status != BLE_STATUS_SUCCESS)
+	{
+		//PRINTF("BLE Error: 0x%x\n", status);
+		return BLE_STATUS_ERROR;
+	}
+	
+	return BLE_STATUS_SUCCESS;	
+}
+
+/**
+ * @brief  Set the anchor and tag info from a 16 float array
+ *
+ * @param  tagInfo. An array of x,y,z positions for the tag, anchor1, anchor2, anchor3, and anchor4 respectively
+ * @retval Status
+ */
+tBleStatus BLE_SetTagInfo(float tagInfo[16])
+{
+	unsigned char const * const buff = (unsigned char const *)tagInfo;
+	
+	if (!connected)
+		return BLE_STATUS_ERROR;
+	
+	tBleStatus status = aci_gatt_update_char_value(
+		imuServHandle,
+		tagCharHandle,
 		0,
 		32,
 		buff);
