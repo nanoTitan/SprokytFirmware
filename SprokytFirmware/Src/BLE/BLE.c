@@ -644,7 +644,7 @@ tBleStatus BLE_PositionUpdate(const Transform_t* pTrans)
  * @param  tagInfo. An array of x,y,z positions for the tag, anchor1, anchor2, anchor3, and anchor4 respectively
  * @retval Status
  */
-tBleStatus BLE_SetTagInfo(float tagInfo[16])
+tBleStatus BLE_SetTagInfo(float* tagInfo, uint8_t size)
 {
 	unsigned char const * const buff = (unsigned char const *)tagInfo;
 	
@@ -655,7 +655,7 @@ tBleStatus BLE_SetTagInfo(float tagInfo[16])
 		imuServHandle,
 		tagCharHandle,
 		0,
-		32,
+		size,
 		buff);
 	
 	if (status != BLE_STATUS_SUCCESS)
