@@ -63,9 +63,6 @@ void TinyEKF_init(TinyEKF* self)
 void TinyEKF_init_local(TinyEKF* self)
 {
 	// initial covariances of state noise, measurement noise
-	double P_posx = 1;
-	double P_posz = 1;
-	double P_yaw = 1;
 	double R_uwb_x = .1;		// TODO: UWB error (variance) of 10cm or .01^2
 	double R_uwb_z =.1;			// TODO: UWB error (variance) of 10cm or .01^2
 	double R_dd_x =.1;			// TODO: DD error (variance) of 10cm or .1^2
@@ -86,11 +83,13 @@ void TinyEKF_init_local(TinyEKF* self)
 
 	// Approximate the measurement noise
 	TinyEKF_setR(self, 0, 0, R_uwb_x);
-	TinyEKF_setR(self, 1, 1, R_uwb_z);
-	TinyEKF_setR(self, 2, 2, R_dd_x);
+	TinyEKF_setR(self, 1, 1, R_dd_x);
+	TinyEKF_setR(self, 2, 2, R_uwb_z);
 	TinyEKF_setR(self, 3, 3, R_dd_z);
 	TinyEKF_setR(self, 4, 4, R_imu_yaw);
 	TinyEKF_setR(self, 5, 5, R_dd_yaw);
+	
+	//TinyEKF_print(self);
 }
 
 /**
@@ -102,7 +101,7 @@ void TinyEKF_init_local(TinyEKF* self)
 */
 /*virtual*/ void TinyEKF_model(TinyEKF* self, double fx[Nsta], double F[Nsta][Nsta], double hx[Mobs], double H[Mobs][Nsta]) 
 {
-	// Process model is f(x) = x
+	// state transition model is x_k = f(x_k-1, u_k)
 	fx[0] = self->x[0];
 	fx[1] = self->x[1];
 	fx[2] = self->x[2];
@@ -118,16 +117,16 @@ void TinyEKF_init_local(TinyEKF* self)
 	//   hx[1] = 1.005 * this->x[1];
 	//   hx[2] = .9987 * this->x[1] + .001;
 	hx[0] = self->x[0]; // uwb x from previous state
-	hx[1] = self->x[1]; // uwb y from previous state
-	hx[2] = self->x[0]; // dd x from previous state
-	hx[3] = self->x[1]; // dd y from previous state
+	hx[1] = self->x[0]; // dd x from previous state
+	hx[2] = self->x[1]; // uwb z from previous state
+	hx[3] = self->x[1]; // dd z from previous state
 	hx[4] = self->x[2]; // IMU heading from previous state
 	hx[5] = self->x[2]; // Diff Drive heading from previous state
 
 	// process model Jacobian is identity matrix
 	H[0][0] = 1;
-	H[1][1] = 1;
-	H[2][0] = 1;
+	H[1][0] = 1;
+	H[2][1] = 1;
 	H[3][1] = 1;
 	H[4][2] = 1;
 	H[5][2] = 1;
@@ -201,6 +200,7 @@ Performs one step of the prediction and update.
 uint8_t TinyEKF_step(TinyEKF* self, double * z) 
 { 
 	TinyEKF_model(self, self->ekf.fx, self->ekf.F, self->ekf.hx, self->ekf.H); 
+	//TinyEKF_print(self);
 
 	int result = ekf_step(&self->ekf, z) ? 0 : 1;
 	return result;

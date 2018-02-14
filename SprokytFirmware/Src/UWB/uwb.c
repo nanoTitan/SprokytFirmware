@@ -128,16 +128,19 @@ bool UWB_IsReady()
 
 void UWB_GetPosition(float* out_x, float* out_y, float* out_z)
 {
-	*out_x = m_pos.x;
-	*out_y = m_pos.y;
-	*out_z = m_pos.z;
+	*out_x = m_loc.p_pos->x;
+	*out_y = m_loc.p_pos->y;
+	*out_z = m_loc.p_pos->z;
 }
 
-bool UWB_GetModuleData(float moduleData[16])
+bool UWB_GetModuleData(float* moduleData, uint8_t buffSz, uint8_t* out_size)
 {
 	int indx = 0;
-	
 	if (!m_isReady)
+		return false;
+	
+	*out_size = (1 + m_loc.anchors.dist.cnt) * 3 * 4;
+	if (buffSz < *out_size)
 		return false;
 	
 	moduleData[indx++] = m_loc.p_pos->x;

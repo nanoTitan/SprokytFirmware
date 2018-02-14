@@ -20,7 +20,7 @@
 static TinyEKF m_ekf;
 static Transform_t m_trans;
 static Transform_t m_lastTrans;
-static const Transform_t m_ddTrans;
+static Transform_t m_ddTrans;
 static float m_currImuYaw = 0;
 static uint8_t m_x = 0;
 static uint8_t m_y = 0;
@@ -45,7 +45,7 @@ static void ParseTranslateQuadDrive(uint8_t _x, uint8_t _y);
 static void IMU_Callback(float yaw);
 static void DiffDrive_Callback(const Transform_t* transform);
 
-static void PrintSensorFusion(uint32_t deltaTime);
+static void PrintTransform(uint32_t deltaTime);
 
 /* Private functions ---------------------------------------------------------*/
 void RoverControl_init()
@@ -94,10 +94,16 @@ bool InitSensorFusion()
 	// Update the differential drive angular position with the IMU on start
 	DiffDrive_SetAngularPosDegree(m_currImuYaw);
 	DiffDrive_SetPos(x, z);
+	m_ddTrans.x = x;
+	m_ddTrans.y = y;
+	m_ddTrans.z = z;
+	m_ddTrans.yaw = m_currImuYaw;
+//	m_ddTrans.pitch = m_currImuPitch;
+//	m_ddTrans.roll = m_currImuRoll;
 	
 	TinyEKF_setX(&m_ekf, 0, x);						// Initial state x
 	TinyEKF_setX(&m_ekf, 1, z);						// Initial state y
-	TinyEKF_setX(&m_ekf, 2, m_currImuYaw);			// Initial state yaw	
+	TinyEKF_setX(&m_ekf, 2, m_currImuYaw);		// Initial state yaw	
 #endif // SENSOR_FUSION_ENABLED
 	
 	return true;
@@ -105,12 +111,21 @@ bool InitSensorFusion()
 
 static bool SetTagInfo()
 {
+#if !defined(BLE_ENABLED)
+	return true;
+#endif // BLE_ENABLED
+	
 #if defined(UWB_ENABLED)
-	float tagInfo[16];
-	if (!UWB_GetModuleData(tagInfo))
+	float tagInfo[15];
+	uint8_t size = 0;
+	
+	if (!BLE_IsConnected())
 		return false;
 	
-	tBleStatus result = BLE_SetTagInfo(tagInfo);
+	if (!UWB_GetModuleData(tagInfo, 15*sizeof(float), &size))
+		return false;
+	
+	tBleStatus result = BLE_SetTagInfo(tagInfo, size);
 	if (result != BLE_STATUS_SUCCESS)
 	{
 		return false;
@@ -151,6 +166,7 @@ void RoverControl_update()
 	if (!m_hasSetTagInfo)
 	{
 		m_hasSetTagInfo = SetTagInfo();
+		return;
 	}
 	
 	if (!m_hasSetInitialStates)
@@ -170,6 +186,7 @@ void RoverControl_update()
 	++i;
 	if ( i > 10 && 
 		(m_trans.x != m_lastTrans.x ||
+		m_trans.y != m_lastTrans.y ||
 		m_trans.z != m_lastTrans.z ||
 		m_trans.yaw != m_lastTrans.yaw) )
 	{
@@ -209,7 +226,7 @@ void UpdateSensorFusion()
 	static uint32_t lastTime = 0;
 	uint32_t currTime = HAL_GetTick();
 	uint32_t deltaTime = currTime - lastTime;
-	if (deltaTime < 5)
+	if (deltaTime < 100)
 	{
 		return;
 	}
@@ -243,15 +260,17 @@ void UpdateSensorFusion()
 #endif // IMU_ENABLED
 	
 	// EKF Step
-	double z[6] = { uwb_x, uwb_z, m_ddTrans.x, m_ddTrans.z, imuYaw, ddYaw };
+	double z[6] = { uwb_x, m_ddTrans.x, uwb_z, m_ddTrans.z, imuYaw, ddYaw };
 	TinyEKF_step(&m_ekf, z);
 	
 	// Switch, negate, and scale x,z coordinates so they show up correctly in app coordinates	
 #if defined(UWB_ENABLED)
 	m_trans.x = TinyEKF_getX(&m_ekf, 0);
+	m_trans.y = uwb_y;
 	m_trans.z = TinyEKF_getX(&m_ekf, 1);
 #else
 	m_trans.x = m_ddTrans->x;
+	m_trans.y = uwb_y;
 	m_trans.z = m_ddTrans->z;
 #endif	// UWB_ENABLED
 	
@@ -262,7 +281,7 @@ void UpdateSensorFusion()
 	m_trans.yaw = m_ddTrans.yaw;
 #endif	// IMU_ENABLED
 	
-	PrintSensorFusion(deltaTime);
+	PrintTransform(deltaTime);
 	
 	lastTime = currTime;
 }
@@ -357,27 +376,15 @@ void RoverControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 	}
 }
 
-void PrintSensorFusion(uint32_t deltaTime)
+void PrintTransform(uint32_t deltaTime)
 {
 #if defined(DEBUG)
 	static uint32_t printTime = 0;
 	printTime += deltaTime;
 	if (printTime > 50)
 	{
-		float x_curr, y_curr, z_curr;
-#if defined(UWB_ENABLED)
-		x_curr = TinyEKF_getX(&m_ekf, 0);
-		y_curr = 0;
-		z_curr = TinyEKF_getX(&m_ekf, 1);
-		//PRINTF("SF ux %.2f, uz %.2f, ddx %.2f, ddz: %.2f, sf_x %.1f, sf_z %.1f\r\n", uwb_x, uwb_z, m_ddTrans->x, m_ddTrans->z, m_trans.x, m_trans.z);
-#else
-		x_curr = m_ddTrans->x;
-		y_curr = 0;
-		z_curr = m_ddTrans->z;
-#endif
-		//PRINTF("SF imu: %.1f dd: %.1f sf: %.1f x: %.1f z: %.1f\r\n", m_currImuYaw, m_ddTrans->yaw, m_trans.yaw, x_curr, z_curr);
-		//PRINTF("imu: %.1f dd: %.1f curr: %.1f\n", imuYaw, ddYaw, m_trans.yaw);
-		PRINTF("x: %.1f y: %.1f z: %.1f yaw: %.1f\n", x_curr, y_curr, z_curr, m_trans.yaw);
+		PRINTF("x: %.1f y: %.1f z: %.1f yaw: %.1f\n", m_trans.x, m_trans.y, m_trans.z, m_trans.yaw);
+		
 		printTime = 0;
 	}
 #endif // DEBUG
