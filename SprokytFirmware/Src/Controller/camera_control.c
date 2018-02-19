@@ -20,7 +20,7 @@ static float m_pitch = -1;
 static uint32_t m_dist = -1;
 
 /* Private function prototypes -----------------------------------------------*/
-static void UpdateConnected();
+static void OnConnected();
 static void UpdateDisconnected();
 static void AngularYawUpdate(float yaw);
 static void DistanceUpdate(uint32_t dist);
@@ -50,7 +50,7 @@ void CameraControl_update()
 	CONTROL_STATE state = ControlMgr_getState();
 	
 // Debug flight control without begin connected
-#if defined(DEBUG_FLIGHT_CONTROL_NO_CONNECT)
+#if defined(DEBUG_CONTROLLER_NO_CONNECT)
 	state = CONTROL_STATE_CONNECTED;
 #endif 
 	

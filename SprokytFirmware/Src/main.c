@@ -92,7 +92,7 @@ int main()
 	// Control Manager
 	RoverControl_init();
 	ControlMgr_setType(CONTROLLER_ROVER);
-	
+	ControlMgr_setState(CONTROL_STATE_IDLE);
 	
 	PRINTF("Initialization done. Running program...\n\n");
 	

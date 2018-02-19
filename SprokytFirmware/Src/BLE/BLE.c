@@ -43,12 +43,11 @@ do {\
 // Control Service
 #define COPY_CONTROL_SERVICE_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0d,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
 #define COPY_IMU_SERVICE_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1c)
-//#define COPY_DISTANCE_SERVICE_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0b,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x2d)
 
 // Characteristics
 #define COPY_CONTROL_CHAR_UUID(uuid_struct)			COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xd5,0x2b)
 #define COPY_INSTRUCTION_CHAR_UUID(uuid_struct)     COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xe5,0x2b)
-#define COPY_IMU_CHAR_UUID(uuid_struct)				COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#define COPY_EKF_DEBUG_CHAR_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_POSITION_CHAR_UUID(uuid_struct)		COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x2c)
 #define COPY_TAG_CHAR_UUID(uuid_struct)				COPY_UUID_128_V2(uuid_struct,0x0e,0x36,0x6e,0x80, 0xcf,0x3a, 0x11,0xe1, 0x9a,0xb4, 0x00,0x02,0xa5,0xd5,0xc5,0x3e)
 
@@ -68,6 +67,7 @@ uint16_t instructionButtonCharHandle = 0;
 uint16_t imuCharHandle = 0;
 uint16_t posCharHandle = 0;
 uint16_t tagCharHandle = 0;
+uint16_t ekfDebugCharHandle = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 static tBleStatus AddControlService(void);
@@ -249,52 +249,53 @@ tBleStatus AddControlService(void)
 	tBleStatus ret;
 	uint8_t uuid[16];
   
-	/* copy "Input service UUID" defined above to 'uuid' local variable */
-	COPY_CONTROL_SERVICE_UUID(uuid);
-	
-	ret = aci_gatt_add_serv(
-		UUID_TYPE_128,
-		uuid,
-		PRIMARY_SERVICE,
-		7,
-		&controlServHandle);
-	if (ret != BLE_STATUS_SUCCESS) goto fail;    
-  
-	/* copy "INPUT button characteristic UUID" defined above to 'uuid' local variable */  
-	COPY_CONTROL_CHAR_UUID(uuid);
-	
-	ret =  aci_gatt_add_char(
-		controlServHandle,
-		UUID_TYPE_128,
-		uuid,
-		4,
-		CHAR_PROP_WRITE | CHAR_PROP_WRITE_WITHOUT_RESP,
-		ATTR_PERMISSION_NONE,
-		GATT_NOTIFY_ATTRIBUTE_WRITE,
-		16,
-		1,
-		&controlButtonCharHandle);
-	if (ret != BLE_STATUS_SUCCESS) goto fail;  
-	
-	PRINTF("Control characteristic added\n");	
-	
-	/* copy "Instructionn characteristic UUID" defined above to 'uuid' local variable */  
-	COPY_INSTRUCTION_CHAR_UUID(uuid);
-	
-	ret =  aci_gatt_add_char(
-		controlServHandle,
-		UUID_TYPE_128,
-		uuid,
-		4,
-		CHAR_PROP_WRITE | CHAR_PROP_WRITE_WITHOUT_RESP,
-		ATTR_PERMISSION_NONE,
-		GATT_NOTIFY_ATTRIBUTE_WRITE,
-		16,
-		1,
-		&instructionButtonCharHandle);
-	if (ret != BLE_STATUS_SUCCESS) goto fail; 
-	
-	PRINTF("Instruction characteristic added\n");
+	// Control service
+	/********************************************************************************************/
+//	COPY_CONTROL_SERVICE_UUID(uuid);
+//	
+//	ret = aci_gatt_add_serv(
+//		UUID_TYPE_128,
+//		uuid,
+//		PRIMARY_SERVICE,
+//		7,
+//		&controlServHandle);
+//	if (ret != BLE_STATUS_SUCCESS) goto fail;    
+//  
+//	/* copy "INPUT button characteristic UUID" defined above to 'uuid' local variable */  
+//	COPY_CONTROL_CHAR_UUID(uuid);
+//	
+//	ret =  aci_gatt_add_char(
+//		controlServHandle,
+//		UUID_TYPE_128,
+//		uuid,
+//		4,
+//		CHAR_PROP_WRITE | CHAR_PROP_WRITE_WITHOUT_RESP,
+//		ATTR_PERMISSION_NONE,
+//		GATT_NOTIFY_ATTRIBUTE_WRITE,
+//		16,
+//		1,
+//		&controlButtonCharHandle);
+//	if (ret != BLE_STATUS_SUCCESS) goto fail;  
+//	
+//	PRINTF("Control characteristic added\n");	
+//	
+//	/* copy "Instructionn characteristic UUID" defined above to 'uuid' local variable */  
+//	COPY_INSTRUCTION_CHAR_UUID(uuid);
+//	
+//	ret =  aci_gatt_add_char(
+//		controlServHandle,
+//		UUID_TYPE_128,
+//		uuid,
+//		4,
+//		CHAR_PROP_WRITE | CHAR_PROP_WRITE_WITHOUT_RESP,
+//		ATTR_PERMISSION_NONE,
+//		GATT_NOTIFY_ATTRIBUTE_WRITE,
+//		16,
+//		1,
+//		&instructionButtonCharHandle);
+//	if (ret != BLE_STATUS_SUCCESS) goto fail; 
+//	
+//	PRINTF("Instruction characteristic added\n");
 	
 	
 	// IMU service
@@ -305,7 +306,7 @@ tBleStatus AddControlService(void)
 		UUID_TYPE_128,
 		uuid,
 		PRIMARY_SERVICE,
-		7,
+		10,
 		&imuServHandle);
 	if (ret != BLE_STATUS_SUCCESS) goto fail;
 	
@@ -344,6 +345,25 @@ tBleStatus AddControlService(void)
 	if (ret != BLE_STATUS_SUCCESS) goto fail;  
 	
 	PRINTF("Distance characteristic added\n");	
+	
+	// EKF Debug - report the position, orientation and EKF result information
+	/********************************************************************************************/	
+	COPY_EKF_DEBUG_CHAR_UUID(uuid);
+	
+	ret =  aci_gatt_add_char(
+		imuServHandle,
+		UUID_TYPE_128,
+		uuid,
+		28,
+		CHAR_PROP_NOTIFY | CHAR_PROP_READ | ATTR_PERMISSION_NONE,
+		ATTR_PERMISSION_NONE,
+		GATT_NOTIFY_ATTRIBUTE_WRITE,
+		16,
+		1,
+		&ekfDebugCharHandle);
+	if (ret != BLE_STATUS_SUCCESS) goto fail;  
+	
+	PRINTF("Distance characteristic added\n");
 	
 	//********************************************************************************************/  
 	
@@ -437,6 +457,8 @@ void GAPConnectionCompleteCB(uint8_t addr[6], uint16_t handle)
 		PRINTF("%02X-", addr[i]);
 	}
 	PRINTF("%02X\n", addr[0]);
+	
+	ControlMgr_setState(CONTROL_STATE_CONNECTED);
 }
 
 /**
@@ -654,6 +676,36 @@ tBleStatus BLE_SetTagInfo(float* tagInfo, uint8_t size)
 	tBleStatus status = aci_gatt_update_char_value(
 		imuServHandle,
 		tagCharHandle,
+		0,
+		size,
+		buff);
+	
+	if (status != BLE_STATUS_SUCCESS)
+	{
+		//PRINTF("BLE Error: 0x%x\n", status);
+		return BLE_STATUS_ERROR;
+	}
+	
+	return BLE_STATUS_SUCCESS;	
+}
+
+/**
+ * @brief  Log the EKF observations and states 
+ *
+ * @param  tagInfo. An array of floats for:
+	time, uwb_x, dd_x, uwb_z, dd_z, imu_yaw, dd_yaw
+ * @retval Status
+ */
+tBleStatus BLE_LogEkfDebug(float* tagInfo, uint8_t size)
+{
+	unsigned char const * const buff = (unsigned char const *)tagInfo;
+	
+	if (!connected)
+		return BLE_STATUS_ERROR;
+	
+	tBleStatus status = aci_gatt_update_char_value(
+		imuServHandle,
+		ekfDebugCharHandle,
 		0,
 		size,
 		buff);

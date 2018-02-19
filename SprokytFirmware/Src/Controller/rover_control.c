@@ -24,7 +24,7 @@ static Transform_t m_ddTrans;
 static float m_currImuYaw = 0;
 static uint8_t m_x = 0;
 static uint8_t m_y = 0;
-static BOOL m_doUpdate = FALSE;
+static BOOL m_updateInstructions = FALSE;
 static bool m_hasSetInitialStates = false;
 static bool m_hasImuUpdate = false;
 static bool m_hasDiffDriveUpdate = false;
@@ -140,7 +140,7 @@ void RoverControl_update()
 	CONTROL_STATE state = ControlMgr_getState();
 	
 // Debug flight control without begin connected
-#if defined(DEBUG_FLIGHT_CONTROL_NO_CONNECT)
+#if defined(DEBUG_CONTROLLER_NO_CONNECT)
 	state = CONTROL_STATE_CONNECTED;
 #endif 
 	
@@ -159,6 +159,16 @@ void RoverControl_update()
 		
 	default:
 		break;
+	}
+}
+
+void UpdateConnected()
+{	
+	if (m_updateInstructions)
+	{
+		DiffDrive_ParseTranslate(m_x, m_y);
+		m_updateInstructions = FALSE;
+		//PRINTF("x: %u, y: %u\r\n", m_x, m_y);
 	}
 	
 	DiffDrive_Update();
@@ -184,38 +194,27 @@ void RoverControl_update()
 	// Send Transform to BLE
 	static int i = 0;
 	++i;
-	if ( i > 10 && 
+	if (i > 10 && 
 		(m_trans.x != m_lastTrans.x ||
 		m_trans.y != m_lastTrans.y ||
 		m_trans.z != m_lastTrans.z ||
-		m_trans.yaw != m_lastTrans.yaw) )
+		m_trans.yaw != m_lastTrans.yaw))
 	{
-		BLE_PositionUpdate(&m_trans);	
-		memcpy(&m_lastTrans, &m_trans, sizeof(Transform_t));
+#if defined(BLE_ENABLED)
+		BLE_PositionUpdate(&m_trans);
+#endif // BLE_ENABLED
 		
+		memcpy(&m_lastTrans, &m_trans, sizeof(Transform_t));
 		i = 0;
-	}
-}
-
-void UpdateConnected()
-{
-	//RunMotorTest();
-	//PrintIMU();
-	
-	if (m_doUpdate)
-	{
-		DiffDrive_ParseTranslate(m_x, m_y);
-		m_doUpdate = FALSE;
-
-		//PRINTF("x: %u, y: %u\r\n", m_x, m_y);
 	}
 }
 
 void UpdateDisconnected()
 {
 	// TODO: Show flashing LEDs if connection is lost
-	
 	Disarm();
+	m_hasSetTagInfo = false;
+	ControlMgr_setState(CONTROL_STATE_IDLE);
 }
 
 void UpdateSensorFusion()
@@ -281,7 +280,19 @@ void UpdateSensorFusion()
 	m_trans.yaw = m_ddTrans.yaw;
 #endif	// IMU_ENABLED
 	
-	PrintTransform(deltaTime);
+#if defined(BLE_ENABLED) && defined(SENSOR_FUSION_DEBUG_ENABLED)
+	static uint32_t lastDebugTime = 0;
+	
+	// EKF Debug twice a second
+	if (currTime - lastDebugTime >= 500)
+	{
+		float ekfDebug[7] = { currTime, uwb_x, m_ddTrans.x, uwb_z, m_ddTrans.z, imuYaw, ddYaw };
+		BLE_LogEkfDebug(ekfDebug, 28);		
+		lastDebugTime = currTime;
+	}
+#endif // BLE_ENABLED && SENSOR_FUSION_DEBUG_ENABLED
+	
+	PrintTransform(currTime);
 	
 	lastTime = currTime;
 }
@@ -357,7 +368,7 @@ void DiffDrive_Callback(const Transform_t* transform)
 void Disarm()
 {	
 	// Turn motors off
-	MotorController_setMotor(MOTOR_ALL, MIN_THROTTLE, FWD);
+	MotorController_setMotor(MOTOR_ALL, 0, FWD);
 	ControlMgr_setState(CONTROL_STATE_IDLE);
 }
 
@@ -372,20 +383,18 @@ void RoverControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 		m_x = att_data[1];
 		m_y = att_data[2];
 		
-		m_doUpdate = TRUE;
+		m_updateInstructions = TRUE;
 	}
 }
 
-void PrintTransform(uint32_t deltaTime)
+void PrintTransform(uint32_t currTime)
 {
 #if defined(DEBUG)
-	static uint32_t printTime = 0;
-	printTime += deltaTime;
-	if (printTime > 50)
+	static uint32_t lastPrintTime = 0;
+	if (currTime - lastPrintTime >= 500)
 	{
 		PRINTF("x: %.1f y: %.1f z: %.1f yaw: %.1f\n", m_trans.x, m_trans.y, m_trans.z, m_trans.yaw);
-		
-		printTime = 0;
+		lastPrintTime = 0;
 	}
 #endif // DEBUG
 }

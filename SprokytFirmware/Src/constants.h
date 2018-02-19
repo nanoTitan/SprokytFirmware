@@ -22,6 +22,7 @@
 //#define SONAR_ENABLED
 #define ENCODER_ENABLED
 #define SENSOR_FUSION_ENABLED
+#define SENSOR_FUSION_DEBUG_ENABLED
 
 //#define MOTOR_STEPPER	
 //#define MOTOR_SERVO
@@ -221,12 +222,13 @@
 //#define MOTOR_C 0x02
 //#define MOTOR_ALL 0xFF
 
+// EKF Defines
 #define Nsta 3		// States - PosX, PosY, Yaw
 #define Mobs 6		// Observables - UWB_x, UWB_y, DD_x, DD_y, IMU_yaw, DD_yaw
 
 
 // Debugging
-#define DEBUG_FLIGHT_CONTROL_NO_CONNECT
+//#define DEBUG_CONTROLLER_NO_CONNECT
 
 /**
      * @brief Rotation modes.
