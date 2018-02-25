@@ -327,6 +327,8 @@ tBleStatus AddControlService(void)
 		&tagCharHandle);
 	if (ret != BLE_STATUS_SUCCESS) goto fail;
 	
+	PRINTF("Tag characteristic added\n");	
+	
 	// Position - report the position and orientation information
 	/********************************************************************************************/	
 	COPY_POSITION_CHAR_UUID(uuid);
@@ -344,7 +346,7 @@ tBleStatus AddControlService(void)
 		&posCharHandle);
 	if (ret != BLE_STATUS_SUCCESS) goto fail;  
 	
-	PRINTF("Distance characteristic added\n");	
+	PRINTF("Position characteristic added\n");	
 	
 	// EKF Debug - report the position, orientation and EKF result information
 	/********************************************************************************************/	
@@ -363,14 +365,12 @@ tBleStatus AddControlService(void)
 		&ekfDebugCharHandle);
 	if (ret != BLE_STATUS_SUCCESS) goto fail;  
 	
-	PRINTF("Distance characteristic added\n");
+	PRINTF("EKF Debug characteristic added\n");
 	
 	//********************************************************************************************/  
 	
-	PRINTF("Distance characteristic added\n");	
-	
 	// Done adding services
-	PRINTF("BLE services added\n");
+	PRINTF("BLE services added\n\n");
 	return BLE_STATUS_SUCCESS; 
 	
 fail:
