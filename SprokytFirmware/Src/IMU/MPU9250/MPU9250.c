@@ -16,28 +16,31 @@
 /************************************************************************************/
 static uint32_t m_I2C_Timeout = MPU9250_I2C_TIMEOUT_MAX;    /*<! Value of Timeout when I2C communication fails */
 static I2C_HandleTypeDef m_hi2c1;
+static AngularPositionCallback m_imuFunc = NULL;
 
-uint8_t Ascale = AFS_2G;     // AFS_2G, AFS_4G, AFS_8G, AFS_16G
-uint8_t Gscale = GFS_250DPS; // GFS_250DPS, GFS_500DPS, GFS_1000DPS, GFS_2000DPS
-uint8_t Mscale = MFS_16BITS; // MFS_14BITS or MFS_16BITS, 14-bit or 16-bit magnetometer resolution
-uint8_t Mmode = 0x06;        // Either 8 Hz 0x02) or 100 Hz (0x06) magnetometer data ODR  
-float aRes, gRes, mRes;      // scale resolutions per LSB for the sensors
+static bool sensor_fusion_active = true;
+static bool sensor_fusion_stable = false;
+static uint8_t Ascale = AFS_2G;     // AFS_2G, AFS_4G, AFS_8G, AFS_16G
+static uint8_t Gscale = GFS_250DPS; // GFS_250DPS, GFS_500DPS, GFS_1000DPS, GFS_2000DPS
+static uint8_t Mscale = MFS_16BITS; // MFS_14BITS or MFS_16BITS, 14-bit or 16-bit magnetometer resolution
+static uint8_t Mmode = 0x06;        // Either 8 Hz 0x02) or 100 Hz (0x06) magnetometer data ODR  
+static float aRes, gRes, mRes;      // scale resolutions per LSB for the sensors
 
 // Pin definitions
 int intPin = 12;  // These can be changed, 2 and 3 are the Arduinos ext int pins
 
-int16_t accelCount[3];  // Stores the 16-bit signed accelerometer sensor output
-int16_t gyroCount[3];   // Stores the 16-bit signed gyro sensor output
-int16_t magCount[3];    // Stores the 16-bit signed magnetometer sensor output
-float magCalibration[3] = { 0, 0, 0 }, magbias[3] = { 0, 0, 0 };  // Factory mag calibration and mag bias
-float gyroBias[3] = { 0, 0, 0 }, accelBias[3] = { 0, 0, 0 }; // Bias corrections for gyro and accelerometer
-float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values 
-int16_t tempCount;   // Stores the real internal chip temperature in degrees Celsius
-float temperature;
-float SelfTest[6];
+static int16_t accelCount[3];  // Stores the 16-bit signed accelerometer sensor output
+static int16_t gyroCount[3];   // Stores the 16-bit signed gyro sensor output
+static int16_t magCount[3];    // Stores the 16-bit signed magnetometer sensor output
+static float magCalibration[3] = { 0, 0, 0 }, magbias[3] = { 0, 0, 0 };  // Factory mag calibration and mag bias
+static float gyroBias[3] = { 0, 0, 0 }, accelBias[3] = { 0, 0, 0 }; // Bias corrections for gyro and accelerometer
+static float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values 
+static int16_t tempCount;   // Stores the real internal chip temperature in degrees Celsius
+static float temperature;
+static float SelfTest[6];
 
-int delt_t = 0; // used to control display output rate
-int count = 0;  // used to control display output rate
+static int delt_t = 0; // used to control display output rate
+static int count = 0;  // used to control display output rate
 
 // parameters for 6 DoF sensor fusion calculations
 float GyroMeasError = M_PI * (60.0f / 180.0f);     // gyroscope measurement error in rads/s (start at 60 deg/s), then reduce after ~10 s to 3
@@ -156,6 +159,12 @@ void MPU9250_Init()
 
 void MPU9250_Update()
 {
+	// Gate the update timing to prevent hardware error
+	m_currTimeUs = TIM5->CNT;
+	deltat = (float)((m_currTimeUs - m_lastUpdateUs) * 0.000001f);		// set integration time by time elapsed since last filter update -  deltaTime / 1000000.0f
+	if (deltat < 0.1f)
+		return;
+	
 	// If intPin goes high, all data registers have new data
 	if (readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {  // On interrupt, check if data ready interrupt
 
@@ -178,9 +187,7 @@ void MPU9250_Update()
 		my = (float)magCount[1]*mRes*magCalibration[1] - magbias[1];  
 		mz = (float)magCount[2]*mRes*magCalibration[2] - magbias[2];   
 	}
-   
-	m_currTimeUs = TIM5->CNT;
-	deltat = (float)((m_currTimeUs - m_lastUpdateUs) / 1000000.0f); // set integration time by time elapsed since last filter update
+	
 	m_lastUpdateUs = m_currTimeUs;
     
 	m_sum += deltat;
@@ -196,7 +203,7 @@ void MPU9250_Update()
 	MahonyQuaternionUpdate(ax, ay, az, gx*M_Pi_Over_180, gy*M_Pi_Over_180, gz*M_Pi_Over_180, my, mx, mz);
 
 	// Serial print and/or display at 0.5 s rate independent of data rates
-	delt_t = TIM5->CNT - count;
+	delt_t = HAL_GetTick() - count;
 	if (delt_t > 500) 
 	{ 
 		// update once per half-second independent of read rate
@@ -228,7 +235,7 @@ void MPU9250_Update()
 
 		PRINTF("Yaw, Pitch, Roll: %.1f %.1f %.1f\n", yaw, pitch, roll);
 		//PRINTF("average rate = %d\n\r", (float) m_sumCount / m_sum);
-		count = TIM5->CNT; 
+		count = HAL_GetTick(); 
 
 		if (count > 1 << 21) 
 		{
@@ -240,6 +247,10 @@ void MPU9250_Update()
 		
 		m_sum = 0;
 		m_sumCount = 0; 
+		sensor_fusion_stable = true;
+		
+		if (m_imuFunc != NULL)
+			m_imuFunc(yaw);
 	}
 }
 
@@ -891,4 +902,17 @@ void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, fl
 	q[2] = q3 * norm;
 	q[3] = q4 * norm;
  
+}
+
+void MPU9250_RegisterAngularPosCallback(AngularPositionCallback callback)
+{
+	if (callback != NULL)
+	{
+		m_imuFunc = callback;
+	}
+}
+
+bool MPU9250_get_sensorFusionStable()
+{
+	return sensor_fusion_stable;
 }

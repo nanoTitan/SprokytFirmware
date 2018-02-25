@@ -1,8 +1,10 @@
 #ifndef MPU9250_H
 #define MPU9250_H
- 
+
+#include "constants.h"
 #include "math.h"
 #include <stdint.h>
+#include <stdbool.h>
  
 // See also MPU-9250 Register Map and Descriptions, Revision 4.0, RM-MPU-9250A-00, Rev. 1.4, 9/9/2013 for registers not listed in 
 // above document; the MPU9250 and MPU9150 are virtually identical but the latter has a different register map
@@ -186,8 +188,7 @@ enum Mscale {
 
 void MPU9250_Init();
 void MPU9250_Update();
-
-
-
+void MPU9250_RegisterAngularPosCallback(AngularPositionCallback callback);
+bool MPU9250_get_sensorFusionStable();
 
 #endif	// MPU9250_H

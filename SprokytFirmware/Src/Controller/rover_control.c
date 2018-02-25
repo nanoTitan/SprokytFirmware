@@ -8,7 +8,7 @@
 #include "uwb.h"
 #include "math_ext.h"
 #include "debug.h"
-#include "imu.h"
+#include "MPU9250.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -56,7 +56,7 @@ void RoverControl_init()
 	DiffDrive_Init();
 	
 #if defined(IMU_ENABLED)
-	IMU_RegisterAngularPosCallback(IMU_Callback);
+	MPU9250_RegisterAngularPosCallback(IMU_Callback);
 #endif // IMU_ENABLED
 	
 	DiffDrive_RegisterCallback(DiffDrive_Callback);
@@ -74,7 +74,7 @@ bool InitSensorFusion()
 	bool uwbIsReady = true;
 	
 #if defined(IMU_ENABLED)
-	imuStable = IMU_get_sensorFusionStable();
+	imuStable = MPU9250_get_sensorFusionStable();
 	if (!imuStable ||  !m_hasImuUpdate)
 		return false;
 #endif //IMU_ENABLED
@@ -338,7 +338,7 @@ void UpdateOrientationRounding(float* out_imuYaw, float* out_ddYaw)
 bool UpdateTrackingError()
 {
 #if defined(IMU_ENABLED)
-	float yawDiff = m_currImuYaw - m_ddTrans->yaw;
+	float yawDiff = m_currImuYaw - m_ddTrans.yaw;
 	float absYaw = fabsf(yawDiff);
 	if (absYaw > YAW_DIFF_MAX)
 	{

@@ -12,6 +12,7 @@ All Rights Reserved
 #include "motor_controller.h"
 #include "imu.h"
 //#include "LED/LEDManager.h"
+#include "MPU9250.h"
 #include "sonar.h"
 #include "error.h"
 #include "debug.h"
@@ -63,7 +64,7 @@ int main()
 	
 	// IMU and Sensors
 #if defined(IMU_ENABLED)
-	IMU_init();
+	MPU9250_Init();
 #endif // IMU_ENABLED
 	
 	// Motor Controller
@@ -100,7 +101,7 @@ int main()
 	{	
 		// IMU and Sensors
 #if defined(IMU_ENABLED)
-		IMU_update();
+		MPU9250_Update();
 #endif // IMU_ENABLED
 		
 #if defined(SONAR_ENABLED)
