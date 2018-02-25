@@ -329,6 +329,50 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
 #endif // UWB_ENABLED
 }
 
+void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
+{
+	GPIO_InitTypeDef  GPIO_InitStruct;
+	if (hi2c->Instance == MPU9250_I2C)
+	{		
+		/* Enable I2C GPIO clocks */
+		MPU9250_CLK_ENABLE();
+
+		/* I2C_EXPBD SCL and SDA pins configuration -------------------------------------*/
+		GPIO_InitStruct.Pin			= MPU9250_SDA_PIN | MPU9250_SCL_PIN;
+		GPIO_InitStruct.Mode		= GPIO_MODE_AF_OD;
+		GPIO_InitStruct.Speed		= GPIO_SPEED_FREQ_VERY_HIGH;
+		GPIO_InitStruct.Pull		= GPIO_NOPULL;
+		GPIO_InitStruct.Alternate	= MPU9250_SCL_SDA_AF;
+		HAL_GPIO_Init(MPU9250_PORT, &GPIO_InitStruct);
+
+		/* Enable the I2C_EXPBD peripheral clock */
+		MPU9250_I2C_CLK_ENABLE();
+
+		/* Force the I2C peripheral clock reset */
+		MPU9250_I2C_FORCE_RESET();
+
+		/* Release the I2C peripheral clock reset */
+		MPU9250_I2C_RELEASE_RESET();
+		
+		/* Enable and set I2C_EXPBD Interrupt to the highest priority */
+		HAL_NVIC_SetPriority(MPU9250_I2C_EV_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(MPU9250_I2C_EV_IRQn);
+
+			/* Enable and set I2C_EXPBD Interrupt to the highest priority */
+		HAL_NVIC_SetPriority(MPU9250_I2C_ER_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(MPU9250_I2C_ER_IRQn);
+	}
+}
+
+void HAL_I2C_MspDeinit(I2C_HandleTypeDef* hi2c)
+{
+	if (hi2c->Instance == MPU9250_I2C)
+	{
+		MPU9250_I2C_CLK_DISABLE();
+		HAL_GPIO_DeInit(MPU9250_PORT, MPU9250_SDA_PIN | MPU9250_SCL_PIN);	
+	}
+}
+
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 {	
 	if (htim_pwm->Instance == TIM1)

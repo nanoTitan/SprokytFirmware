@@ -2,6 +2,7 @@
 #ifndef _CONSTANTS_H_
 #define _CONSTANTS_H_
 
+#include "stm32f411xe.h"
 #include <stdint.h>
 
 #define FIRMWARE_VERSION_0_2_2
@@ -95,6 +96,20 @@
 #define TIM_IMU_CLK_DISABLE     __TIM4_CLK_DISABLE			// __TIM3_CLK_DISABLE __TIM4_CLK_DISABLE
 #define TIM_SF_IRQn				TIM4_IRQn					// TIM3_IRQn TIM4_IRQn
 #define TIM_IMU_IRQHandler		TIM4_IRQHandler				// TIM3_IRQHandler TIM4_IRQHandler
+#define MPU9250_SDA_PIN				GPIO_PIN_9
+#define MPU9250_SCL_PIN				GPIO_PIN_8
+#define MPU9250_PORT				GPIOB
+#define MPU9250_I2C					I2C1
+#define MPU9250_I2C_CLK_ENABLE()    __I2C1_CLK_ENABLE()
+#define MPU9250_I2C_CLK_DISABLE()   __I2C1_CLK_DISABLE()
+#define MPU9250_CLK_ENABLE			__GPIOB_CLK_ENABLE
+#define MPU9250_CLK_DISABLE			__GPIOB_CLK_DISABLE
+#define MPU9250_SCL_SDA_AF			GPIO_AF4_I2C1
+#define MPU9250_I2C_FORCE_RESET()   __I2C1_FORCE_RESET()
+#define MPU9250_I2C_RELEASE_RESET() __I2C1_RELEASE_RESET()
+#define MPU9250_I2C_EV_IRQn         I2C1_EV_IRQn
+#define MPU9250_I2C_ER_IRQn         I2C1_ER_IRQn
+#define MPU9250_I2C_TIMEOUT_MAX		0x1000
 
 /* Definitions for Servo clock resources */
 #define TIM_SERVO		                     TIM4
