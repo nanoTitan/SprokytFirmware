@@ -332,6 +332,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
 void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 {
 	GPIO_InitTypeDef  GPIO_InitStruct;
+#if defined(IMU_ENABLED)
 	if (hi2c->Instance == MPU9250_I2C)
 	{		
 		/* Enable I2C GPIO clocks */
@@ -362,6 +363,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 		HAL_NVIC_SetPriority(MPU9250_I2C_ER_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(MPU9250_I2C_ER_IRQn);
 	}
+#endif // IMU_ENABLED
 }
 
 void HAL_I2C_MspDeinit(I2C_HandleTypeDef* hi2c)

@@ -158,7 +158,7 @@ void MPU9250_Init()
 }
 
 void MPU9250_Update()
-{
+{	
 	// Gate the update timing to prevent hardware error
 	m_currTimeUs = TIM5->CNT;
 	deltat = (float)((m_currTimeUs - m_lastUpdateUs) * 0.000001f);		// set integration time by time elapsed since last filter update -  deltaTime / 1000000.0f
