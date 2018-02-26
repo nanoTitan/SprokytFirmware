@@ -72,6 +72,7 @@ static void getGres();
 static void getMres();
 static void resetMPU9250();
 static void calibrateMPU9250(float * dest1, float * dest2);
+static void magcalMPU9250(float * dest1, float * dest2);
 static void MPU9250SelfTest(float * destination);
 static void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
 static void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
@@ -159,11 +160,8 @@ void MPU9250_Init()
 
 void MPU9250_Update()
 {	
-	// Gate the update timing to prevent hardware error
 	m_currTimeUs = TIM5->CNT;
 	deltat = (float)((m_currTimeUs - m_lastUpdateUs) * 0.000001f);		// set integration time by time elapsed since last filter update -  deltaTime / 1000000.0f
-//	if (deltat < 0.01f)
-//		return;
 	
 	// If intPin goes high, all data registers have new data
 	// On interrupt, check if data ready interrupt
@@ -175,19 +173,19 @@ void MPU9250_Update()
 		ax = (float)accelCount[0]*aRes - accelBias[0];  // get actual g value, this depends on scale being set
 		ay = (float)accelCount[1]*aRes - accelBias[1];   
 		az = (float)accelCount[2]*aRes - accelBias[2];  
-   
+		
 		readGyroData(gyroCount);  // Read the x/y/z adc values
 		// Calculate the gyro value into actual degrees per second
 		gx = (float)gyroCount[0]*gRes - gyroBias[0];  // get actual gyro value, this depends on scale being set
 		gy = (float)gyroCount[1]*gRes - gyroBias[1];  
 		gz = (float)gyroCount[2]*gRes - gyroBias[2];   
-  
+		
 		readMagData(magCount);  // Read the x/y/z adc values   
 		// Calculate the magnetometer values in milliGauss
 		// Include factory calibration per data sheet and user environmental corrections
-		mx = (float)magCount[0]*mRes*magCalibration[0] - magbias[0];  // get actual magnetometer value, this depends on scale being set
-		my = (float)magCount[1]*mRes*magCalibration[1] - magbias[1];  
-		mz = (float)magCount[2]*mRes*magCalibration[2] - magbias[2];   
+		mx = (float)magCount[0] * mRes * magCalibration[0] - magbias[0];  // get actual magnetometer value, this depends on scale being set
+		my = (float)magCount[1] * mRes * magCalibration[1] - magbias[1];  
+		mz = (float)magCount[2] * mRes * magCalibration[2] - magbias[2];   
 	}
 	
 	m_lastUpdateUs = m_currTimeUs;
@@ -341,21 +339,21 @@ void getGres() {
 void getAres() {
 	switch (Ascale)
 	{
-	  // Possible accelerometer scales (and their register bit settings) are:
-	  // 2 Gs (00), 4 Gs (01), 8 Gs (10), and 16 Gs  (11). 
-	      // Here's a bit of an algorith to calculate DPS/(ADC tick) based on that 2-bit value:
-	case AFS_2G:
-		aRes = 2.0 / 32768.0;
-		break;
-	case AFS_4G:
-		aRes = 4.0 / 32768.0;
-		break;
-	case AFS_8G:
-		aRes = 8.0 / 32768.0;
-		break;
-	case AFS_16G:
-		aRes = 16.0 / 32768.0;
-		break;
+		// Possible accelerometer scales (and their register bit settings) are:
+		// 2 Gs (00), 4 Gs (01), 8 Gs (10), and 16 Gs  (11). 
+	    // Here's a bit of an algorith to calculate DPS/(ADC tick) based on that 2-bit value:
+		case AFS_2G:
+			aRes = 2.0 / 32768.0;
+			break;
+		case AFS_4G:
+			aRes = 4.0 / 32768.0;
+			break;
+		case AFS_8G:
+			aRes = 8.0 / 32768.0;
+			break;
+		case AFS_16G:
+			aRes = 16.0 / 32768.0;
+			break;
 	}
 }
 
@@ -624,6 +622,52 @@ void calibrateMPU9250(float * dest1, float * dest2)
 	dest2[2] = (float)accel_bias[2] / (float)accelsensitivity;
 }
 
+void magcalMPU9250(float * dest1, float * dest2) 
+{
+	uint16_t ii = 0, sample_count = 0;
+	int32_t mag_bias[3] = { 0, 0, 0 }, mag_scale[3] = { 0, 0, 0 };
+	int16_t mag_max[3] = { -32767, -32767, -32767 }, mag_min[3] = { 32767, 32767, 32767 }, mag_temp[3] = { 0, 0, 0 };
+
+	PRINTF("\n\nMag Calibration: Wave device in a figure eight until done!\n\n");
+	HAL_Delay(4000);
+
+	// shoot for ~fifteen seconds of mag data
+	if (Mmode == 0x02) sample_count = 128;  // at 8 Hz ODR, new mag data is available every 125 ms
+	if (Mmode == 0x06) sample_count = 1500;  // at 100 Hz ODR, new mag data is available every 10 ms
+	for (ii = 0; ii < sample_count; ii++) 
+	{
+		readMagData(mag_temp);
+		for (int jj = 0; jj < 3; jj++) {
+			if (mag_temp[jj] > mag_max[jj]) mag_max[jj] = mag_temp[jj];
+			if (mag_temp[jj] < mag_min[jj]) mag_min[jj] = mag_temp[jj];
+		}
+		if (Mmode == 0x02) HAL_Delay(135);  // at 8 Hz ODR, new mag data is available every 125 ms
+		if (Mmode == 0x06) HAL_Delay(12);  // at 100 Hz ODR, new mag data is available every 10 ms
+	}
+
+	// Get hard iron correction
+	mag_bias[0]  = (mag_max[0] + mag_min[0]) / 2;  // get average x mag bias in counts
+	mag_bias[1]  = (mag_max[1] + mag_min[1]) / 2;  // get average y mag bias in counts
+	mag_bias[2]  = (mag_max[2] + mag_min[2]) / 2;  // get average z mag bias in counts
+
+	dest1[0] = (float) mag_bias[0] * mRes * magCalibration[0];  // save mag biases in G for main program
+	dest1[1] = (float) mag_bias[1] * mRes * magCalibration[1];   
+	dest1[2] = (float) mag_bias[2] * mRes * magCalibration[2];
+   
+	  // Get soft iron correction estimate
+	mag_scale[0]  = (mag_max[0] - mag_min[0]) / 2;  // get average x axis max chord length in counts
+	mag_scale[1]  = (mag_max[1] - mag_min[1]) / 2;  // get average y axis max chord length in counts
+	mag_scale[2]  = (mag_max[2] - mag_min[2]) / 2;  // get average z axis max chord length in counts
+
+	float avg_rad = mag_scale[0] + mag_scale[1] + mag_scale[2];
+	avg_rad /= 3.0;
+
+	dest2[0] = avg_rad / ((float)mag_scale[0]);
+	dest2[1] = avg_rad / ((float)mag_scale[1]);
+	dest2[2] = avg_rad / ((float)mag_scale[2]);
+
+	PRINTF("Mag Calibration done!");
+}
 
 // Accelerometer and gyroscope self test; check calibration wrt factory settings
 // Should return percent deviation from factory trim values, +/- 14 or less deviation is a pass
