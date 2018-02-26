@@ -162,12 +162,14 @@ void MPU9250_Update()
 	// Gate the update timing to prevent hardware error
 	m_currTimeUs = TIM5->CNT;
 	deltat = (float)((m_currTimeUs - m_lastUpdateUs) * 0.000001f);		// set integration time by time elapsed since last filter update -  deltaTime / 1000000.0f
-	if (deltat < 0.1f)
-		return;
+//	if (deltat < 0.01f)
+//		return;
 	
 	// If intPin goes high, all data registers have new data
-	if (readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {  // On interrupt, check if data ready interrupt
-
+	// On interrupt, check if data ready interrupt
+	bool didUpdate = readByte(MPU9250_ADDRESS, INT_STATUS);
+	if (didUpdate) 
+	{
 		readAccelData(accelCount);  // Read the x/y/z adc values   
 		// m_currTimeUs we'll calculate the accleration value into actual g's
 		ax = (float)accelCount[0]*aRes - accelBias[0];  // get actual g value, this depends on scale being set
@@ -248,10 +250,10 @@ void MPU9250_Update()
 		m_sum = 0;
 		m_sumCount = 0; 
 		sensor_fusion_stable = true;
-		
-		if (m_imuFunc != NULL)
-			m_imuFunc(yaw);
 	}
+	
+	if (m_imuFunc != NULL && didUpdate)
+		m_imuFunc(yaw);
 }
 
 void writeByte(uint16_t address, uint8_t subAddress, uint8_t data)
