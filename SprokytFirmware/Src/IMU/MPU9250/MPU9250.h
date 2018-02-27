@@ -165,6 +165,8 @@
 #define MPU9250_ADDRESS 0x68<<1  // Device address when ADO = 0
 #endif  
 
+#define MPU9250_LOAD_CALC_VALUES
+
 // Set initial input parameters
 enum Ascale {
 	AFS_2G  = 0,

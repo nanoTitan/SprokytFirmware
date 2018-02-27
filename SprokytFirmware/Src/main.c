@@ -23,7 +23,6 @@ All Rights Reserved
 
 /* Private variables ---------------------------------------------------------*/
 
-static void InitUSART();
 void blink();
 
 int main()

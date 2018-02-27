@@ -116,20 +116,30 @@ void MPU9250_Init()
 	
 	resetMPU9250(); // Reset registers to default in preparation for device calibration
 	MPU9250SelfTest(SelfTest); // Start by performing self test and reporting values
-	PRINTF("MPU9250: x-axis self test: acceleration trim within : %.1f percent of factory value\n", SelfTest[0]);  
-	PRINTF("MPU9250: y-axis self test: acceleration trim within : %.1f percent of factory value\n", SelfTest[1]);  
-	PRINTF("MPU9250: z-axis self test: acceleration trim within : %.1f percent of factory value\n", SelfTest[2]);  
-	PRINTF("MPU9250: x-axis self test: gyration trim within : %.1f percent of factory value\n", SelfTest[3]);  
-	PRINTF("MPU9250: y-axis self test: gyration trim within : %.1f percent of factory value\n", SelfTest[4]);  
-	PRINTF("MPU9250: z-axis self test: gyration trim within : %.1f percent of factory value\n", SelfTest[5]);  
+	PRINTF("MPU9250: x-axis self test: acceleration trim within : %.2f percent of factory value\n", SelfTest[0]);  
+	PRINTF("MPU9250: y-axis self test: acceleration trim within : %.2f percent of factory value\n", SelfTest[1]);  
+	PRINTF("MPU9250: z-axis self test: acceleration trim within : %.2f percent of factory value\n", SelfTest[2]);  
+	PRINTF("MPU9250: x-axis self test: gyration trim within : %.2f percent of factory value\n", SelfTest[3]);  
+	PRINTF("MPU9250: y-axis self test: gyration trim within : %.2f percent of factory value\n", SelfTest[4]);  
+	PRINTF("MPU9250: z-axis self test: gyration trim within : %.2f percent of factory value\n", SelfTest[5]);  
 	
+#if defined(MPU9250_LOAD_CALC_VALUES)
+	gyroBias[0] = 0.260f;
+	gyroBias[0] = 0.923664;
+	gyroBias[0] = -0.137405f;
+	accelBias[0] = 0.003906f;
+	accelBias[0] = 0.028625f;
+	accelBias[0] = 0.091064f;
+#else
 	calibrateMPU9250(gyroBias, accelBias); // Calibrate gyro and accelerometers, load biases in bias registers  
-	PRINTF("MPU9250: x gyro bias = %.3f\n", gyroBias[0]);
-	PRINTF("MPU9250: y gyro bias = %.3f\n", gyroBias[1]);
-	PRINTF("MPU9250: z gyro bias = %.3f\n", gyroBias[2]);
-	PRINTF("MPU9250: x accel bias = %.3f\n", accelBias[0]);
-	PRINTF("MPU9250: y accel bias = %.3f\n", accelBias[1]);
-	PRINTF("MPU9250: z accel bias = %.3f\n", accelBias[2]);
+#endif // MPU9250_LOAD_CALC_VALUES
+	
+	PRINTF("MPU9250: x gyro bias = %f\n", gyroBias[0]);
+	PRINTF("MPU9250: y gyro bias = %f\n", gyroBias[1]);
+	PRINTF("MPU9250: z gyro bias = %f\n", gyroBias[2]);
+	PRINTF("MPU9250: x accel bias = %f\n", accelBias[0]);
+	PRINTF("MPU9250: y accel bias = %f\n", accelBias[1]);
+	PRINTF("MPU9250: z accel bias = %f\n", accelBias[2]);
 	
 	HAL_Delay(2000);
 	initMPU9250();
@@ -153,9 +163,13 @@ void MPU9250_Init()
 	PRINTF("Gyroscope sensitivity is %f LSB/deg/s \n\r", 1.0f / gRes);
 	PRINTF("Magnetometer sensitivity is %f LSB/G \n\r", 1.0f / mRes);
 	
-	magbias[0] = + 470.;  // User environmental x-axis correction in milliGauss, should be automatically calculated
-	magbias[1] = + 120.;  // User environmental x-axis correction in milliGauss
-	magbias[2] = + 125.;  // User environmental x-axis correction in milliGauss
+#if defined(MPU9250_LOAD_CALC_VALUES)
+	magbias[0] = 94.1942368f;  // User environmental x-axis correction in milliGauss, should be automatically calculated
+	magbias[1] = 565.849609f;  // User environmental y-axis correction in milliGauss
+	magbias[2] = -251.19133f;  // User environmental z-axis correction in milliGauss
+#else
+	magcalMPU9250(magbias, magCalibration);
+#endif // MPU9250_LOAD_CALC_VALUES
 }
 
 void MPU9250_Update()
@@ -198,9 +212,9 @@ void MPU9250_Update()
 	//     zeta = 0.015; // increasey bias drift gain after stabilized
 	 //   }
     
-	 // Pass gyro rate as rad/s
-	 // MadgwickQuaternionUpdate(ax, ay, az, gx*M_Pi_Over_180, gy*M_Pi_Over_180, gz*M_Pi_Over_180,  my,  mx, mz);
-	MahonyQuaternionUpdate(ax, ay, az, gx*M_Pi_Over_180, gy*M_Pi_Over_180, gz*M_Pi_Over_180, my, mx, mz);
+	// Pass gyro rate as rad/s
+	MadgwickQuaternionUpdate(ax, ay, az, gx*M_Pi_Over_180, gy*M_Pi_Over_180, gz*M_Pi_Over_180, my, mx, mz);
+	//MahonyQuaternionUpdate(ax, ay, az, gx*M_Pi_Over_180, gy*M_Pi_Over_180, gz*M_Pi_Over_180, my, mx, mz);
 
 	// Serial print and/or display at 0.5 s rate independent of data rates
 	delt_t = HAL_GetTick() - count;
@@ -230,8 +244,12 @@ void MPU9250_Update()
 		roll  = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
 		pitch *= M_180_Over_Pi;
 		yaw   *= M_180_Over_Pi; 
-		yaw   -= 13.8f; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
+		//yaw   -= 13.8f; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
+		yaw   -= 11.24f; // Declination at Salt Lake City, Utah is 12.24 degrees
 		roll  *= M_180_Over_Pi;
+		
+		if (yaw < 0)
+			yaw += 360;
 
 		PRINTF("Yaw, Pitch, Roll: %.1f %.1f %.1f\n", yaw, pitch, roll);
 		//PRINTF("average rate = %d\n\r", (float) m_sumCount / m_sum);
@@ -342,18 +360,18 @@ void getAres() {
 		// Possible accelerometer scales (and their register bit settings) are:
 		// 2 Gs (00), 4 Gs (01), 8 Gs (10), and 16 Gs  (11). 
 	    // Here's a bit of an algorith to calculate DPS/(ADC tick) based on that 2-bit value:
-		case AFS_2G:
-			aRes = 2.0 / 32768.0;
-			break;
-		case AFS_4G:
-			aRes = 4.0 / 32768.0;
-			break;
-		case AFS_8G:
-			aRes = 8.0 / 32768.0;
-			break;
-		case AFS_16G:
-			aRes = 16.0 / 32768.0;
-			break;
+	case AFS_2G:
+		aRes = 2.0 / 32768.0;
+		break;
+	case AFS_4G:
+		aRes = 4.0 / 32768.0;
+		break;
+	case AFS_8G:
+		aRes = 8.0 / 32768.0;
+		break;
+	case AFS_16G:
+		aRes = 16.0 / 32768.0;
+		break;
 	}
 }
 
@@ -654,7 +672,7 @@ void magcalMPU9250(float * dest1, float * dest2)
 	dest1[1] = (float) mag_bias[1] * mRes * magCalibration[1];   
 	dest1[2] = (float) mag_bias[2] * mRes * magCalibration[2];
    
-	  // Get soft iron correction estimate
+	// Get soft iron correction estimate
 	mag_scale[0]  = (mag_max[0] - mag_min[0]) / 2;  // get average x axis max chord length in counts
 	mag_scale[1]  = (mag_max[1] - mag_min[1]) / 2;  // get average y axis max chord length in counts
 	mag_scale[2]  = (mag_max[2] - mag_min[2]) / 2;  // get average z axis max chord length in counts
