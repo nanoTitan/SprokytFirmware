@@ -251,51 +251,51 @@ tBleStatus AddControlService(void)
   
 	// Control service
 	/********************************************************************************************/
-//	COPY_CONTROL_SERVICE_UUID(uuid);
-//	
-//	ret = aci_gatt_add_serv(
-//		UUID_TYPE_128,
-//		uuid,
-//		PRIMARY_SERVICE,
-//		7,
-//		&controlServHandle);
-//	if (ret != BLE_STATUS_SUCCESS) goto fail;    
-//  
-//	/* copy "INPUT button characteristic UUID" defined above to 'uuid' local variable */  
-//	COPY_CONTROL_CHAR_UUID(uuid);
-//	
-//	ret =  aci_gatt_add_char(
-//		controlServHandle,
-//		UUID_TYPE_128,
-//		uuid,
-//		4,
-//		CHAR_PROP_WRITE | CHAR_PROP_WRITE_WITHOUT_RESP,
-//		ATTR_PERMISSION_NONE,
-//		GATT_NOTIFY_ATTRIBUTE_WRITE,
-//		16,
-//		1,
-//		&controlButtonCharHandle);
-//	if (ret != BLE_STATUS_SUCCESS) goto fail;  
-//	
-//	PRINTF("Control characteristic added\n");	
-//	
-//	/* copy "Instructionn characteristic UUID" defined above to 'uuid' local variable */  
-//	COPY_INSTRUCTION_CHAR_UUID(uuid);
-//	
-//	ret =  aci_gatt_add_char(
-//		controlServHandle,
-//		UUID_TYPE_128,
-//		uuid,
-//		4,
-//		CHAR_PROP_WRITE | CHAR_PROP_WRITE_WITHOUT_RESP,
-//		ATTR_PERMISSION_NONE,
-//		GATT_NOTIFY_ATTRIBUTE_WRITE,
-//		16,
-//		1,
-//		&instructionButtonCharHandle);
-//	if (ret != BLE_STATUS_SUCCESS) goto fail; 
-//	
-//	PRINTF("Instruction characteristic added\n");
+	COPY_CONTROL_SERVICE_UUID(uuid);
+	
+	ret = aci_gatt_add_serv(
+		UUID_TYPE_128,
+		uuid,
+		PRIMARY_SERVICE,
+		7,
+		&controlServHandle);
+	if (ret != BLE_STATUS_SUCCESS) goto fail;    
+  
+	/* copy "INPUT button characteristic UUID" defined above to 'uuid' local variable */  
+	COPY_CONTROL_CHAR_UUID(uuid);
+	
+	ret =  aci_gatt_add_char(
+		controlServHandle,
+		UUID_TYPE_128,
+		uuid,
+		4,
+		CHAR_PROP_WRITE | CHAR_PROP_WRITE_WITHOUT_RESP,
+		ATTR_PERMISSION_NONE,
+		GATT_NOTIFY_ATTRIBUTE_WRITE,
+		16,
+		1,
+		&controlButtonCharHandle);
+	if (ret != BLE_STATUS_SUCCESS) goto fail;  
+	
+	PRINTF("Control characteristic added\n");	
+	
+	/* copy "Instructionn characteristic UUID" defined above to 'uuid' local variable */  
+	COPY_INSTRUCTION_CHAR_UUID(uuid);
+	
+	ret =  aci_gatt_add_char(
+		controlServHandle,
+		UUID_TYPE_128,
+		uuid,
+		4,
+		CHAR_PROP_WRITE | CHAR_PROP_WRITE_WITHOUT_RESP,
+		ATTR_PERMISSION_NONE,
+		GATT_NOTIFY_ATTRIBUTE_WRITE,
+		16,
+		1,
+		&instructionButtonCharHandle);
+	if (ret != BLE_STATUS_SUCCESS) goto fail; 
+	
+	PRINTF("Instruction characteristic added\n");
 	
 	
 	// IMU service
