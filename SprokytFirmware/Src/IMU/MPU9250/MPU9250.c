@@ -164,9 +164,9 @@ void MPU9250_Init()
 	PRINTF("Magnetometer sensitivity is %f LSB/G \n\r", 1.0f / mRes);
 	
 #if defined(MPU9250_LOAD_CALC_VALUES)
-	magbias[0] = 94.1942368f;  // User environmental x-axis correction in milliGauss, should be automatically calculated
-	magbias[1] = 565.849609f;  // User environmental y-axis correction in milliGauss
-	magbias[2] = -251.19133f;  // User environmental z-axis correction in milliGauss
+	magbias[0] = 120;	// 94.1942368f;  // User environmental x-axis correction in milliGauss, should be automatically calculated
+	magbias[1] = 530;	// 565.849609f;  // User environmental y-axis correction in milliGauss
+	magbias[2] = -220;	// -251.19133f;  // User environmental z-axis correction in milliGauss
 #else
 	magcalMPU9250(magbias, magCalibration);
 #endif // MPU9250_LOAD_CALC_VALUES
@@ -200,6 +200,8 @@ void MPU9250_Update()
 		mx = (float)magCount[0] * mRes * magCalibration[0] - magbias[0];  // get actual magnetometer value, this depends on scale being set
 		my = (float)magCount[1] * mRes * magCalibration[1] - magbias[1];  
 		mz = (float)magCount[2] * mRes * magCalibration[2] - magbias[2];   
+		
+		//PRINTF("ax, ay, az: %f.3, %f.3, %f.3", ax, ay, az); 
 	}
 	
 	m_lastUpdateUs = m_currTimeUs;
@@ -213,8 +215,8 @@ void MPU9250_Update()
 	 //   }
     
 	// Pass gyro rate as rad/s
-	MadgwickQuaternionUpdate(ax, ay, az, gx*M_Pi_Over_180, gy*M_Pi_Over_180, gz*M_Pi_Over_180, my, mx, mz);
-	//MahonyQuaternionUpdate(ax, ay, az, gx*M_Pi_Over_180, gy*M_Pi_Over_180, gz*M_Pi_Over_180, my, mx, mz);
+	//MadgwickQuaternionUpdate(ax, ay, az, gx*M_Pi_Over_180, gy*M_Pi_Over_180, gz*M_Pi_Over_180, my, mx, mz);
+	MahonyQuaternionUpdate(-ay, -ax, az, gy*M_Pi_Over_180, gx*M_Pi_Over_180, -gz*M_Pi_Over_180, mx, my, mz);
 
 	// Serial print and/or display at 0.5 s rate independent of data rates
 	delt_t = HAL_GetTick() - count;
