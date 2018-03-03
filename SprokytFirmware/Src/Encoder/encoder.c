@@ -5,7 +5,6 @@
 #include "constants.h"
 #include <math_ext.h>
 
-#define PRINT_ENCODER
 
 static TIM_HandleTypeDef  timer1, timer2;
 static float m_lastCount1 = 0, m_lastCount2 = 0;
@@ -89,9 +88,8 @@ void Encoder_Update()
 	m_lastTime = currTime;
 	
 #ifdef PRINT_ENCODER
-	static int printCnt = 0;
-	++printCnt;
-	if (printCnt > 1)
+	static float lastPrintTime = 0;
+	if (currTime - lastPrintTime > 0.5f)
 	{
 		//PRINTF("%.3f, %.3f\n", deltaTime, m_lastTime);
 		//PRINTF("%u, %u, %u, %u\n", (unsigned int)m_lastCount1, (unsigned int)m_lastCount2, m_dir1, m_dir2);	
@@ -102,7 +100,7 @@ void Encoder_Update()
 		//PRINTF("%2.3f, %2.3f\n", m_lastAngle1, m_lastAngle2);	
 		//PRINTF("%.4f, %.4f\n", m_angVel1, m_angVel2);	
 		
-		printCnt = 0;
+		lastPrintTime = currTime;
 	}
 #endif // PRINT_ENCODER
 }

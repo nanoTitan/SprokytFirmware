@@ -14,15 +14,19 @@
 // Component enable macros
 /*********************************************************/
 #define SERIAL_PRINT
+#define PRINT_ENCODER
+#define PRINT_DIFF_DRIVE
+#define PRINT_ROVER_CONTROL
+
 #define BLE_ENABLED
-#define UWB_ENABLED
+//#define UWB_ENABLED
 //#define WIFI_ENABLED
-#define IMU_ENABLED
+//#define IMU_ENABLED
 //#define STEPPER_ENABLED
 //#define SERVO_ENABLED
 //#define SONAR_ENABLED
 #define ENCODER_ENABLED
-#define SENSOR_FUSION_ENABLED
+//#define SENSOR_FUSION_ENABLED
 #define SENSOR_FUSION_DEBUG_ENABLED
 
 //#define MOTOR_STEPPER	

@@ -45,7 +45,7 @@ static void ParseTranslateQuadDrive(uint8_t _x, uint8_t _y);
 static void IMU_Callback(float yaw);
 static void DiffDrive_Callback(const Transform_t* transform);
 
-static void PrintTransform(uint32_t deltaTime);
+static void PrintTransform( );
 
 /* Private functions ---------------------------------------------------------*/
 void RoverControl_init()
@@ -54,12 +54,11 @@ void RoverControl_init()
 	memset(&m_lastTrans, 0, sizeof(Transform_t));
 	
 	DiffDrive_Init();
+	DiffDrive_RegisterCallback(DiffDrive_Callback);
 	
 #if defined(IMU_ENABLED)
 	MPU9250_RegisterAngularPosCallback(IMU_Callback);
 #endif // IMU_ENABLED
-	
-	DiffDrive_RegisterCallback(DiffDrive_Callback);
 	
 #if defined(SENSOR_FUSION_ENABLED)
 	TinyEKF_init(&m_ekf);
@@ -247,9 +246,9 @@ void UpdateSensorFusion()
 #if defined(UWB_ENABLED)
 	UWB_GetPosition(&uwb_x, &uwb_y, &uwb_z);
 #else
-	uwb_x = m_ddTrans->x;
+	uwb_x = m_ddTrans.x;
 	uwb_y = 0;
-	uwb_z = m_ddTrans->z;
+	uwb_z = m_ddTrans.z;
 #endif
 	
 #if defined(IMU_ENABLED)
@@ -268,9 +267,9 @@ void UpdateSensorFusion()
 	m_trans.y = uwb_y;
 	m_trans.z = TinyEKF_getX(&m_ekf, 1);
 #else
-	m_trans.x = m_ddTrans->x;
+	m_trans.x = m_ddTrans.x;
 	m_trans.y = uwb_y;
-	m_trans.z = m_ddTrans->z;
+	m_trans.z = m_ddTrans.z;
 #endif	// UWB_ENABLED
 	
 #if defined(IMU_ENABLED)
@@ -292,17 +291,19 @@ void UpdateSensorFusion()
 	}
 #endif // BLE_ENABLED && SENSOR_FUSION_DEBUG_ENABLED
 	
-	PrintTransform(currTime);
+	PrintTransform();
 	
 	lastTime = currTime;
 }
 
 void UpdateTransform()
-{
+{	
 	m_trans.x = m_ddTrans.x;
 	m_trans.y = 0;
 	m_trans.z = m_ddTrans.z;
 	m_trans.yaw = m_ddTrans.yaw;
+	
+	PrintTransform();
 }
 
 void UpdateOrientationRounding(float* out_imuYaw, float* out_ddYaw)
@@ -387,16 +388,17 @@ void RoverControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 	}
 }
 
-void PrintTransform(uint32_t currTime)
+void PrintTransform()
 {
-#if defined(DEBUG)
+#if defined(PRINT_ROVER_CONTROL)
 	static uint32_t lastPrintTime = 0;
+	uint32_t currTime = HAL_GetTick();
 	if (currTime - lastPrintTime >= 500)
 	{
 		PRINTF("x: %.1f y: %.1f z: %.1f yaw: %.1f\n", m_trans.x, m_trans.y, m_trans.z, m_trans.yaw);
-		lastPrintTime = 0;
+		lastPrintTime = currTime;
 	}
-#endif // DEBUG
+#endif // PRINT_ROVER_CONTROL
 }
 
 void ParseTranslateQuadDrive(uint8_t _x, uint8_t _y)

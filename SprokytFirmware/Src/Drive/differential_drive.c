@@ -9,7 +9,6 @@
 #include "imu.h"
 #include "BLE.h"
 
-#define PRINT_DIFF_DRIVE
 
 /* Private variables ---------------------------------------------------------*/
 static float m_leftAngVel = 0;
@@ -134,20 +133,19 @@ void DiffDrive_Update()
 	// Update the time
 	m_lastTime = currTime;
 
-	static int printCnt = 0;
-	++printCnt;
-	if (printCnt > 10)
-	{		
 #ifdef PRINT_DIFF_DRIVE
+	static float lastPrintTime = 0;
+	if (currTime - lastPrintTime > 0.5f)
+	{		
 		//PRINTF("%.3f, %.3f\n", Vl, Vr);	
 		//PRINTF("%.2f, %.2f\n", m_angVelocity, m_angPosition);	
 		//PRINTF("%.2f, %.2f, %.2f\n", m_transform.yaw, m_transform.pitch, m_transform.roll);		
 		//PRINTF("%.2f, %.2f, %.2f\n", m_transform.x, m_transform.z, m_transform.yaw);
 		//PRINTF("%.2f %.2f\n", m_angPosition, m_transform.yaw);	
-#endif // PRINT_DIFF_DRIVE
 		
-		printCnt = 0;
+		lastPrintTime = currTime;
 	}
+#endif // PRINT_DIFF_DRIVE
 }
 
 void DiffDrive_RegisterCallback(DiffDriveCallback callback)
@@ -180,8 +178,8 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 	// A needs to turn CCW to move forward, and B should turn clockwise
 	
 	direction_t dir = FWD;
-	float x = mapf(_x, 0, 255, -1, 1);
-	float y = mapf(_y, 0, 255, -1, 1);
+	float x = mapf(_x, 0, 254, -1, 1);		// In max at 254 (instead of 255) so that halfway of 127 will translate to 0 in mapf function
+	float y = mapf(_y, 0, 254, -1, 1);
 	
 	//PRINTF("%1.2f, %1.2f\n", x, y);	
 	
