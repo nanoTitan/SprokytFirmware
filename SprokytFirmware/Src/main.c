@@ -61,6 +61,10 @@ int main()
 	
 	PRINTF("System Clock set to: %u \n", (unsigned int)SystemCoreClock);
 	
+	// Control Manager
+	ControlMgr_setType(CONTROLLER_ROVER);
+	ControlMgr_setState(CONTROL_STATE_IDLE);
+	
 	// IMU and Sensors
 #if defined(IMU_ENABLED)
 	MPU9250_Init();
@@ -89,10 +93,7 @@ int main()
 		Error_Handler();
 #endif // SONAR_ENABLED
 	
-	// Control Manager
 	RoverControl_init();
-	ControlMgr_setType(CONTROLLER_ROVER);
-	ControlMgr_setState(CONTROL_STATE_IDLE);
 	
 	PRINTF("Initialization done. Running program...\n\n");
 	

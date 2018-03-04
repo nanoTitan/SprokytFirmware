@@ -41,6 +41,7 @@
 #include "stm32f4xx_nucleo_ihm06a1.h"
 #include "main.h"
 #include "constants.h"
+#include "dwm_constants.h"
 
 /** @addtogroup X-CUBE-BLE1_Applications
  *  @{
@@ -144,10 +145,6 @@ void HAL_MspInit(void)
 	
 	/* SysTick_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
-
-	/* USER CODE BEGIN MspInit 1 */
-
-	/* USER CODE END MspInit 1 */
 }
 
 void HAL_UART_MspInit(UART_HandleTypeDef* huart)
@@ -282,6 +279,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 		UWB_SPIx_MISO_GPIO_CLK_ENABLE();
 		UWB_SPIx_MOSI_GPIO_CLK_ENABLE();
 		UWB_SPIx_NSS_GPIO_CLK_ENABLE();
+		UWB_SPIx_INT_GPIO_CLK_ENABLE();
 
 		/* Enable SPI clock */
 		UWB_SPIx_CLK_ENABLE();
@@ -293,6 +291,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 	    PC12     ------> SPI3_MOSI 
 	    */
 		
+		/* NSS */
 		GPIO_InitStruct.Pin = UWB_SPIx_NSS_PIN;
 		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 		GPIO_InitStruct.Pull = GPIO_PULLUP;
@@ -300,12 +299,27 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 		GPIO_InitStruct.Alternate = UWB_SPIx_NSS_AF;
 		HAL_GPIO_Init(UWB_SPIx_NSS_PORT, &GPIO_InitStruct);
 		
+		/* SCK/MISO/MOSI */
 		GPIO_InitStruct.Pin = UWB_SPIx_SCK_PIN | UWB_SPIx_MISO_PIN | UWB_SPIx_MOSI_PIN;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Pull = GPIO_NOPULL;
 		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 		GPIO_InitStruct.Alternate = UWB_SPIx_SCK_AF;
 		HAL_GPIO_Init(UWB_SPIx_SCK_GPIO_PORT, &GPIO_InitStruct);
+		
+		// Only set interupt if HAL_SPI_DRDY mode is set
+#if INTERFACE_NUMBER == 2 || INTERFACE_NUMBER == 3
+		/* IRQ -- INPUT */
+		GPIO_InitStruct.Pin = UWB_INT_PIN;
+		GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+		HAL_GPIO_Init(UWB_INT_PORT, &GPIO_InitStruct); 
+		
+		// Interrupt Priorities
+		HAL_NVIC_SetPriority(UWB_EXTI_IRQn, 0x03, 0x00);
+		HAL_NVIC_EnableIRQ(UWB_EXTI_IRQn);
+#endif // INTERFACE_NUMBER
 	}
 #endif // UWB_ENABLED
 }
@@ -325,6 +339,11 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
 	    */
 		HAL_GPIO_DeInit(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN);
 		HAL_GPIO_DeInit(UWB_SPIx_SCK_GPIO_PORT, UWB_SPIx_SCK_PIN | UWB_SPIx_MISO_PIN | UWB_SPIx_MOSI_PIN);
+		
+#if INTERFACE_NUMBER == 2 || INTERFACE_NUMBER == 3
+		HAL_GPIO_DeInit(UWB_INT_PORT, UWB_INT_PIN);
+		HAL_NVIC_DisableIRQ(UWB_EXTI_IRQn);
+#endif // INTERFACE_NUMBER == 2 || INTERFACE_NUMBER == 3
 	}
 #endif // UWB_ENABLED
 }

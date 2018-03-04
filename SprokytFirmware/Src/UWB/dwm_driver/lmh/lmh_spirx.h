@@ -63,6 +63,8 @@ void LMH_SPIRX_SetWait(int wait);
  */
 int  LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* length, uint16_t exp_length);
 
+void PRINT_UWB(const char* format, ...);
+
 
 #endif //_LMH_SPIRX_H_
 

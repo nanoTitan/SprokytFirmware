@@ -12,8 +12,9 @@
 #define HAL_SPI_DEV1 1
 
 #define DWM_SPI_TIMEOUT	1000
+#define LMH_SPIRX_TIMEOUT_DEFAULT         1000
 
-#define INTERFACE_NUMBER					1		// DW Interface mode: 0 - USART, 1 - SPI, 2 - SPI Interrupt Ready
+#define INTERFACE_NUMBER			3		// DW Interface mode: 0 - USART, 1 - SPI, 2 - SPI Interrupt Ready, 3 - SPI Interrupt Position Ready
 #if INTERFACE_NUMBER == 0
 #include "hal_uart.h"
 #define HAL_IF_Tx          HAL_UART_Tx
@@ -27,6 +28,9 @@
 #endif   
 #if INTERFACE_NUMBER == 2
 #define HAL_IF_STR         "HAL_SPI_DRDY"
+#endif
+#if INTERFACE_NUMBER == 3
+#define HAL_IF_STR         "HAL_SPI_POS_INT"
 #endif   
 #endif 
 

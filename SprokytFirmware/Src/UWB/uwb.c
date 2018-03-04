@@ -4,18 +4,23 @@
 #include "lmh.h"
 #include "stm32f4xx_hal.h"
 #include "error.h"
+#include "control_manager.h"
 
 static SPI_HandleTypeDef m_uwbSpi;
 static dwm_cfg_tag_t m_cfg_tag;
 static dwm_cfg_t m_cfg_node;
 static dwm_loc_data_t m_loc;
+static dwm_status_t m_status;
 static dwm_pos_t m_pos;
 static uint32_t m_lastTime = 0;
-static bool m_isReady = false;
+static bool m_isReadingPos = false;
+static bool m_locationDataReady = false;
+
+void UWB_Position_Ready_Callback();
 
 int UWB_Init()
 {
-	m_isReady = false;
+	m_isReadingPos = false;
 		
 	/* GPIO Ports Clock Enable */
 	__HAL_RCC_GPIOC_CLK_ENABLE();
@@ -27,7 +32,7 @@ int UWB_Init()
 	m_uwbSpi.Init.CLKPolarity = SPI_POLARITY_LOW;
 	m_uwbSpi.Init.CLKPhase = SPI_PHASE_1EDGE;
 	m_uwbSpi.Init.NSS = SPI_NSS_SOFT;
-	m_uwbSpi.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;	//SPI_BAUDRATEPRESCALER_32
+	m_uwbSpi.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;	// SPI_BAUDRATEPRESCALER_256;	//SPI_BAUDRATEPRESCALER_32
 	m_uwbSpi.Init.FirstBit = SPI_FIRSTBIT_MSB;
 	m_uwbSpi.Init.TIMode = SPI_TIMODE_DISABLE;
 	m_uwbSpi.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -72,58 +77,78 @@ int UWB_Init()
 		PRINTF("common.ble_en       cfg_tag=%d : cfg_node=%d\n", m_cfg_tag.common.ble_en, m_cfg_node.common.ble_en); 
 		PRINTF("common.uwb_mode     cfg_tag=%d : cfg_node=%d\n", m_cfg_tag.common.uwb_mode, m_cfg_node.common.uwb_mode); 
 		PRINTF("common.fw_update_en cfg_tag=%d : cfg_node=%d\n", m_cfg_tag.common.fw_update_en, m_cfg_node.common.fw_update_en);  
-		PRINTF("\nConfiguration failed.\n\n");
+		PRINTF("\n\tDW: Configuration failed.\n\n");
 	}
 	else
 	{
-		PRINTF("\nConfiguration succeeded.\n\n");
+		PRINTF("\n\tDW: Configuration succeeded.\n\n");
 	}
 	
 	m_loc.p_pos = &m_pos;
+	ControlMgr_setState(CONTROL_STATE_CONNECTED);
 	
 	return UWB_STATUS_SUCCESS;
 }
 
 void UWB_Update()
 {
-	int i;
+	int result = RV_OK;
+#if INTERFACE_NUMBER == 3
+	if (!m_locationDataReady)
+		return;
 	
+	m_status.uwbmac_joined = false;
+	m_status.loc_data = false;
+	
+	result = dwm_status_get(&m_uwbSpi, &m_status);
+	if (result != RV_OK)
+		return;
+	
+	if (!m_status.loc_data)
+		return;
+	
+	result = dwm_loc_get(&m_uwbSpi, &m_loc);
+#else
 	uint32_t currTime = HAL_GetTick();
-	if (currTime - m_lastTime > UWB_UPDATE_TIME)
-	{
-		m_lastTime = currTime;	// Reset retry time
+	if (currTime - m_lastTime < UWB_UPDATE_TIME)
+		return;
+	
+	m_lastTime = currTime;	// Reset retry time
+	result = dwm_loc_get(&m_uwbSpi, &m_loc);
+#endif	// INTERFACE_NUMBER
+	
+	if (result != RV_OK)
+		return;
+	
+	m_isReadingPos = true;
 		
-		int result = dwm_loc_get(&m_uwbSpi, &m_loc);
-		if (result != RV_OK)
-		{
-			return;
-		}
-		
-		m_isReady = true;
-		
-		// Print tag position
-		//PRINTF("\t[%d,%d,%d,%u]\n", m_loc.p_pos->x, m_loc.p_pos->y, m_loc.p_pos->z, m_loc.p_pos->qf);
+	// Print tag position
+	//PRINTF("\t[%d,%d,%d,%u]\n", m_loc.p_pos->x, m_loc.p_pos->y, m_loc.p_pos->z, m_loc.p_pos->qf);
 
-		/*
-		// Print anchor positions
-		for (i = 0; i < m_loc.anchors.dist.cnt; ++i) 
+	/*
+	// Print anchor positions
+	for (i = 0; i < m_loc.anchors.dist.cnt; ++i) 
+	{
+		PRINTF("\t%u)", i);
+		PRINTF("0x%llx", m_loc.anchors.dist.addr[i]);
+		if (i < m_loc.anchors.an_pos.cnt) 
 		{
-			PRINTF("\t%u)", i);
-			PRINTF("0x%llx", m_loc.anchors.dist.addr[i]);
-			if (i < m_loc.anchors.an_pos.cnt) 
-			{
-				PRINTF("[%d,%d,%d,%u]", m_loc.anchors.an_pos.pos[i].x, m_loc.anchors.an_pos.pos[i].y, m_loc.anchors.an_pos.pos[i].z, m_loc.anchors.an_pos.pos[i].qf);
-			}
-			
-			PRINTF("=%u,%u\n", (uint32_t)m_loc.anchors.dist.dist[i], m_loc.anchors.dist.qf[i]);
+			PRINTF("[%d,%d,%d,%u]", m_loc.anchors.an_pos.pos[i].x, m_loc.anchors.an_pos.pos[i].y, m_loc.anchors.an_pos.pos[i].z, m_loc.anchors.an_pos.pos[i].qf);
 		}
-		*/
+			
+		PRINTF("=%u,%u\n", (uint32_t)m_loc.anchors.dist.dist[i], m_loc.anchors.dist.qf[i]);
 	}
+	*/
+}
+
+void UWB_Position_Ready_Callback()
+{
+	m_locationDataReady = true;
 }
 
 bool UWB_IsReady()
 {
-	return m_isReady;
+	return m_isReadingPos;
 }
 
 void UWB_GetPosition(float* out_x, float* out_y, float* out_z)
@@ -136,7 +161,7 @@ void UWB_GetPosition(float* out_x, float* out_y, float* out_z)
 bool UWB_GetModuleData(float* moduleData, uint8_t buffSz, uint8_t* out_size)
 {
 	int indx = 0;
-	if (!m_isReady)
+	if (!m_isReadingPos)
 		return false;
 	
 	*out_size = (1 + m_loc.anchors.dist.cnt) * 3 * 4;

@@ -42,6 +42,7 @@
 #include "debug.h"
 #include "hci.h"
 #include "constants.h"
+#include "dwm_constants.h"
 #include "stm32f4xx_nucleo_ihm06a1.h"
 
 /** @addtogroup X-CUBE-BLE1_Applications
@@ -61,15 +62,16 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 volatile uint8_t button_event = 0;
-/* SPI handler declared in "main.c" file */
 
 extern SPI_HandleTypeDef SpiHandle;
 extern uint8_t magcal_request;
 extern TIM_HandleTypeDef hTimerStepClock;
+
 /* Private function prototypes -----------------------------------------------*/
 extern void BSP_MotorControl_FlagInterruptHandler(void);
+extern void LMH_SPIRX_DRDY_DrdyCb(void);
+extern void UWB_Position_Ready_Callback();
 
-/* Private functions ---------------------------------------------------------*/
 void prvGetRegistersFromStack(uint32_t *pulFaultStackAddress);
 
 /******************************************************************************/
@@ -185,18 +187,30 @@ void TIM2_IRQHandler(void)
 	HAL_TIM_IRQHandler(&hTimerStepClock);
 }
 
-/**
-  * @brief  EXTI line detection callbacks
-  * @param  GPIO_Pin the pin connected to EXTI line
-  * @retval None
-  */
+
+void EXTI2_IRQHandler(void)
+{
+#if defined(UWB_ENABLED)
+	if(__HAL_GPIO_EXTI_GET_FLAG(UWB_INT_PIN))								// UWB Interrupt
+	{
+#if INTERFACE_NUMBER == 3
+			UWB_Position_Ready_Callback();
+#else
+			LMH_SPIRX_DRDY_DrdyCb();	
+#endif	// INTERFACE_NUMBER
+	}
+#endif // UWB_ENABLED
+	
+	HAL_GPIO_EXTI_IRQHandler(UWB_INT_PIN);
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if (GPIO_Pin == BSP_MOTOR_CONTROL_BOARD_PIN_EN_AND_FAULT)
+	if (GPIO_Pin == BSP_MOTOR_CONTROL_BOARD_PIN_EN_AND_FAULT)		// StSpin Interrupt
 	{
 		BSP_MotorControl_FlagInterruptHandler();
-	}
-	if (GPIO_Pin == KEY_BUTTON_PIN)
+	}	
+	else if (GPIO_Pin == KEY_BUTTON_PIN)							// IMU Interrupt
 	{
 		// Tell IMU to begin magnetometer calibration request
 		if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_RESET)
@@ -204,11 +218,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			magcal_request = 1;
 		}
 	}
-	
-	
-	// UPdate BlueNRG ISR. This normally happens in bluenrg_interface.c. 
-	// We put it here since multiple objects need to know about EXTI_Callback
-	HCI_Isr();
+#if defined(BLE_ENABLED)
+	else if (GPIO_Pin == BNRG_SPI_IRQ_PIN)							// BLE Interrupt
+	{
+		// UPdate BlueNRG ISR. This normally happens in bluenrg_interface.c. 
+		HCI_Isr();
+	}
+#endif // BLE_ENABLED
 }
 
 /******************************************************************************/

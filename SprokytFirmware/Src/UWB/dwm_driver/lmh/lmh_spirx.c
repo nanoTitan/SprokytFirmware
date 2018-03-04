@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include "stm32f4xx_hal.h"
 #include "debug.h"
 #include "dwm_constants.h"
@@ -31,22 +32,32 @@
 #define LMH_SPIRX_NUM_OFFSET              1
 #endif   
 
-#define LMH_SPIRX_TIMEOUT_DEFAULT         1000
-
 static bool lmh_spirx_initialized[2]={false, false};
 static int  lmh_spirx_timeout = LMH_SPIRX_TIMEOUT_DEFAULT;
 static int  lmh_spirx_wait = HAL_SPI_WAIT_PERIOD;
+
+static int LMH_SPIRX_IntCfg(SPI_HandleTypeDef* spiHandle, uint8_t value);
+void LMH_SPIRX_DRDY_Cb();
 
 /**
  * @brief : initialises the SPIRX functions. 
  */
 void LMH_SPIRX_Init(SPI_HandleTypeDef* spiHandle)
 {   
+	// TODO: Fix this so it only checks once (not a while loop)
+	// if (LMH_SPIRX_IntCfg(spiHandle, DWM1001_INTR_SPI_DATA_READY) == LMH_ERR)
+	while (LMH_SPIRX_IntCfg(spiHandle, DWM1001_INTR_LOC_READY) == LMH_ERR)
+	{
+		PRINT_UWB("\n\t DW: LMH_SPIRX_IntCfg() failed. \t >>>>>> Error <<<<<<\n");
+		HAL_Delay(100);
+		//return;
+	}
+	
 	LMH_SPIRX_SetTimeout(LMH_SPIRX_TIMEOUT_DEFAULT);
 	LMH_SPIRX_SetWait(HAL_SPI_WAIT_PERIOD);
 	LMH_SPIRX_SetToIdle(spiHandle);
 	
-	PRINTF("\tLMH: LMH_SPIRX_Init done.\n");     
+	PRINT_UWB("\n\tLMH: LMH_SPIRX_Init done.\n");     
 }
 
 /**
@@ -54,6 +65,34 @@ void LMH_SPIRX_Init(SPI_HandleTypeDef* spiHandle)
  */
 void LMH_SPIRX_DeInit(void)
 {
+}
+
+/**
+ * @brief : send the command to configure DWM1001 to enable Data Ready pin
+ *
+ * @return Error code
+ */
+static int LMH_SPIRX_IntCfg(SPI_HandleTypeDef* spiHandle, uint8_t value)
+{        
+	uint8_t tx_data[DWM1001_TLV_MAX_SIZE];
+	uint8_t rx_data[DWM1001_TLV_MAX_SIZE];
+	uint16_t rx_len;   
+	uint16_t tx_len = 0;
+	tx_data[tx_len++] = DWM1001_TLV_TYPE_CMD_INT_CFG;
+	tx_data[tx_len++] = 1;
+	tx_data[tx_len++] = (uint8_t)value;    
+	
+	HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_RESET); /**< Put chip select line low */
+	HAL_StatusTypeDef txResult = HAL_SPI_Transmit(spiHandle, tx_data, tx_len, DWM_SPI_TIMEOUT);
+	HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_SET); /**< Put chip select line high */
+	
+	if (txResult != HAL_OK)
+	{
+		PRINT_UWB("\tDW: ERROR: module failed to set config\n"); 
+		return LMH_ERR;
+	}
+	
+	return LMH_SPIRX_WaitForRx(spiHandle, rx_data, &rx_len, 3);
 }
 
 /**
@@ -67,8 +106,7 @@ int LMH_SPIRX_SetToIdle(SPI_HandleTypeDef* spiHandle)
 	uint8_t rxBuff[16] = { 0 };
 	
 	// Sending three 0xFF dummy bytes, each in a single transmission, sets the state to IDLE
-	PRINTF("\tDW: Reseting DWM1001 to SPI:IDLE \n"); 
-	
+	PRINT_UWB("\tDW: Reseting DWM1001 to SPI:IDLE \n"); 
 	
 	while (i-- > 0)
 	{
@@ -78,7 +116,7 @@ int LMH_SPIRX_SetToIdle(SPI_HandleTypeDef* spiHandle)
 		HAL_Delay(lmh_spirx_wait);
 		if (txResult != HAL_OK)
 		{
-			PRINTF("\tDW: ERROR: module failed to be set to idle\n"); 
+			PRINT_UWB("\tDW: ERROR: module failed to be set to idle\n"); 
 			return LMH_ERR;
 		}
 	}
@@ -90,7 +128,7 @@ int LMH_SPIRX_SetToIdle(SPI_HandleTypeDef* spiHandle)
 	
 	if (rxBuff[0] != 0xFF)
 	{
-		PRINTF("\tDW: ERROR: module failed to be set to idle\n"); 
+		PRINT_UWB("\tDW: ERROR: module failed to be set to idle\n"); 
 		return LMH_ERR;
 	}
 	
@@ -98,7 +136,7 @@ int LMH_SPIRX_SetToIdle(SPI_HandleTypeDef* spiHandle)
 //	if (rxResult != LMH_OK ||
 //		(rxBuff[0] != 3 || rxBuff[1] != 1 || rxBuff[2] != 0xFF || rxBuff[3] != 0xFF || rxBuff[4] != 0xFF))
 //	{
-//		PRINTF("\tDW: ERROR: module failed to be set to idle\n"); 
+//		PRINT_UWB("\tDW: ERROR: module failed to be set to idle\n"); 
 //		return LMH_ERR;
 //	}
 	
@@ -145,11 +183,11 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 
 	if(exp_length < DWM1001_TLV_RET_VAL_MIN_SIZE)
 	{
-		PRINTF("\tDW >>>Error<<<: exp_length must be >= 3\n");    
+		PRINT_UWB("\tDW >>>Error<<<: exp_length must be >= 3\n");    
 		return LMH_ERR;
 	}
     
-	//PRINTF("\tDW: Rx reading header: \n");
+	//PRINT_UWB("\tDW: Rx reading header: \n");
 	HAL_StatusTypeDef result = HAL_OK;
 	memset(sizenum, 0, LMH_SPIRX_HEADER_LENGTH);
 	
@@ -164,13 +202,18 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 		HAL_GPIO_WritePin(UWB_SPIx_NSS_PORT, UWB_SPIx_NSS_PIN, GPIO_PIN_SET); /**< Put chip select line high */
 	}
     
-	if (timeout < 0 || sizenum[LMH_SPIRX_SIZE_OFFSET] == 0 || sizenum[LMH_SPIRX_SIZE_OFFSET] == 0Xff)
+	if (timeout < 0)
 	{
-		PRINTF("\tDW: Read SIZE timed out after %d ms... >>>>>> TIMED OUT <<<<<< \n", lmh_spirx_timeout);  
+		PRINT_UWB("\tDW: Read SIZE timed out after %d ms... >>>>>> TIMED OUT <<<<<< \n", lmh_spirx_timeout);  
+		return LMH_ERR;
+	}
+	else if (sizenum[LMH_SPIRX_SIZE_OFFSET] == 0 || sizenum[LMH_SPIRX_SIZE_OFFSET] == 0Xff)
+	{
+		PRINT_UWB("\tDW: Error: Invalid read SIZE %d\n", sizenum[LMH_SPIRX_SIZE_OFFSET]);  
 		return LMH_ERR;
 	}
 	
-	//PRINTF("\tDW: Receive TLV message: \n");
+	//PRINT_UWB("\tDW: Receive TLV message: \n");
 	*length = 0;
    
 #if LMH_SPIRX_HEADER_LENGTH == 2
@@ -188,7 +231,7 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 		
 		if (result == HAL_TIMEOUT)
 		{
-			PRINTF("\tDW: Read SIZE timed out after %d ms... >>>>>> TIMED OUT <<<<<< \n", lmh_spirx_timeout);  
+			PRINT_UWB("\tDW: Read SIZE timed out after %d ms... >>>>>> TIMED OUT <<<<<< \n", lmh_spirx_timeout);  
 			return LMH_ERR;
 		}
 		
@@ -196,7 +239,7 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 	}
 	
 	HAL_Delay(lmh_spirx_wait);
-	//PRINTF("\tDW: Wait %d ms...\n", lmh_spirx_wait); 
+	//PRINT_UWB("\tDW: Wait %d ms...\n", lmh_spirx_wait); 
    
 	if(LMH_CheckRetVal(data) != LMH_OK)
 	{
@@ -205,12 +248,22 @@ int LMH_SPIRX_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* l
 	
 	if((*length != exp_length) && (exp_length != DWM1001_TLV_MAX_SIZE))
 	{
-		PRINTF("\tDW >>>ERROR<<<: Expecting %d bytes, received %d bytes, in %d ms\n", exp_length, *length, lmh_spirx_timeout-timeout);
+		PRINT_UWB("\tDW >>>ERROR<<<: Expecting %d bytes, received %d bytes, in %d ms\n", exp_length, *length, lmh_spirx_timeout-timeout);
 		return LMH_ERR;
 	}
    
-	//PRINTF("\tDW: Received %d bytes, in %d ms \t OK\n", *length, lmh_spirx_timeout-timeout);
-	return LMH_OK;      
+	PRINT_UWB("\tDW: Received %d bytes, in %d ms \t OK\n", *length, lmh_spirx_timeout - timeout);
+	return LMH_OK;
+}
+
+void PRINT_UWB(const char* format, ...)
+{
+#if defined(DEBUG_PRINT) && defined(LMH_DEBUG_PRINT)
+	va_list argptr;
+	va_start(argptr, format);
+	vfprintf(stderr, format, argptr);
+	va_end(argptr);
+#endif // DEBUG_PRINT
 }
 
 

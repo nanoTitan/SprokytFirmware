@@ -35,7 +35,7 @@ void LMH_SPIRX_DRDY_DeInit(void);
 /**
  * @brief : sets the DWM1001 module SPIRX functions into idle mode. 
  */
-void LMH_SPIRX_DRDY_SetToIdle(SPI_HandleTypeDef* spiHandle);
+int LMH_SPIRX_DRDY_SetToIdle(SPI_HandleTypeDef* spiHandle);
 
 /**
  * @brief : update lmh_spirx_drdy_drdy_flag status according to GPIO_DRDY status

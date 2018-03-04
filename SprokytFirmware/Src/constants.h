@@ -19,14 +19,14 @@
 #define PRINT_ROVER_CONTROL
 
 #define BLE_ENABLED
-//#define UWB_ENABLED
+#define UWB_ENABLED
 //#define WIFI_ENABLED
 //#define IMU_ENABLED
 //#define STEPPER_ENABLED
 //#define SERVO_ENABLED
 //#define SONAR_ENABLED
 #define ENCODER_ENABLED
-//#define SENSOR_FUSION_ENABLED
+#define SENSOR_FUSION_ENABLED
 #define SENSOR_FUSION_DEBUG_ENABLED
 
 //#define MOTOR_STEPPER	
@@ -41,7 +41,7 @@
 /*********************************************************/
 // Timings
 /*********************************************************/
-#define UWB_UPDATE_TIME			300		// in milliseconds
+#define UWB_UPDATE_TIME			100		// in milliseconds
 
 // Definitions for TOSHIBA motor drivers
 #define MD1_TIM					TIM1
@@ -126,27 +126,32 @@
 #define SERVO_GPIO_Port						GPIOB
 
 /* Definitions for UWB resources */
-#define UWB_SPIx                             SPI3
-#define UWB_SPIx_CLK_ENABLE                  __SPI3_CLK_ENABLE
-#define UWB_SPIx_CLK_DISABLE                 __SPI3_CLK_DISABLE
-#define UWB_SPIx_SCK_GPIO_CLK_ENABLE	     __GPIOC_CLK_ENABLE
-#define UWB_SPIx_MISO_GPIO_CLK_ENABLE        __GPIOC_CLK_ENABLE
-#define UWB_SPIx_MOSI_GPIO_CLK_ENABLE		 __GPIOC_CLK_ENABLE
-#define UWB_SPIx_NSS_GPIO_CLK_ENABLE		 __GPIOA_CLK_ENABLE
-#define UWB_SPIx_FORCE_RESET                 __SPI3_FORCE_RESET
-#define UWB_SPIx_RELEASE_RESET               __SPI3_RELEASE_RESET
-#define UWB_SPIx_SCK_PIN                     GPIO_PIN_10
-#define UWB_SPIx_SCK_GPIO_PORT               GPIOC
-#define UWB_SPIx_NSS_PORT	                 GPIOA
-#define UWB_SPIx_NSS_PIN                     GPIO_PIN_15
-#define UWB_SPIx_NSS_AF                      GPIO_AF6_SPI3
-#define UWB_SPIx_SCK_AF                      GPIO_AF6_SPI3
-#define UWB_SPIx_MISO_PIN                    GPIO_PIN_11
-#define UWB_SPIx_MISO_GPIO_PORT              GPIOC
-#define UWB_SPIx_MISO_AF                     GPIO_AF6_SPI3
-#define UWB_SPIx_MOSI_PIN                    GPIO_PIN_12
-#define UWB_SPIx_MOSI_GPIO_PORT              GPIOC
-#define UWB_SPIx_MOSI_AF                     GPIO_AF6_SPI3  
+#define UWB_SPIx                            SPI3
+#define UWB_SPIx_CLK_ENABLE                 __SPI3_CLK_ENABLE
+#define UWB_SPIx_CLK_DISABLE                __SPI3_CLK_DISABLE
+#define UWB_SPIx_SCK_GPIO_CLK_ENABLE	    __GPIOC_CLK_ENABLE
+#define UWB_SPIx_MISO_GPIO_CLK_ENABLE       __GPIOC_CLK_ENABLE
+#define UWB_SPIx_MOSI_GPIO_CLK_ENABLE		__GPIOC_CLK_ENABLE
+#define UWB_SPIx_NSS_GPIO_CLK_ENABLE		__GPIOA_CLK_ENABLE
+#define UWB_SPIx_INT_GPIO_CLK_ENABLE		__GPIOD_CLK_ENABLE
+#define UWB_SPIx_FORCE_RESET                __SPI3_FORCE_RESET
+#define UWB_SPIx_RELEASE_RESET              __SPI3_RELEASE_RESET
+#define UWB_SPIx_SCK_PIN                    GPIO_PIN_10
+#define UWB_SPIx_SCK_GPIO_PORT              GPIOC
+#define UWB_SPIx_NSS_PORT	                GPIOA
+#define UWB_SPIx_NSS_PIN                    GPIO_PIN_15
+#define UWB_SPIx_NSS_AF                     GPIO_AF6_SPI3
+#define UWB_SPIx_SCK_AF                     GPIO_AF6_SPI3
+#define UWB_SPIx_MISO_PIN                   GPIO_PIN_11
+#define UWB_SPIx_MISO_GPIO_PORT             GPIOC
+#define UWB_SPIx_MISO_AF                    GPIO_AF6_SPI3
+#define UWB_SPIx_MOSI_PIN                   GPIO_PIN_12
+#define UWB_SPIx_MOSI_GPIO_PORT             GPIOC
+#define UWB_SPIx_MOSI_AF                    GPIO_AF6_SPI3  
+#define UWB_INT_PORT						GPIOD
+#define UWB_INT_PIN							GPIO_PIN_2
+#define UWB_EXTI_IRQn						EXTI2_IRQn
+//#define LMH_DEBUG_PRINT
 
 /* Definition for Encoder resources */
 #define TIM_ENCODER1	                    TIM2

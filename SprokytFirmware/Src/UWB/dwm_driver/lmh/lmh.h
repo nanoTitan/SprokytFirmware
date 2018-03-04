@@ -27,7 +27,7 @@
 
 #if INTERFACE_NUMBER == 0
 //#include "lmh_uartrx.h"
-#elif INTERFACE_NUMBER == 1
+#elif INTERFACE_NUMBER == 1 || INTERFACE_NUMBER == 3
 #include "lmh_spirx.h"
 #elif INTERFACE_NUMBER == 2
 #include "lmh_spirx.h"

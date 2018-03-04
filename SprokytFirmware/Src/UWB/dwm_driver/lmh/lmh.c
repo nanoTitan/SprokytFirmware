@@ -34,12 +34,12 @@ void LMH_Init(SPI_HandleTypeDef* spiHandle)
 #if INTERFACE_NUMBER == 0
 	PRINTF("\tDW: USART Init...\n");  
 	LMH_UARTRX_Init();
-#elif INTERFACE_NUMBER == 1
+#elif INTERFACE_NUMBER == 1 || INTERFACE_NUMBER == 3
 	PRINTF("\tDW: SPI Init...\n");  
 	LMH_SPIRX_Init(spiHandle);
 #elif INTERFACE_NUMBER == 2
 	PRINTF("\tDW: LMH_SPIRX_Init...\n");  
-	LMH_SPIRX_DRDY_Init();
+	LMH_SPIRX_DRDY_Init(spiHandle);
 #endif
 }
 
@@ -87,10 +87,10 @@ int LMH_WaitForRx(SPI_HandleTypeDef* spiHandle, uint8_t* data, uint16_t* length,
 {
 #if INTERFACE_NUMBER == 0
    return LMH_UARTRX_WaitForRx(data, length, exp_length);
-#elif INTERFACE_NUMBER == 1
+#elif INTERFACE_NUMBER == 1 || INTERFACE_NUMBER == 3
 	return LMH_SPIRX_WaitForRx(spiHandle, data, length, exp_length);
 #elif INTERFACE_NUMBER == 2
-   return LMH_SPIRX_DRDY_WaitForRx(data, length, exp_length);
+	return LMH_SPIRX_DRDY_WaitForRx(spiHandle, data, length, exp_length);
 #endif
 }
 
