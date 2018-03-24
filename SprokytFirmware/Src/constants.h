@@ -16,12 +16,12 @@
 #define SERIAL_PRINT
 #define PRINT_ENCODER
 #define PRINT_DIFF_DRIVE
-#define PRINT_ROVER_CONTROL
+//#define PRINT_ROVER_CONTROL
 
 #define BLE_ENABLED
-#define UWB_ENABLED
+//#define UWB_ENABLED
 //#define WIFI_ENABLED
-//#define IMU_ENABLED
+#define IMU_ENABLED
 //#define STEPPER_ENABLED
 //#define SERVO_ENABLED
 //#define SONAR_ENABLED

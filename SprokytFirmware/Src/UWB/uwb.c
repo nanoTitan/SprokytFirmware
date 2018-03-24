@@ -85,7 +85,6 @@ int UWB_Init()
 	}
 	
 	m_loc.p_pos = &m_pos;
-	ControlMgr_setState(CONTROL_STATE_CONNECTED);
 	
 	return UWB_STATUS_SUCCESS;
 }

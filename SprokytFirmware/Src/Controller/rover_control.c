@@ -71,6 +71,7 @@ bool InitSensorFusion()
 #if defined(SENSOR_FUSION_ENABLED)	
 	bool imuStable = true;
 	bool uwbIsReady = true;
+	float x = 0, y = 0, z = 0;
 	
 #if defined(IMU_ENABLED)
 	imuStable = MPU9250_get_sensorFusionStable();
@@ -79,7 +80,7 @@ bool InitSensorFusion()
 #endif //IMU_ENABLED
 	
 #if defined(UWB_ENABLED)	
-	float x, y, z;
+	
 	UWB_GetPosition(&x, &y, &z);
 	uwbIsReady = UWB_IsReady();
 	if (!uwbIsReady)
@@ -146,8 +147,6 @@ void RoverControl_update()
 	switch (state)
 	{
 	case CONTROL_STATE_IDLE:
-		break;
-		
 	case CONTROL_STATE_CONNECTED:
 		UpdateConnected();
 		break;
@@ -175,7 +174,6 @@ void UpdateConnected()
 	if (!m_hasSetTagInfo)
 	{
 		m_hasSetTagInfo = SetTagInfo();
-		return;
 	}
 	
 	if (!m_hasSetInitialStates)
