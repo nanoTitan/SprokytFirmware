@@ -21,6 +21,7 @@
 #include "bluenrg_utils.h"
 #include <stdlib.h>
 
+#define MAX_ATTR_SIZE 20
 
 #define COPY_UUID_128_V2(uuid_struct, uuid_15, uuid_14, uuid_13, uuid_12, uuid_11, uuid_10, uuid_9, uuid_8, uuid_7, uuid_6, uuid_5, uuid_4, uuid_3, uuid_2, uuid_1, uuid_0) \
 do {\
@@ -87,7 +88,7 @@ int InitBLE()
 	uint16_t service_handle = 0;
 	uint16_t dev_name_char_handle = 0;
 	uint16_t appearance_char_handle = 0;
-	const char *name = "BlueNRG";
+	const char *name = "Sprokyt";
 	
 	/* Initialize the BlueNRG SPI driver */
 	BNRG_SPI_Init();
@@ -226,7 +227,7 @@ void setConnectable(void)
 {  
 	tBleStatus ret;
   
-	const char local_name[] = {AD_TYPE_COMPLETE_LOCAL_NAME,'B','l','u','e','N','R','G'};
+	const char local_name[] = {AD_TYPE_COMPLETE_LOCAL_NAME,'S','p','r','o','k','y','t'};
   
 	/* disable scan response */
 	hci_le_set_scan_resp_data(0,NULL);
@@ -356,7 +357,7 @@ tBleStatus AddControlService(void)
 		imuServHandle,
 		UUID_TYPE_128,
 		uuid,
-		28,
+		20,
 		CHAR_PROP_NOTIFY | CHAR_PROP_READ | ATTR_PERMISSION_NONE,
 		ATTR_PERMISSION_NONE,
 		GATT_NOTIFY_ATTRIBUTE_WRITE,
@@ -417,7 +418,7 @@ void setBLEConnectable(void)
 {  
 	tBleStatus ret;
   
-	const char local_name[] = { AD_TYPE_COMPLETE_LOCAL_NAME, 'B', 'l', 'u', 'e', 'N', 'R', 'G' };
+	const char local_name[] = { AD_TYPE_COMPLETE_LOCAL_NAME, 'S', 'p', 'r', 'o', 'k', 'y', 't' };
   
 	/* disable scan response */
 	hci_le_set_scan_resp_data(0, NULL);
@@ -703,18 +704,34 @@ tBleStatus BLE_LogEkfDebug(float* tagInfo, uint8_t size)
 	if (!connected)
 		return BLE_STATUS_ERROR;
 	
-	tBleStatus status = aci_gatt_update_char_value(
-		imuServHandle,
-		ekfDebugCharHandle,
-		0,
-		size,
-		buff);
+	// Max size for ATT_MTU is 23. So we need to break up the transmission into two packets
+	uint8_t bytesRead = 0;
+	uint8_t currSize = size;
 	
-	if (status != BLE_STATUS_SUCCESS)
+	while (bytesRead < size)
 	{
-		//PRINTF("BLE Error: 0x%x\n", status);
-		return BLE_STATUS_ERROR;
+		if (currSize > MAX_ATTR_SIZE)
+			currSize = MAX_ATTR_SIZE;
+	
+		tBleStatus status = aci_gatt_update_char_value(
+			imuServHandle,
+			ekfDebugCharHandle,
+			0,
+			currSize,
+			buff + bytesRead);
+	
+		if (status != BLE_STATUS_SUCCESS)
+		{
+			//PRINTF("BLE Error: 0x%x\n", status);
+			return BLE_STATUS_ERROR;
+		}
+		
+		bytesRead += currSize;
+		currSize = size - bytesRead;
+		
+		// Need to call update here to process the message before we can send another
+		BLE_Update();
 	}
 	
-	return BLE_STATUS_SUCCESS;	
+	return BLE_STATUS_SUCCESS;
 }

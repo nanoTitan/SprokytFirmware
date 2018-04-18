@@ -217,7 +217,7 @@ void MPU9250_Update()
 	// Pass gyro rate as rad/s
 	//MadgwickQuaternionUpdate(ax, ay, az, gx*M_Pi_Over_180, gy*M_Pi_Over_180, gz*M_Pi_Over_180, my, mx, mz);
 	MahonyQuaternionUpdate(-ay, -ax, az, gy*M_Pi_Over_180, gx*M_Pi_Over_180, -gz*M_Pi_Over_180, mx, my, mz);
-
+	
 	// Serial print and/or display at 0.5 s rate independent of data rates
 	delt_t = HAL_GetTick() - count;
 	if (delt_t > 500) 
@@ -226,7 +226,7 @@ void MPU9250_Update()
 		tempCount = readTempData();  // Read the adc values
 		temperature = ((float) tempCount) / 333.87f + 21.0f; // Temperature in degrees Centigrade
 		//PRINTF(" temperature = %d  C\n", temperature); 
-    
+
 		//PRINTF("q0 = %d\n", q[0]);
 		//PRINTF("q1 = %d\n", q[1]);
 		//PRINTF("q2 = %d\n", q[2]);
@@ -253,8 +253,11 @@ void MPU9250_Update()
 		if (yaw < 0)
 			yaw += 360;
 
-		PRINTF("Yaw, Pitch, Roll: %.1f %.1f %.1f\n", yaw, pitch, roll);
+#if defined(PRINT_MPU9250_DEBUG)
+		//PRINTF("Yaw, Pitch, Roll: %.1f %.1f %.1f\n", yaw, pitch, roll);
 		//PRINTF("average rate = %d\n\r", (float) m_sumCount / m_sum);
+#endif	// PRINT_MPU9250_DEBUG
+		
 		count = HAL_GetTick(); 
 
 		if (count > 1 << 21) 

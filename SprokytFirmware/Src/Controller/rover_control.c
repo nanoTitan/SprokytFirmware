@@ -22,6 +22,8 @@ static Transform_t m_trans;
 static Transform_t m_lastTrans;
 static Transform_t m_ddTrans;
 static float m_currImuYaw = 0;
+static float m_uwbX = 0, m_uwbY = 0, m_uwbZ = 0;
+static float m_imuYaw = 0, m_ddYaw = 0;
 static uint8_t m_x = 0;
 static uint8_t m_y = 0;
 static BOOL m_updateInstructions = FALSE;
@@ -45,7 +47,7 @@ static void ParseTranslateQuadDrive(uint8_t _x, uint8_t _y);
 static void IMU_Callback(float yaw);
 static void DiffDrive_Callback(const Transform_t* transform);
 
-static void PrintTransform( );
+static void PrintTransform();
 
 /* Private functions ---------------------------------------------------------*/
 void RoverControl_init()
@@ -215,10 +217,7 @@ void UpdateDisconnected()
 }
 
 void UpdateSensorFusion()
-{
-	float uwb_x, uwb_y, uwb_z;
-	float imuYaw, ddYaw;
-		
+{		
 	static uint32_t lastTime = 0;
 	uint32_t currTime = HAL_GetTick();
 	uint32_t deltaTime = currTime - lastTime;
@@ -242,37 +241,37 @@ void UpdateSensorFusion()
 	m_hasDiffDriveUpdate = false;
 	
 #if defined(UWB_ENABLED)
-	UWB_GetPosition(&uwb_x, &uwb_y, &uwb_z);
+	UWB_GetPosition(&m_uwbX, &m_uwbY, &m_uwbZ);
 #else
-	uwb_x = m_ddTrans.x;
-	uwb_y = 0;
-	uwb_z = m_ddTrans.z;
+	m_uwbX = m_ddTrans.x;
+	m_uwbY = 0;
+	m_uwbZ = m_ddTrans.z;
 #endif
 	
 #if defined(IMU_ENABLED)
-	UpdateOrientationRounding(&imuYaw, &ddYaw);
+	UpdateOrientationRounding(&m_imuYaw, &m_ddYaw);
 #else
-	imuYaw = ddYaw = m_ddTrans.yaw;
+	m_imuYaw = m_ddYaw = m_ddTrans.yaw;
 #endif // IMU_ENABLED
-	
+		
 	// EKF Step
-	double z[6] = { uwb_x, m_ddTrans.x, uwb_z, m_ddTrans.z, imuYaw, ddYaw };
+	double z[6] = { m_uwbX, m_ddTrans.x, m_uwbZ, m_ddTrans.z, m_imuYaw, m_ddYaw };
 	TinyEKF_step(&m_ekf, z);
 	
 	// Switch, negate, and scale x,z coordinates so they show up correctly in app coordinates	
 #if defined(UWB_ENABLED)
 	m_trans.x = TinyEKF_getX(&m_ekf, 0);
-	m_trans.y = uwb_y;
+	m_trans.y = m_uwbY;
 	m_trans.z = TinyEKF_getX(&m_ekf, 1);
 #else
 	m_trans.x = m_ddTrans.x;
-	m_trans.y = uwb_y;
+	m_trans.y = m_uwbY;
 	m_trans.z = m_ddTrans.z;
 #endif	// UWB_ENABLED
 	
 #if defined(IMU_ENABLED)
 	//m_trans.yaw = TinyEKF_getX(&m_ekf, 2);
-	m_trans.yaw = imuYaw * 0.1f + ddYaw * 0.9f;
+	m_trans.yaw = m_imuYaw * 0.1f + m_ddYaw * 0.9f;
 #else
 	m_trans.yaw = m_ddTrans.yaw;
 #endif	// IMU_ENABLED
@@ -281,15 +280,15 @@ void UpdateSensorFusion()
 	static uint32_t lastDebugTime = 0;
 	
 	// EKF Debug twice a second
-	if (currTime - lastDebugTime >= 500)
-	{
-		float ekfDebug[7] = { currTime, uwb_x, m_ddTrans.x, uwb_z, m_ddTrans.z, imuYaw, ddYaw };
-		BLE_LogEkfDebug(ekfDebug, 28);		
+	//if (currTime - lastDebugTime >= 500)
+	//{
+		float ekfDebug[] = { currTime, m_uwbX, m_ddTrans.x, m_uwbZ, m_ddTrans.z, m_imuYaw, m_ddYaw };
+		BLE_LogEkfDebug(ekfDebug, sizeof(ekfDebug));		
 		lastDebugTime = currTime;
-	}
+	//}
 #endif // BLE_ENABLED && SENSOR_FUSION_DEBUG_ENABLED
 	
-	PrintTransform();
+	PrintTransform(currTime);
 	
 	lastTime = currTime;
 }
@@ -361,6 +360,11 @@ void IMU_Callback(float yaw)
 void DiffDrive_Callback(const Transform_t* transform)
 {	
 	memcpy((void*)&m_ddTrans, transform, sizeof(Transform_t));
+	
+	// Convert DiffDrive meters to millimeters
+	m_ddTrans.x *= 1000;
+	m_ddTrans.z *= 1000;
+	
 	m_hasDiffDriveUpdate = true;
 }
 
@@ -388,12 +392,19 @@ void RoverControl_parseInstruction(uint8_t data_length, uint8_t *att_data)
 
 void PrintTransform()
 {
-#if defined(PRINT_ROVER_CONTROL)
+#if defined(PRINT_ROVER_CONTROL_SENSORS) || defined(PRINT_ROVER_CONTROL_EKF)
 	static uint32_t lastPrintTime = 0;
 	uint32_t currTime = HAL_GetTick();
-	if (currTime - lastPrintTime >= 500)
+	//if (currTime - lastPrintTime >= 500)
 	{
+#if defined(PRINT_ROVER_CONTROL_SENSORS)
+		PRINTF("t: %u, uwbX: %.1f, ddX: %.1f, uwbZ: %.1f, ddZ: %.1f, imuYaw: %.1f ddYaw: %.1f\n", (unsigned int)currTime, m_uwbX, m_ddTrans.x, m_uwbZ, m_ddTrans.z, m_imuYaw, m_ddTrans.yaw);
+		//PRINTF("ddX: %.1f, tx: %.1f\n", m_ddTrans.x, m_trans.x);
+#endif	// PRINT_ROVER_CONTROL_SENSORS
+		
+#if defined(PRINT_ROVER_CONTROL_EKF)
 		PRINTF("x: %.1f y: %.1f z: %.1f yaw: %.1f\n", m_trans.x, m_trans.y, m_trans.z, m_trans.yaw);
+#endif	// PRINT_ROVER_CONTROL_EKF
 		lastPrintTime = currTime;
 	}
 #endif // PRINT_ROVER_CONTROL
@@ -562,3 +573,59 @@ void RunMotorTest()
 //	
 //	PRINTF("yaw: %.2f, pitch: %.2f, roll: %.2f\r\n", yaw, pitch, roll);			// yaw, pitch, roll
 //}
+
+void RoverControl_testEkf()
+{
+	TinyEKF_setX(&m_ekf, 0, 0.942139f);		
+	TinyEKF_setX(&m_ekf, 1, 0.9577565f);	
+	TinyEKF_setX(&m_ekf, 2, 415.2883f);	
+	
+	double z[37][6] = {
+		{0.9520856, 0.9520856, 0.9421462, 0.9421462, 411.1282, 298.2745}
+		,{0.9667729, 0.9667729, 0.8960334, 0.8960334, 406.834, 277.9906}
+		,{0.9709731, 0.9709731, 0.8161485, 0.8161485, 49.14162, 266.0803}
+		,{0.9513671, 0.9513671, 0.7272059, 0.7272059, 49.1935, 249.6224}
+		,{0.9052703, 0.9052703, 0.6454833, 0.6454833, 48.95052, 230.5659}
+		,{0.8374528, 0.8374528, 0.5847963, 0.5847963, 49.64451, 214.1801}
+		,{0.7592566, 0.7592566, 0.5484524, 0.5484524, 48.39381, 194.0408}
+		,{0.6658051, 0.6658051, 0.5438949, 0.5438949, 47.66346, 175.1285}
+		,{0.5853893, 0.5853893, 0.5520632, 0.5520632, 49.52862, 173.3961}
+		,{0.4984188, 0.4984188, 0.5636635, 0.5636635, 48.63243, 171.8081}
+		,{0.3985082, 0.3985082, 0.5822325, 0.5822325, 47.62164, 166.5387}
+		,{0.2807827, 0.2807827, 0.6164808, 0.6164808, 49.60786, 158.5984}
+		,{0.1675732, 0.1675732, 0.6827167, 0.6827167, 49.2504, 140.8411}
+		,{0.08128884, 0.08128884, 0.7790085, 0.7790085, 48.31254, 120.9183}
+		,{0.03576121, 0.03576121, 0.9005715, 0.9005715, 48.60368, 101.0676}
+		,{0.03152198, 0.03152198, 1.039063, 1.039063, 48.72433, 82.01099}
+		,{0.06825243, 0.06825243, 1.163792, 1.163792, 49.99883, 63.24308}
+		,{0.1463377, 0.1463377, 1.264519, 1.264519, 48.47321, 42.0931}
+		,{0.2622629, 0.2622629, 1.33907, 1.33907, 49.92546, 23.18081}
+		,{0.3902126, 0.3902126, 1.371497, 1.371497, 49.35937, 5.423484}
+		,{0.5156673, 0.5156673, 1.357955, 1.357955, 407.4227, 343.2629}
+		,{0.6345284, 0.6345284, 1.299634, 1.299634, 409.7602, 324.8561}
+		,{0.7324786, 0.7324786, 1.200966, 1.200966, 408.4748, 305.7273}
+		,{0.7863224, 0.7863224, 1.087374, 1.087374, 406.8214, 283.9276}
+		,{0.7956746, 0.7956746, 0.9573511, 0.9573511, 49.60493, 265.0154}
+		,{0.7607092, 0.7607092, 0.8240312, 0.8240312, 48.92987, 245.598}
+		,{0.6897933, 0.6897933, 0.7168453, 0.7168453, 48.69494, 225.3864}
+		,{0.584255, 0.584255, 0.6439623, 0.6439623, 48.69536, 205.1026}
+		,{0.4516983, 0.4516983, 0.6071463, 0.6071463, 49.94701, 185.4684}
+		,{0.3211712, 0.3211712, 0.6141115, 0.6141115, 49.85392, 166.9171}
+		,{0.2059708, 0.2059708, 0.666878, 0.666878, 48.82482, 144.9731}
+		,{0.1112584, 0.1112584, 0.7591339, 0.7591339, 49.60706, 126.4217}
+		,{0.04896531, 0.04896531, 0.8836794, 0.8836794, 49.29585, 107.2929}
+		,{0.03626117, 0.03626117, 0.9974952, 0.9974952, 47.7189, 80.80125}
+		,{0.03912865, 0.03912865, 1.009135, 1.009135, 54.92395, 71.63387}
+		,{0.03912865, 0.03912865, 1.009135, 1.009135, 54.5842, 71.63387}
+		,{0.03912865, 0.03912865, 1.009135, 1.009135, 54.83517, 71.63387}
+	};
+	
+	for (int i = 0; i < 37; ++i)
+	{
+		TinyEKF_step(&m_ekf, z[i]);
+		PRINTF("x: %f, z: %f, yaw: %f\r\n",
+			(float)TinyEKF_getX(&m_ekf, 0),
+			(float)TinyEKF_getX(&m_ekf, 1),
+			(float)TinyEKF_getX(&m_ekf, 2));
+	}
+}

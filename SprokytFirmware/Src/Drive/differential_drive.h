@@ -11,9 +11,9 @@
 typedef void(*DiffDriveCallback)(const Transform_t*);
 
 /* Exported macro ------------------------------------------------------------*/
-// *** All measurements are in SI units *** 
-#define DD_WHEEL_BASE_LENGTH	0.1524f
-#define DD_WHEEL_RADIUS			.055f
+// *** All measurements are in SI units (meters, seconds, etc) *** 
+#define DD_WHEEL_BASE_LENGTH	0.085f
+#define DD_WHEEL_RADIUS			.045f
 
 /* Exported constants --------------------------------------------------------*/
 
