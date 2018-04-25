@@ -175,6 +175,7 @@
     <ClCompile Include="Src\Motor\Servo.c" />
     <ClCompile Include="Src\Motor\StSpin220Stepper.c" />
     <ClCompile Include="Src\Motor\TB6612FNG.c" />
+    <ClCompile Include="Src\PID\pid.c" />
     <ClCompile Include="Src\Serial\serial_print.c" />
     <ClCompile Include="Src\stm32f4xx_hal_msp.c" />
     <ClCompile Include="Src\stm32xx_it.c" />
@@ -365,6 +366,7 @@
     <ClInclude Include="Src\Motor\Servo.h" />
     <ClInclude Include="Src\Motor\StSpin220Stepper.h" />
     <ClInclude Include="Src\Motor\TB6612FNG.h" />
+    <ClInclude Include="Src\PID\pid.h" />
     <ClInclude Include="Src\Serial\serial_print.h" />
     <ClInclude Include="Src\stm32f4xx_hal_conf.h" />
     <ClInclude Include="Src\stm32xx_it.h" />

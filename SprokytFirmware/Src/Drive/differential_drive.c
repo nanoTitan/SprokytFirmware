@@ -8,9 +8,16 @@
 #include "motor_controller.h"
 #include "imu.h"
 #include "BLE.h"
+#include "PID/pid.h"
+#include "stm32f4xx_hal_conf.h"
 
 
 /* Private variables ---------------------------------------------------------*/
+static float m_leftVel = 0;
+static float m_rightVel = 0;
+static direction_t m_leftDir = FWD;
+static direction_t m_rightDir = FWD;
+static float m_leftX = 0;
 static float m_leftAngVel = 0;
 static float m_rightAngVel = 0;
 static float m_vehicleVelocity = 0;
@@ -24,14 +31,29 @@ static DiffDriveCallback m_ddFuncCallback = NULL;
 const float DD_Half_Wheel_Base_Length = DD_WHEEL_BASE_LENGTH * 0.5f;
 const float DD_One_Over_Wheel_Base_Length = 1.0f / DD_WHEEL_BASE_LENGTH;
 
+static struct PID m_pidLeft;
+static struct PID m_pidRight;
+static bool m_pidAuto = true;
+
 /* Private function prototypes -----------------------------------------------*/
 
 
 void DiffDrive_Init()
 {
-#if defined(ENCODER_ENABLED)
-	Encoder_Init();
+#if !defined(ENCODER_ENABLED)
+	return;
 #endif // ENCODER_ENABLED
+	
+	Encoder_Init();
+	
+	// PIDs
+	PID_Create(&m_pidLeft, 0, 0, 0, 0, MAX_MOTOR_VEL_COUNT);
+	PID_SetTunings(&m_pidLeft, 0.001f, 0.000f, 0.000f);
+	PID_SetMode(&m_pidLeft, m_pidAuto);
+	
+	PID_Create(&m_pidRight, 0, 0, 0, 0, MAX_MOTOR_VEL_COUNT);
+	PID_SetTunings(&m_pidRight, 0.001f, 0.000f, 0.000f);
+	PID_SetMode(&m_pidRight, m_pidAuto);
 }
 
 /*
@@ -70,6 +92,37 @@ void DiffDrive_Update()
 	// Update the encoders frequently so the counts and velocities are accurate
 	Encoder_Update();
 	
+	// Update the PID controllers
+	if (m_pidAuto)
+	{
+		m_pidLeft.input = Encoder_GetAngVel1();
+		m_pidRight.input = Encoder_GetAngVel2();
+		
+//		m_pidLeft.setpoint = 10;
+//		m_pidRight.setpoint = 10;
+//		m_pidLeft.input = 1;
+//		m_pidRight.input = 1;
+//		m_rightDir = BWD;
+		
+		bool didCompLeft = PID_Compute(&m_pidLeft);
+		bool didCompRight = PID_Compute(&m_pidRight);
+		
+		if (didCompLeft)
+		{
+			float pwmLeft = m_pidLeft.output * MAX_MOTOR_VEL_COUNT;
+			//MotorController_setMotor(MOTOR_A, pwmLeft, m_leftDir);			
+		}
+		
+		if (didCompRight)
+		{
+			float pwmRight = m_pidRight.output * MAX_MOTOR_VEL_COUNT;
+			MotorController_setMotor(MOTOR_B, pwmRight, m_rightDir);
+			
+			PRINTF("RV: %.3f, %.3f, %i\n", m_pidRight.input, pwmRight, m_rightDir);
+			//PRINTF("RV: %.3f, %.3f, %.3f\n", m_pidRight.input, m_pidRight.output, m_pidRight.setpoint);
+		}
+	}
+	
 	// Update wheel velocities
 	// V = wR  translational velocity of wheel center is rotational velocity * wheel radius
 	// Vl is negated to account for reversed motor direction (wheel on left spins CCW to go forward)
@@ -90,7 +143,6 @@ void DiffDrive_Update()
 	
 	/*
 	Compute new position
-	
 	px = cos(theta/2) * (2Rsin(theta/2))
 	py = sin(theta/2) * (2Rsin(theta/2))
 	*/
@@ -142,6 +194,7 @@ void DiffDrive_Update()
 		//PRINTF("%.2f, %.2f, %.2f\n", m_transform.yaw, m_transform.pitch, m_transform.roll);		
 		//PRINTF("%.2f, %.2f, %.2f\n", m_transform.x, m_transform.z, m_transform.yaw);
 		//PRINTF("%.2f %.2f\n", m_angPosition, m_transform.yaw);	
+		//PRINTF("R: %.3f, %.3f, %.3f\n", m_pidRight.input, m_pidRight.output, m_pidRight.setpoint);
 		
 		lastPrintTime = currTime;
 	}
@@ -177,78 +230,93 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 	// A (left) - B (right)
 	// A needs to turn CCW to move forward, and B should turn clockwise
 	
-	direction_t dir = FWD;
 	float x = mapf(_x, 0, 254, -1, 1);		// In max at 254 (instead of 255) so that halfway of 127 will translate to 0 in mapf function
-	float y = mapf(_y, 0, 254, -1, 1);
+	float y = mapf(_y, 0, 254, -1, 1);	
 	
-	//PRINTF("%1.2f, %1.2f\n", x, y);	
-	
-	float left = 0;
-	float right = 0;
+	m_leftVel = 0;
+	m_rightVel = 0;
 	
 	if (x > 0)
 	{
 		if (y > 0)
 		{		
-			right = y - x;
-			if (right < 0)
+			m_rightVel = y - x;
+			if (m_rightVel < 0)
 			{
-				dir = BWD;
-				right = -right;
-			}	
+				m_rightDir = BWD;			// Spin opposite way to account for reversed motor
+				m_rightVel = -m_rightVel;
+			}
+			else if (m_rightVel > 0)
+			{
+				m_rightDir = FWD;			// Only change direction if we have to
+			}
 			
-			left = fmaxf(x, y);
-			
-			MotorController_setMotor(MOTOR_A, left, BWD);	// Spin opposite way to account for reversed motor
-			MotorController_setMotor(MOTOR_B, right, dir);
+			m_leftVel = fmaxf(x, y);
+			m_leftDir = BWD;
 		}
 		else
 		{
-			dir = BWD;
-			left = x + y;
-			if (left < 0)
+			m_leftVel = x + y;
+			if (m_leftVel < 0)
 			{
-				dir = FWD;
-				left = -left;
+				m_leftDir = FWD;		// Spin opposite way to account for reversed motor
+				m_leftVel = -m_leftVel;
+			}
+			else if (m_leftVel > 0)
+			{
+				m_leftDir = BWD;			// Only change direction if we have to
 			}
 			
-			right = fmaxf(x, -y);
-				
-			MotorController_setMotor(MOTOR_A, left, dir);	// Spin opposite way to account for reversed motor
-			MotorController_setMotor(MOTOR_B, right, BWD);
+			m_rightVel = fmaxf(x, -y);
+			m_rightDir = BWD;
 		}
 	}
 	else
 	{
 		if (y > 0)
 		{
-			dir = BWD;
-			left = x + y;
-			if (left < 0)
+			m_leftVel = x + y;
+			if (m_leftVel < 0)
 			{
-				dir = FWD;
-				left = -left;
-			}	
+				m_leftDir = FWD;			// Spin opposite way to account for reversed motor
+				m_leftVel = -m_leftVel;
+			}
+			else if (m_leftVel > 0)
+			{
+				m_leftDir = BWD;			// Only change direction if we have to
+			}
 			
-			right = fmaxf(-x, y);
-			
-			MotorController_setMotor(MOTOR_A, left, dir);	// Spin opposite way to account for reversed motor
-			MotorController_setMotor(MOTOR_B, right, FWD);
+			m_rightVel = fmaxf(-x, y);
+			m_rightDir = FWD;
 		}
 		else
 		{
-			right = y - x;
-			if (right < 0)
-			{
-				dir = BWD;
-				right = -right;
-			}	
 			
-			left = fmaxf(-x, -y);
-				
-			MotorController_setMotor(MOTOR_A, left, FWD);	// Spin opposite way to account for reversed motor
-			MotorController_setMotor(MOTOR_B, right, dir);
+			m_rightVel = y - x;
+			if (m_rightVel < 0)
+			{
+				m_rightDir = BWD;			// Spin opposite way to account for reversed motor
+				m_rightVel = -m_rightVel;
+			}
+			else if (m_rightVel > 0)
+			{
+				m_rightDir = FWD;			// Only change direction if we have to
+			}
+			
+			m_leftVel = fmaxf(-x, -y);
+			m_leftDir = FWD;
 		}
+	}
+	
+	if (m_pidAuto)
+	{
+		PID_Setpoint(&m_pidLeft, m_leftVel * MAX_MOTOR_VEL_COUNT);
+		PID_Setpoint(&m_pidRight, m_rightVel * MAX_MOTOR_VEL_COUNT);
+	}
+	else
+	{
+		//MotorController_setMotor(MOTOR_A, m_leftVel, m_leftDir);	
+		MotorController_setMotor(MOTOR_B, m_rightVel, m_rightDir);
 	}
 }
 

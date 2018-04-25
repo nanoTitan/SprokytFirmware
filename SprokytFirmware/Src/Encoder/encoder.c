@@ -98,7 +98,7 @@ void Encoder_Update()
 		//PRINTF("%2.3f, %2.3f\n", deltaCnt1, deltaCnt2);	
 		//PRINTF("%2.3f, %2.3f\n", deltaAngle1, deltaAngle2);	
 		//PRINTF("%2.3f, %2.3f\n", m_lastAngle1, m_lastAngle2);	
-		//PRINTF("%.4f, %.4f\n", m_angVel1, m_angVel2);	
+		PRINTF("%.4f, %.4f\n", m_angVel1, m_angVel2);	
 		
 		lastPrintTime = currTime;
 	}
