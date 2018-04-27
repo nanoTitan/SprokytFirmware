@@ -23,6 +23,8 @@ static float m_rightAngVel = 0;
 static float m_vehicleVelocity = 0;
 static float m_angVelocity = 0;
 static float m_angPosition = 0;
+static float m_velLeft = 0;
+static float m_velRight = 0;
 static float m_lastTime = 0;
 static Transform_t m_transform = { 0 };
 static Vector2_t m_vehiclePosition = { 0, 0 };
@@ -33,10 +35,10 @@ const float DD_One_Over_Wheel_Base_Length = 1.0f / DD_WHEEL_BASE_LENGTH;
 
 static struct PID m_pidLeft;
 static struct PID m_pidRight;
-static bool m_pidAuto = true;
+static bool m_pidAuto = false;
 
 /* Private function prototypes -----------------------------------------------*/
-
+static void UpdatePIDControllers();
 
 void DiffDrive_Init()
 {
@@ -47,12 +49,12 @@ void DiffDrive_Init()
 	Encoder_Init();
 	
 	// PIDs
-	PID_Create(&m_pidLeft, 0, 0, 0, 0, MAX_MOTOR_VEL_COUNT);
-	PID_SetTunings(&m_pidLeft, 0.001f, 0.000f, 0.000f);
+	PID_Create(&m_pidLeft, 0, 0, 0, -MAX_MOTOR_VEL_COUNT, MAX_MOTOR_VEL_COUNT);
+	PID_SetTunings(&m_pidLeft, 0.0005f, 0.0000f, 0.000f);
 	PID_SetMode(&m_pidLeft, m_pidAuto);
 	
-	PID_Create(&m_pidRight, 0, 0, 0, 0, MAX_MOTOR_VEL_COUNT);
-	PID_SetTunings(&m_pidRight, 0.001f, 0.000f, 0.000f);
+	PID_Create(&m_pidRight, 0, 0, 0, -MAX_MOTOR_VEL_COUNT, MAX_MOTOR_VEL_COUNT);
+	PID_SetTunings(&m_pidRight, 0.0005f, 0.0000f, 0.000f);
 	PID_SetMode(&m_pidRight, m_pidAuto);
 }
 
@@ -80,6 +82,10 @@ void DiffDrive_Update()
 	return;
 #endif // ENCODER_ENABLED
 	
+	// Update the encoders frequently so the counts and velocities are accurate
+	Encoder_Update();	
+	UpdatePIDControllers();
+	
 	float currTime = HAL_GetTick() * 0.001f;
 	float deltaTime = currTime - m_lastTime;
 	
@@ -87,40 +93,6 @@ void DiffDrive_Update()
 	if (deltaTime < 0.025f)
 	{
 		return;
-	}
-	
-	// Update the encoders frequently so the counts and velocities are accurate
-	Encoder_Update();
-	
-	// Update the PID controllers
-	if (m_pidAuto)
-	{
-		m_pidLeft.input = Encoder_GetAngVel1();
-		m_pidRight.input = Encoder_GetAngVel2();
-		
-//		m_pidLeft.setpoint = 10;
-//		m_pidRight.setpoint = 10;
-//		m_pidLeft.input = 1;
-//		m_pidRight.input = 1;
-//		m_rightDir = BWD;
-		
-		bool didCompLeft = PID_Compute(&m_pidLeft);
-		bool didCompRight = PID_Compute(&m_pidRight);
-		
-		if (didCompLeft)
-		{
-			float pwmLeft = m_pidLeft.output * MAX_MOTOR_VEL_COUNT;
-			//MotorController_setMotor(MOTOR_A, pwmLeft, m_leftDir);			
-		}
-		
-		if (didCompRight)
-		{
-			float pwmRight = m_pidRight.output * MAX_MOTOR_VEL_COUNT;
-			MotorController_setMotor(MOTOR_B, pwmRight, m_rightDir);
-			
-			PRINTF("RV: %.3f, %.3f, %i\n", m_pidRight.input, pwmRight, m_rightDir);
-			//PRINTF("RV: %.3f, %.3f, %.3f\n", m_pidRight.input, m_pidRight.output, m_pidRight.setpoint);
-		}
 	}
 	
 	// Update wheel velocities
@@ -201,6 +173,51 @@ void DiffDrive_Update()
 #endif // PRINT_DIFF_DRIVE
 }
 
+static void UpdatePIDControllers()
+{
+	// Update the PID controllers
+	if (!m_pidAuto)
+		return;
+	
+	if (PID_CanCompute(&m_pidRight))
+	{
+		
+		m_pidLeft.input = Encoder_GetAngVel1();
+		m_pidRight.input = Encoder_GetAngVel2();
+		
+		// PID inputs should be positive
+		if (m_pidLeft.input < 0)
+			m_pidLeft.input = -m_pidLeft.input;
+		
+		if (m_pidRight.input < 0)
+			m_pidRight.input = -m_pidRight.input;
+		
+//		m_pidLeft.setpoint = 10;
+//		m_pidRight.setpoint = 10;
+//		m_pidLeft.input = 1;
+//		m_pidRight.input = 1;
+//		m_rightDir = BWD;
+		
+		//PID_Compute(&m_pidLeft);
+		PID_Compute(&m_pidRight);
+		
+		m_velLeft += m_pidLeft.output * MAX_MOTOR_VEL_COUNT;
+		m_velRight += m_pidRight.output * MAX_MOTOR_VEL_COUNT;			// <------------ TODO: This should probably be accumulating, because as error goes down, so does output
+		
+		if (m_velLeft < 0) m_velLeft = 0;
+		else if (m_velLeft > MAX_MOTOR_VEL_COUNT) m_velLeft = MAX_MOTOR_VEL_COUNT;
+		
+		if (m_velRight < 0) m_velRight = 0;
+		else if (m_velRight > MAX_MOTOR_VEL_COUNT) m_velRight = MAX_MOTOR_VEL_COUNT;
+		
+		//MotorController_setMotor(MOTOR_A, m_velLeft, m_rightDir);
+		MotorController_setMotor(MOTOR_B, m_velRight, m_rightDir);
+		
+		//PRINTF("RV: %.3f, %.3f, %i\n", m_pidRight.input, m_velRight, m_rightDir);
+		//PRINTF("RV: %.3f, %.3f, %.3f\n", m_pidRight.input, m_pidRight.output, m_pidRight.setpoint);
+	}
+}
+
 void DiffDrive_RegisterCallback(DiffDriveCallback callback)
 {
 	m_ddFuncCallback = callback;
@@ -231,7 +248,7 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 	// A needs to turn CCW to move forward, and B should turn clockwise
 	
 	float x = mapf(_x, 0, 254, -1, 1);		// In max at 254 (instead of 255) so that halfway of 127 will translate to 0 in mapf function
-	float y = mapf(_y, 0, 254, -1, 1);	
+	float y = mapf(_y, 0, 254, -1, 1);
 	
 	m_leftVel = 0;
 	m_rightVel = 0;
@@ -291,7 +308,6 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 		}
 		else
 		{
-			
 			m_rightVel = y - x;
 			if (m_rightVel < 0)
 			{

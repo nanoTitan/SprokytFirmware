@@ -8,7 +8,7 @@
 
 static TIM_HandleTypeDef  timer1, timer2;
 static float m_lastCount1 = 0, m_lastCount2 = 0;
-static float m_lastTime = 0;
+static uint32_t m_lastTime = 0;
 static float m_lastAngle1 = 0, m_lastAngle2 = 0;
 static float m_angVel1 = 0, m_angVel2 = 0;			// Rotational speed in radian per second
 static int8_t m_dir1 = 0, m_dir2 = 0;				// Rotation direction. 0 for CW and 1 for CCW
@@ -27,14 +27,15 @@ void Encoder_Init()
 
 void Encoder_Update()
 {
-	float currTime = HAL_GetTick() * 0.001f;
-	float deltaTime = currTime - m_lastTime;
+	uint32_t currTime = HAL_GetTick();
+	uint32_t deltaTime = currTime - m_lastTime;
 	
-	// Prevent divide by zero with 1.0 / deltaTime
-	if (deltaTime == 0)
+	if (deltaTime < 10)
+	{
 		return;
+	}
 	
-	float oneOverDeltaTime = 1.0f / deltaTime;
+	float oneOverDeltaTime = 1.0f / (deltaTime * 0.001f);
 	
 	float currCount1 = (float)__HAL_TIM_GET_COUNTER(&timer1);
 	m_dir1 = __HAL_TIM_IS_TIM_COUNTING_DOWN(&timer1);

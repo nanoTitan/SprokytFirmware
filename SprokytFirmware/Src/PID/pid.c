@@ -6,7 +6,7 @@
 static void PID_Initialize(PID_t pid);
 
 void PID_Create(PID_t pid, float input, float output, float setpoint, float min, float max)
-{
+{	
 	pid->input = input;
 	pid->output = output;
 	pid->setpoint = setpoint;
@@ -27,35 +27,41 @@ void PID_Initialize(PID_t pid)
 	else if (pid->iterm < pid->outMin) pid->iterm = pid->outMin;
 }
 
+bool PID_CanCompute(PID_t pid)
+{
+	uint32_t currTime = HAL_GetTick();
+	uint32_t dT = currTime - pid->lastTime;
+	if (dT < pid->sampletime)
+		return false;
+	
+	return true;
+}
+
 bool PID_Compute(PID_t pid)
 {
 	// Check if control is enabled
 	if (!pid->isAutoMode)
 		return false;
 	
-	uint32_t currTime = HAL_GetTick();
-	uint32_t dT = currTime - pid->lastTime;
-	if (dT < pid->sampletime)
-		return false;
-	
 	// Integral
 	float error = pid->setpoint - pid->input;
+	
 	pid->iterm += pid->Ki * error;
 	
 	if (pid->iterm > pid->outMax) pid->iterm = pid->outMax;
 	else if (pid->iterm < pid->outMin) pid->iterm = pid->outMin;
 	
-	float input = pid->input - pid->lastInput;
-	
 	// Compute PID output
-	float out = pid->Kp * error + pid->iterm - pid->Kd * input;
+	float deltaInput = pid->input - pid->lastInput;
+	pid->output = pid->Kp * error + pid->iterm - pid->Kd * deltaInput;
 	
-	if (out > pid->outMax) out = pid->outMax;
-	else if (out < pid->outMin) out = pid->outMin;
+	//PRINTF("err/pIn/pOut/in/out: %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n", error, pid->setpoint, pid->input, pid->lastInput, deltaInput, pid->output);
 	
-	pid->output = out;
-	pid->lastInput = input;
-	pid->lastTime = currTime; 
+	if (pid->output > pid->outMax) pid->output = pid->outMax;
+	else if (pid->output < pid->outMin) pid->output = pid->outMin;
+	
+	pid->lastInput = pid->input;
+	pid->lastTime = HAL_GetTick(); 
 	
 	return true;
 }
