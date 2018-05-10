@@ -35,7 +35,11 @@ const float DD_One_Over_Wheel_Base_Length = 1.0f / DD_WHEEL_BASE_LENGTH;
 
 static struct PID m_pidLeft;
 static struct PID m_pidRight;
-static bool m_pidAuto = false;
+static bool m_pidAuto = true;
+
+static const float m_kP = 0.001f;
+static const float m_kI = 0.0000f;
+static const float m_kD = 0.0000f;
 
 /* Private function prototypes -----------------------------------------------*/
 static void UpdatePIDControllers();
@@ -50,11 +54,11 @@ void DiffDrive_Init()
 	
 	// PIDs
 	PID_Create(&m_pidLeft, 0, 0, 0, -MAX_MOTOR_VEL_COUNT, MAX_MOTOR_VEL_COUNT);
-	PID_SetTunings(&m_pidLeft, 0.0005f, 0.0000f, 0.000f);
+	PID_SetTunings(&m_pidLeft, m_kP, m_kI, m_kD);
 	PID_SetMode(&m_pidLeft, m_pidAuto);
 	
 	PID_Create(&m_pidRight, 0, 0, 0, -MAX_MOTOR_VEL_COUNT, MAX_MOTOR_VEL_COUNT);
-	PID_SetTunings(&m_pidRight, 0.0005f, 0.0000f, 0.000f);
+	PID_SetTunings(&m_pidRight, m_kP, m_kI, m_kD);
 	PID_SetMode(&m_pidRight, m_pidAuto);
 }
 
@@ -181,7 +185,6 @@ static void UpdatePIDControllers()
 	
 	if (PID_CanCompute(&m_pidRight))
 	{
-		
 		m_pidLeft.input = Encoder_GetAngVel1();
 		m_pidRight.input = Encoder_GetAngVel2();
 		
@@ -198,7 +201,7 @@ static void UpdatePIDControllers()
 //		m_pidRight.input = 1;
 //		m_rightDir = BWD;
 		
-		//PID_Compute(&m_pidLeft);
+		PID_Compute(&m_pidLeft);
 		PID_Compute(&m_pidRight);
 		
 		m_velLeft += m_pidLeft.output * MAX_MOTOR_VEL_COUNT;
@@ -210,7 +213,7 @@ static void UpdatePIDControllers()
 		if (m_velRight < 0) m_velRight = 0;
 		else if (m_velRight > MAX_MOTOR_VEL_COUNT) m_velRight = MAX_MOTOR_VEL_COUNT;
 		
-		//MotorController_setMotor(MOTOR_A, m_velLeft, m_rightDir);
+		MotorController_setMotor(MOTOR_A, m_velLeft, m_leftDir);
 		MotorController_setMotor(MOTOR_B, m_velRight, m_rightDir);
 		
 		//PRINTF("RV: %.3f, %.3f, %i\n", m_pidRight.input, m_velRight, m_rightDir);
@@ -320,7 +323,15 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 			}
 			
 			m_leftVel = fmaxf(-x, -y);
-			m_leftDir = FWD;
+			
+			if (m_leftVel > 0)
+			{
+				m_leftDir = FWD;
+			}	
+			else if (m_leftVel < 0)
+			{
+				m_leftDir = BWD;			// Only change direction if we have to
+			}	
 		}
 	}
 	
@@ -331,7 +342,7 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 	}
 	else
 	{
-		//MotorController_setMotor(MOTOR_A, m_leftVel, m_leftDir);	
+		MotorController_setMotor(MOTOR_A, m_leftVel, m_leftDir);	
 		MotorController_setMotor(MOTOR_B, m_rightVel, m_rightDir);
 	}
 }

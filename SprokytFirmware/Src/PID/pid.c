@@ -54,14 +54,14 @@ bool PID_Compute(PID_t pid)
 	// Compute PID output
 	float deltaInput = pid->input - pid->lastInput;
 	pid->output = pid->Kp * error + pid->iterm - pid->Kd * deltaInput;
-	
-	//PRINTF("err/pIn/pOut/in/out: %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n", error, pid->setpoint, pid->input, pid->lastInput, deltaInput, pid->output);
-	
+			
 	if (pid->output > pid->outMax) pid->output = pid->outMax;
 	else if (pid->output < pid->outMin) pid->output = pid->outMin;
 	
 	pid->lastInput = pid->input;
 	pid->lastTime = HAL_GetTick(); 
+	
+	PRINTF("err/pIn/pOut/in/out: %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n", error, pid->setpoint, pid->input, pid->lastInput, deltaInput, pid->output);
 	
 	return true;
 }

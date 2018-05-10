@@ -14,8 +14,8 @@
 // Component enable macros
 /*********************************************************/
 #define SERIAL_PRINT
-#define PRINT_ENCODER
-#define PRINT_DIFF_DRIVE
+//#define PRINT_ENCODER
+//#define PRINT_DIFF_DRIVE
 //#define PRINT_ROVER_CONTROL_SENSORS
 //#define PRINT_ROVER_CONTROL_EKF
 //#define PRINT_MPU9250_DEBUG
