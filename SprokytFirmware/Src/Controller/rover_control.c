@@ -168,7 +168,6 @@ void UpdateConnected()
 	{
 		DiffDrive_ParseTranslate(m_x, m_y);
 		m_updateInstructions = FALSE;
-		//PRINTF("x: %u, y: %u\r\n", m_x, m_y);
 	}
 	
 	DiffDrive_Update();
@@ -395,11 +394,12 @@ void PrintTransform()
 #if defined(PRINT_ROVER_CONTROL_SENSORS) || defined(PRINT_ROVER_CONTROL_EKF)
 	static uint32_t lastPrintTime = 0;
 	uint32_t currTime = HAL_GetTick();
-	//if (currTime - lastPrintTime >= 500)
+	if (currTime - lastPrintTime > 100)
 	{
 #if defined(PRINT_ROVER_CONTROL_SENSORS)
-		PRINTF("t: %u, uwbX: %.1f, ddX: %.1f, uwbZ: %.1f, ddZ: %.1f, imuYaw: %.1f ddYaw: %.1f\n", (unsigned int)currTime, m_uwbX, m_ddTrans.x, m_uwbZ, m_ddTrans.z, m_imuYaw, m_ddTrans.yaw);
+		//PRINTF("t: %u, uwbX: %.1f, ddX: %.1f, uwbZ: %.1f, ddZ: %.1f, imuYaw: %.1f ddYaw: %.1f\n", (unsigned int)currTime, m_uwbX, m_ddTrans.x, m_uwbZ, m_ddTrans.z, m_imuYaw, m_ddTrans.yaw);
 		//PRINTF("ddX: %.1f, tx: %.1f\n", m_ddTrans.x, m_trans.x);
+		PRINTF("ddYaw: %.2f\n", m_ddTrans.yaw);
 #endif	// PRINT_ROVER_CONTROL_SENSORS
 		
 #if defined(PRINT_ROVER_CONTROL_EKF)

@@ -61,7 +61,7 @@ bool PID_Compute(PID_t pid)
 	pid->lastInput = pid->input;
 	pid->lastTime = HAL_GetTick(); 
 	
-	PRINTF("err/pIn/pOut/in/out: %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n", error, pid->setpoint, pid->input, pid->lastInput, deltaInput, pid->output);
+	//PRINTF("err/pIn/pOut/in/out: %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n", error, pid->setpoint, pid->input, pid->lastInput, deltaInput, pid->output);
 	
 	return true;
 }
