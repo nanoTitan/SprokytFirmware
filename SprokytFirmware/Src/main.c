@@ -20,8 +20,10 @@ All Rights Reserved
 #include "Encoder.h"
 #include "serial_print.h"
 #include "rover_control.h"
+#include "square_test.h"
 
 /* Private variables ---------------------------------------------------------*/
+static bool m_doSquareTest = false;
 
 void blink();
 
@@ -124,6 +126,10 @@ int main()
 		MotorController_update();
 		ControlMgr_update();
 		
+		if (m_doSquareTest)
+		{
+			SquareTest_update();
+		}
 		//MotorController_UpdateMotorTest();
 	}
 }

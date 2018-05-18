@@ -6,7 +6,6 @@
 #include "TinyEKF.h"
 //#include "Wifi.h"
 #include "uwb.h"
-#include "math_ext.h"
 #include "debug.h"
 #include "MPU9250.h"
 #include <math.h>
@@ -345,6 +344,11 @@ bool UpdateTrackingError()
 #endif // IMU_ENABLED
 	
 	return false;
+}
+
+const Transform_t* RoverControl_getTransform()
+{
+	return &m_trans;
 }
 
 void IMU_Callback(float yaw)

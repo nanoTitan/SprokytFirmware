@@ -108,4 +108,18 @@ static float wrap_180(float x)
 	return x;
 }
 
+static float vector2_length(float x1, float y1, float x2, float y2)
+{
+	float x = x1 - x2;
+	float y = y1 - y2;
+	return sqrtf(x*x + y*y);
+}
+
+static float vector2_length_sqr(float x1, float y1, float x2, float y2)
+{
+	float x = x1 - x2;
+	float y = y1 - y2;
+	return x*x + y*y;
+}
+
 #endif // _MATH_EXT_H_

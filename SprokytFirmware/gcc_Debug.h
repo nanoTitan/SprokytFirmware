@@ -1413,6 +1413,7 @@
 //Src/Encoder
 //Src/Drive
 //Src/Serial
+//Src/Tests
 //Src/TinyEKF
 //X-CUBE-BLE1/Drivers/BSP/STM32F4xx-Nucleo
 //X-CUBE-BLE1/Drivers/BSP/X-NUCLEO-IDB0xA1
