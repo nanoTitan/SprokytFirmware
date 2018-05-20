@@ -6,9 +6,9 @@
 /* Exported macro ------------------------------------------------------------*/
 // *** All measurements are in SI units *** 
 #define ENCODER_COUNT_PER_REV				3575			// 12 counts per revolution for quadrature encoding * 298:1 gear ratio - 1 for 0 index = 3575
+#define ENCODER_ONE_OVER_COUNT_PER_REV		0.00027972f		// 1 / 3575
 #define ENCODER_COUNT_MAX_WRAP_CHECK		3500.0f			// A max threshold to see if the count wrapped around
 #define ENCODER_COUNT_MIN_WRAP_CHECK		50.0f			// A min threshold to see if the count wrapped around
-#define ENCODER_ONE_OVER_QUAD_COUNT_PER_REV	0.00027972f		// 1 / 3575
 
 /* Exported constants --------------------------------------------------------*/
 

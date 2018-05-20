@@ -403,7 +403,7 @@ void PrintTransform()
 #if defined(PRINT_ROVER_CONTROL_SENSORS)
 		//PRINTF("t: %u, uwbX: %.1f, ddX: %.1f, uwbZ: %.1f, ddZ: %.1f, imuYaw: %.1f ddYaw: %.1f\n", (unsigned int)currTime, m_uwbX, m_ddTrans.x, m_uwbZ, m_ddTrans.z, m_imuYaw, m_ddTrans.yaw);
 		//PRINTF("ddX: %.1f, tx: %.1f\n", m_ddTrans.x, m_trans.x);
-		PRINTF("ddYaw: %.2f\n", m_ddTrans.yaw);
+		//PRINTF("ddYaw: %.2f\n", m_ddTrans.yaw);
 #endif	// PRINT_ROVER_CONTROL_SENSORS
 		
 #if defined(PRINT_ROVER_CONTROL_EKF)

@@ -163,18 +163,28 @@ void DiffDrive_Update()
 
 #ifdef PRINT_DIFF_DRIVE
 	static float lastPrintTime = 0;
-	if (currTime - lastPrintTime > 0.5f)
+	if (currTime - lastPrintTime > 0.1f)
 	{		
 		//PRINTF("%.3f, %.3f\n", Vl, Vr);	
 		//PRINTF("%.2f, %.2f\n", m_angVelocity, m_angPosition);	
 		//PRINTF("%.2f, %.2f, %.2f\n", m_transform.yaw, m_transform.pitch, m_transform.roll);		
-		//PRINTF("%.2f, %.2f, %.2f\n", m_transform.x, m_transform.z, m_transform.yaw);
+		PRINTF("%.2f, %.2f, %.2f\n", m_transform.x, m_transform.z, m_transform.yaw);
 		//PRINTF("%.2f %.2f\n", m_angPosition, m_transform.yaw);	
 		//PRINTF("R: %.3f, %.3f, %.3f\n", m_pidRight.input, m_pidRight.output, m_pidRight.setpoint);
 		
 		lastPrintTime = currTime;
 	}
 #endif // PRINT_DIFF_DRIVE
+}
+
+void DiffDrive_SetPidAuto(bool isAuto)
+{
+	m_pidAuto = isAuto;
+}
+
+bool DiffDrive_GetPidAuto()
+{
+	return m_pidAuto;
 }
 
 static void UpdatePIDControllers()

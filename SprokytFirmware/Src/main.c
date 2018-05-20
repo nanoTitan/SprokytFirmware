@@ -23,7 +23,7 @@ All Rights Reserved
 #include "square_test.h"
 
 /* Private variables ---------------------------------------------------------*/
-static bool m_doSquareTest = false;
+static bool m_doSquareTest = true;
 
 void blink();
 
@@ -126,11 +126,14 @@ int main()
 		MotorController_update();
 		ControlMgr_update();
 		
+#if defined(SQUARE_TEST_ENABLED)
 		if (m_doSquareTest)
 		{
-			SquareTest_update();
+			SquareTest_start(ST_CW, 100.0f, 200000);
+			m_doSquareTest = false;
 		}
-		//MotorController_UpdateMotorTest();
+		SquareTest_update();
+#endif // SQUARE_TEST_ENABLED
 	}
 }
 
