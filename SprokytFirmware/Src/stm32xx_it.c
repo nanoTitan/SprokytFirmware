@@ -66,6 +66,15 @@ volatile uint8_t button_event = 0;
 extern SPI_HandleTypeDef SpiHandle;
 extern uint8_t magcal_request;
 extern TIM_HandleTypeDef hTimerStepClock;
+extern TIM_HandleTypeDef encoder_timer1;
+extern TIM_HandleTypeDef encoder_timer2;
+extern uint32_t encoder_elapsed_cyclecount1;
+extern uint32_t encoder_elapsed_cyclecount2;
+extern uint32_t encoder_last_cycletime;
+extern uint32_t encoder_test_count;
+
+uint32_t encoder_last_cyclecount1 = 0;
+uint32_t encoder_last_cyclecount2 = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 extern void BSP_MotorControl_FlagInterruptHandler(void);
@@ -178,13 +187,23 @@ void TIM_IMU_IRQHandler(void)
 }
 
 /**
-* @brief  This function handles TIM interrupt request for StSpin220 Stepper
+* @brief  These functions handle TIM interrupt request for quadrature encoders
 * @param  None
 * @retval None
 */
-void TIM2_IRQHandler(void)
-{
-	HAL_TIM_IRQHandler(&hTimerStepClock);
+void TIM_ENCODER1_IRQHandler(void) {
+	encoder_elapsed_cyclecount1 = DWT->CYCCNT - encoder_last_cyclecount1;
+	encoder_last_cyclecount1 = DWT->CYCCNT;
+	encoder_last_cycletime = HAL_GetTick();
+	++encoder_test_count;
+	HAL_TIM_IRQHandler(&encoder_timer1);
+}
+
+void TIM_ENCODER2_IRQHandler(void) {
+	encoder_elapsed_cyclecount2 = DWT->CYCCNT - encoder_last_cyclecount2;
+	encoder_last_cyclecount2 = DWT->CYCCNT;
+	encoder_last_cycletime = HAL_GetTick();
+	HAL_TIM_IRQHandler(&encoder_timer2);
 }
 
 

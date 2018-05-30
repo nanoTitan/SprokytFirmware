@@ -16,7 +16,7 @@
 #define SERIAL_PRINT
 //#define PRINT_ENCODER
 #define PRINT_DIFF_DRIVE
-#define PRINT_ROVER_CONTROL_SENSORS
+//#define PRINT_ROVER_CONTROL_SENSORS
 //#define PRINT_ROVER_CONTROL_EKF
 //#define PRINT_MPU9250_DEBUG
 
@@ -167,6 +167,7 @@
 #define ENCODER_1B_Pin						GPIO_PIN_1
 #define ENCODER_1_Alternate					GPIO_AF1_TIM2
 #define ENCODER_1_Port						GPIOA
+#define TIM_ENCODER1_IRQHandler				TIM2_IRQHandler
 
 #define TIM_ENCODER2	                    TIM3
 #define TIM_ENCODER2_CLK_ENABLE             __TIM3_CLK_ENABLE
@@ -175,6 +176,7 @@
 #define ENCODER_2B_Pin						GPIO_PIN_7
 #define ENCODER_2_Alternate					GPIO_AF2_TIM3
 #define ENCODER_2_Port						GPIOC
+#define TIM_ENCODER2_IRQHandler				TIM3_IRQHandler
 
 /* Definition for Stepper Motors resources */
 #define STEPPER_MOTOR_1						0

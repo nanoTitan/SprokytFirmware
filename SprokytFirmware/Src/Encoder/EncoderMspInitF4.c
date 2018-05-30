@@ -51,6 +51,9 @@ void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef *htim)
         GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	    
+	    HAL_NVIC_SetPriority(TIM2_IRQn, 0, 1);
+	    HAL_NVIC_EnableIRQ(TIM2_IRQn);
     }
     else if (htim->Instance == TIM3) { //PB4 PB5 = Nucleo D5 D4
         __TIM3_CLK_ENABLE();
@@ -61,6 +64,9 @@ void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef *htim)
         GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
         HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);			// Orig: GPIOB						Alt: GPIOC
+	    
+	    HAL_NVIC_SetPriority(TIM3_IRQn, 0, 1);
+	    HAL_NVIC_EnableIRQ(TIM3_IRQn);
     }
     else if (htim->Instance == TIM4) { // PB6 PB7 = Nucleo D10 MORPHO_PB7
         __TIM4_CLK_ENABLE();
@@ -71,6 +77,9 @@ void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef *htim)
         GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	    
+	    HAL_NVIC_SetPriority(TIM4_IRQn, 0, 1);
+	    HAL_NVIC_EnableIRQ(TIM4_IRQn);
     }
 	else if (htim->Instance == TIM5) { // PA1 PA0
 		__TIM5_CLK_ENABLE();
@@ -81,6 +90,9 @@ void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef *htim)
 		GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
 		GPIO_InitStruct.Alternate = GPIO_AF2_TIM5;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+		
+		HAL_NVIC_SetPriority(TIM5_IRQn, 0, 1);
+		HAL_NVIC_EnableIRQ(TIM5_IRQn);
 	}
 }
 

@@ -53,6 +53,11 @@ int main()
 	
 	PRINTF("Initialization start...\n\n");
 	
+	// Initialize Core Cycles Counter
+	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+	DWT->CYCCNT = 0;
+	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+	
 	//LEDMgr_Init();
 	
 	// Initialize Button and LED
@@ -129,7 +134,7 @@ int main()
 #if defined(SQUARE_TEST_ENABLED)
 		if (m_doSquareTest)
 		{
-			SquareTest_start(ST_CW, 100.0f, 200000);
+			SquareTest_start(ST_CW, 50.0f, 3000);
 			m_doSquareTest = false;
 		}
 		SquareTest_update();

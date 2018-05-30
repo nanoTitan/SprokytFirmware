@@ -11,6 +11,8 @@
 #include "PID/pid.h"
 #include "stm32f4xx_hal_conf.h"
 
+/* Private function prototypes -----------------------------------------------*/
+static void UpdatePIDControllers();
 
 /* Private variables ---------------------------------------------------------*/
 static float m_leftVel = 0;
@@ -25,24 +27,22 @@ static float m_angVelocity = 0;
 static float m_angPosition = 0;
 static float m_velLeft = 0;
 static float m_velRight = 0;
-static float m_lastTime = 0;
+static uint32_t m_lastTime = 0;
 static Transform_t m_transform = { 0 };
 static Vector2_t m_vehiclePosition = { 0, 0 };
 static Vector2_t m_icc = {0, 0};	// Instantaneous Center of Curvature (ICC). The point which the robot rotates about
 static DiffDriveCallback m_ddFuncCallback = NULL;
-const float DD_Half_Wheel_Base_Length = DD_WHEEL_BASE_LENGTH * 0.5f;
-const float DD_One_Over_Wheel_Base_Length = 1.0f / DD_WHEEL_BASE_LENGTH;
-
 static struct PID m_pidLeft;
 static struct PID m_pidRight;
 static bool m_pidAuto = true;
 
+/* Constants ---------------------------------------------------------*/
+static const uint32_t kDiffDriveUpdateTime = 10;
+static const float kDDHalfWheelBase = DD_WHEEL_BASE_LENGTH * 0.5f;
+static const float kDDOneOverWheelBaseLength = 1.0f / DD_WHEEL_BASE_LENGTH;
 static const float m_kP = 0.001f;
 static const float m_kI = 0.0000f;
 static const float m_kD = 0.0000f;
-
-/* Private function prototypes -----------------------------------------------*/
-static void UpdatePIDControllers();
 
 void DiffDrive_Init()
 {
@@ -90,39 +90,35 @@ void DiffDrive_Update()
 	Encoder_Update();	
 	UpdatePIDControllers();
 	
-	float currTime = HAL_GetTick() * 0.001f;
-	float deltaTime = currTime - m_lastTime;
-	
-	// Update once every 25ms
-	if (deltaTime < 0.025f)
+	uint32_t currTime = HAL_GetTick();
+	if (currTime < kDiffDriveUpdateTime)
 	{
 		return;
 	}
 	
-	// Update wheel velocities
-	// V = wR  translational velocity of wheel center is rotational velocity * wheel radius
-	// Vl is negated to account for reversed motor direction (wheel on left spins CCW to go forward)
-	float Vl = -Encoder_GetAngVel1() * DD_WHEEL_RADIUS;
-	float Vr = Encoder_GetAngVel2() * DD_WHEEL_RADIUS;
+	/*
+	Update wheel velocities
+	V = wR  translational velocity of wheel center is rotational velocity * wheel radius
+	Vl is negated to account for reversed motor direction (wheel on left spins CCW to go forward)
+	*/
+	
+	//float Vl = -Encoder_GetAngVel1() * DD_WHEEL_RADIUS;
+	//float Vr = Encoder_GetAngVel2() * DD_WHEEL_RADIUS;
+	float Vl = -Encoder_GetAngVelPulseTiming1() * DD_WHEEL_RADIUS;
+	float Vr = Encoder_GetAngVelPulseTiming2() * DD_WHEEL_RADIUS;
 	
 	float R = 0;
 	float VrMinusVl = Vr - Vl;
 	
 	// Prevent divide by zero, and also know if R is exact center
 	if (VrMinusVl != 0)
-		R = DD_Half_Wheel_Base_Length * ((Vl + Vr) / VrMinusVl);
+		R = kDDHalfWheelBase * ((Vl + Vr) / VrMinusVl);
 	
-	float angVel = VrMinusVl * DD_One_Over_Wheel_Base_Length;
+	float angVel = VrMinusVl * kDDOneOverWheelBaseLength;
 	
 	// Calculate the instantaneous rotation of the vehicle
-	float theta = angVel * deltaTime;
-	
-	/*
-	Compute new position
-	px = cos(theta/2) * (2Rsin(theta/2))
-	py = sin(theta/2) * (2Rsin(theta/2))
-	*/
-	
+	float deltaTime = (currTime * 0.001f) - (m_lastTime * 0.001f);
+	float theta = angVel * deltaTime;	
 	float cosTheta = cosf(theta);
 	float sinTheta = sinf(theta);
 	float RsinAng = R * sinf(m_angPosition);
@@ -162,15 +158,18 @@ void DiffDrive_Update()
 	m_lastTime = currTime;
 
 #ifdef PRINT_DIFF_DRIVE
-	static float lastPrintTime = 0;
-	if (currTime - lastPrintTime > 0.1f)
+	static uint32_t lastPrintTime = 0;
+	if (currTime - lastPrintTime > 100)
 	{		
-		//PRINTF("%.3f, %.3f\n", Vl, Vr);	
+		//PRINTF("%.3f, %.3f\n", Vl, Vr);
 		//PRINTF("%.2f, %.2f\n", m_angVelocity, m_angPosition);	
 		//PRINTF("%.2f, %.2f, %.2f\n", m_transform.yaw, m_transform.pitch, m_transform.roll);		
-		PRINTF("%.2f, %.2f, %.2f\n", m_transform.x, m_transform.z, m_transform.yaw);
+		PRINTF("%.4f, %.4f, %.2f\n", m_transform.x, m_transform.z, m_transform.yaw);
 		//PRINTF("%.2f %.2f\n", m_angPosition, m_transform.yaw);	
 		//PRINTF("R: %.3f, %.3f, %.3f\n", m_pidRight.input, m_pidRight.output, m_pidRight.setpoint);
+		
+		//float dist = vector2_length(m_transform.x, m_transform.z, 0, 0);
+		//PRINTF("dist: %.2f\n", dist);
 		
 		lastPrintTime = currTime;
 	}
@@ -261,7 +260,7 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 	// A needs to turn CCW to move forward, and B should turn clockwise
 	
 	float x = mapf(_x, 0, 254, -1, 1);		// In max at 254 (instead of 255) so that halfway of 127 will translate to 0 in mapf function
-	float y = mapf(_y, 0, 254, -1, 1);
+	float y = mapf(_y, 0, 254, -1, 1);	
 	
 	m_leftVel = 0;
 	m_rightVel = 0;
@@ -345,16 +344,16 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 		}
 	}
 	
-	if (m_pidAuto)
-	{
-		PID_Setpoint(&m_pidLeft, m_leftVel * MAX_MOTOR_VEL_COUNT);
-		PID_Setpoint(&m_pidRight, m_rightVel * MAX_MOTOR_VEL_COUNT);
-	}
-	else
+	if (!m_pidAuto || 
+		(m_leftVel == 0 && m_rightVel == 0))
 	{
 		MotorController_setMotor(MOTOR_A, m_leftVel, m_leftDir);	
 		MotorController_setMotor(MOTOR_B, m_rightVel, m_rightDir);
 	}
+	
+	// Update the setpoints if we stop the motors or in case we switch PID modes
+	PID_Setpoint(&m_pidLeft, m_leftVel * MAX_MOTOR_VEL_COUNT);
+	PID_Setpoint(&m_pidRight, m_rightVel * MAX_MOTOR_VEL_COUNT);
 }
 
 const Transform_t* DiffDrive_GetTransform()
