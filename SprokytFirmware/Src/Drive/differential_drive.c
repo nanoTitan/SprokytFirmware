@@ -344,21 +344,28 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 		}
 	}
 	
-	if (!m_pidAuto || 
-		(m_leftVel == 0 && m_rightVel == 0))
+	if (!m_pidAuto)	// No PID
 	{
+		MotorController_setMotor(MOTOR_A, m_leftVel, m_leftDir);	
+		MotorController_setMotor(MOTOR_B, m_rightVel, m_rightDir);
+	}
+	else if (m_leftVel == 0 && m_rightVel == 0)	// PID Auto Stop
+	{
+		// Completely set velocity to zero
 		PID_Reset(&m_pidLeft);
 		PID_Reset(&m_pidRight);
 		m_leftVelPID = 0;
 		m_rightVelPID = 0;
 		MotorController_setMotor(MOTOR_A, m_leftVel, m_leftDir);	
 		MotorController_setMotor(MOTOR_B, m_rightVel, m_rightDir);
-		return;
+	}
+	else	// PID Auto
+	{
+		// Update the setpoints if we stop the motors or in case we switch PID modes
+		PID_Setpoint(&m_pidLeft, m_leftVel * MAX_MOTOR_VEL_COUNT);
+		PID_Setpoint(&m_pidRight, m_rightVel * MAX_MOTOR_VEL_COUNT);
 	}
 	
-	// Update the setpoints if we stop the motors or in case we switch PID modes
-	PID_Setpoint(&m_pidLeft, m_leftVel * MAX_MOTOR_VEL_COUNT);
-	PID_Setpoint(&m_pidRight, m_rightVel * MAX_MOTOR_VEL_COUNT);
 }
 
 const Transform_t* DiffDrive_GetTransform()
