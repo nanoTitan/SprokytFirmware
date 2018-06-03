@@ -25,8 +25,8 @@ static float m_rightAngVel = 0;
 static float m_vehicleVelocity = 0;
 static float m_angVelocity = 0;
 static float m_angPosition = 0;
-static float m_velLeft = 0;
-static float m_velRight = 0;
+static float m_leftVelPID = 0;
+static float m_rightVelPID = 0;
 static uint32_t m_lastTime = 0;
 static Transform_t m_transform = { 0 };
 static Vector2_t m_vehiclePosition = { 0, 0 };
@@ -104,8 +104,8 @@ void DiffDrive_Update()
 	
 	//float Vl = -Encoder_GetAngVel1() * DD_WHEEL_RADIUS;
 	//float Vr = Encoder_GetAngVel2() * DD_WHEEL_RADIUS;
-	float Vl = -Encoder_GetAngVelPulseTiming1() * DD_WHEEL_RADIUS;
-	float Vr = Encoder_GetAngVelPulseTiming2() * DD_WHEEL_RADIUS;
+	float Vl = Encoder_GetAngVelPulseTiming1() * DD_WHEEL_RADIUS;
+	float Vr = -Encoder_GetAngVelPulseTiming2() * DD_WHEEL_RADIUS;
 	
 	float R = 0;
 	float VrMinusVl = Vr - Vl;
@@ -189,7 +189,7 @@ bool DiffDrive_GetPidAuto()
 static void UpdatePIDControllers()
 {
 	// Update the PID controllers
-	if (!m_pidAuto)
+	if (!m_pidAuto || (m_leftVel == 0 && m_rightVel == 0))
 		return;
 	
 	if (PID_CanCompute(&m_pidRight))
@@ -213,19 +213,19 @@ static void UpdatePIDControllers()
 		PID_Compute(&m_pidLeft);
 		PID_Compute(&m_pidRight);
 		
-		m_velLeft += m_pidLeft.output * MAX_MOTOR_VEL_COUNT;
-		m_velRight += m_pidRight.output * MAX_MOTOR_VEL_COUNT;			// <------------ TODO: This should probably be accumulating, because as error goes down, so does output
+		m_leftVelPID += m_pidLeft.output * MAX_MOTOR_VEL_COUNT;
+		m_rightVelPID += m_pidRight.output * MAX_MOTOR_VEL_COUNT;			// <------------ TODO: This should probably be accumulating, because as error goes down, so does output
 		
-		if (m_velLeft < 0) m_velLeft = 0;
-		else if (m_velLeft > MAX_MOTOR_VEL_COUNT) m_velLeft = MAX_MOTOR_VEL_COUNT;
+		if (m_leftVelPID < 0) m_leftVelPID = 0;
+		else if (m_leftVelPID > MAX_MOTOR_VEL_COUNT) m_leftVelPID = MAX_MOTOR_VEL_COUNT;
 		
-		if (m_velRight < 0) m_velRight = 0;
-		else if (m_velRight > MAX_MOTOR_VEL_COUNT) m_velRight = MAX_MOTOR_VEL_COUNT;
+		if (m_rightVelPID < 0) m_rightVelPID = 0;
+		else if (m_rightVelPID > MAX_MOTOR_VEL_COUNT) m_rightVelPID = MAX_MOTOR_VEL_COUNT;
 		
-		MotorController_setMotor(MOTOR_A, m_velLeft, m_leftDir);
-		MotorController_setMotor(MOTOR_B, m_velRight, m_rightDir);
+		MotorController_setMotor(MOTOR_A, m_leftVelPID, m_leftDir);
+		MotorController_setMotor(MOTOR_B, m_rightVelPID, m_rightDir);
 		
-		//PRINTF("RV: %.3f, %.3f, %i\n", m_pidRight.input, m_velRight, m_rightDir);
+		//PRINTF("RV: %.3f, %.3f, %i\n", m_pidRight.input, m_rightVelPID, m_rightDir);
 		//PRINTF("RV: %.3f, %.3f, %.3f\n", m_pidRight.input, m_pidRight.output, m_pidRight.setpoint);
 	}
 }
@@ -347,8 +347,13 @@ void DiffDrive_ParseTranslate(uint8_t _x, uint8_t _y)
 	if (!m_pidAuto || 
 		(m_leftVel == 0 && m_rightVel == 0))
 	{
+		PID_Reset(&m_pidLeft);
+		PID_Reset(&m_pidRight);
+		m_leftVelPID = 0;
+		m_rightVelPID = 0;
 		MotorController_setMotor(MOTOR_A, m_leftVel, m_leftDir);	
 		MotorController_setMotor(MOTOR_B, m_rightVel, m_rightDir);
+		return;
 	}
 	
 	// Update the setpoints if we stop the motors or in case we switch PID modes

@@ -19,6 +19,14 @@ void PID_Create(PID_t pid, float input, float output, float setpoint, float min,
 	PID_Initialize(pid);
 }
 
+void PID_Reset(PID_t pid)
+{
+	pid->input = 0;
+	pid->lastInput = 0;
+	pid->output = 0;
+	pid->setpoint = 0;
+}
+
 void PID_Initialize(PID_t pid)
 {
 	pid->lastInput = pid->input;

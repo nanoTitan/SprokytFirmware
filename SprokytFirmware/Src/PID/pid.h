@@ -28,6 +28,7 @@ struct PID {
 typedef struct PID* PID_t;
 
 void PID_Create(PID_t pid, float input, float output, float setpoint, float min, float max);
+void PID_Reset(PID_t pid);
 bool PID_CanCompute(PID_t _pid);
 bool PID_Compute(PID_t _pid);
 void PID_SetTunings(PID_t _pid, float Kp, float Ki, float Kd);
